@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Warframe Arcane Tracker</title>
+  <link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+  <h1>Warframe Arcane Tracker</h1>
+  <input
+    id="search"
+    type="text"
+    placeholder="Search arcanes..."
+  />
+  <div id="filters">
+    <button data-cat="All">All</button>
+    <button data-cat="Warframe">Warframe</button>
+    <button data-cat="Primary">Primary</button>
+    <button data-cat="Secondary">Secondary</button>
+    <button data-cat="Melee">Melee</button>
+    <button data-cat="Operator">Operator</button>
+    <button data-cat="Amp">Amp</button>
+    <button data-cat="Kitgun">Kitgun</button>
+    <button data-cat="Zaw">Zaw</button>
+  </div>
+
+  <div id="dropFilters"></div>
+
+  <div id="list"></div>
+
+  <script type="module" src="main.js"></script>
+</body>
+</html>

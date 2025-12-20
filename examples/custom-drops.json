@@ -1,0 +1,210 @@
+{
+  "Arcane Defense": {
+    "drops": [
+      {
+        "location": "???",
+        "chance": 0,
+        "rarity": "???",
+        "type": "Arcane Defense"
+      }
+    ]
+  },
+  "Arcane Detoxifier": {
+    "drops": [
+      {
+        "location": "???",
+        "chance": 0,
+        "rarity": "???",
+        "type": "Arcane Detoxifier"
+      }
+    ]
+  },
+  "Arcane Liquid": {
+    "drops": [
+      {
+        "location": "???",
+        "chance": 0,
+        "rarity": "???",
+        "type": "Arcane Liquid"
+      }
+    ]
+  },
+  "Arcane Protection": {
+    "drops": [
+      {
+        "location": "???",
+        "chance": 0,
+        "rarity": "???",
+        "type": "Arcane Protection"
+      }
+    ]
+  },
+  "Arcane Shield": {
+    "drops": [
+      {
+        "location": "???",
+        "chance": 0,
+        "rarity": "???",
+        "type": "Arcane Shield"
+      }
+    ]
+  },
+  "Arcane Survival": {
+    "drops": [
+      {
+        "location": "???",
+        "chance": 0,
+        "rarity": "???",
+        "type": "Arcane Survival"
+      }
+    ]
+  },
+  "Arcane Temperance": {
+    "drops": [
+      {
+        "location": "???",
+        "chance": 0,
+        "rarity": "???",
+        "type": "Arcane Temperance"
+      }
+    ]
+  },
+  "Pax Bolt": {
+    "drops": [
+      {
+        "location": "Solaris United (Rude Zuud), Old Mate",
+        "chance": 1.0,
+        "rarity": "Common",
+        "type": "Pax Bolt"
+      }
+    ]
+  },
+  "Pax Charge": {
+    "drops": [
+      {
+        "location": "Solaris United (Rude Zuud), Old Mate",
+        "chance": 1.0,
+        "rarity": "Common",
+        "type": "Pax Charge"
+      }
+    ]
+  },
+  "Pax Soar": {
+    "drops": [
+      {
+        "location": "Solaris United (Rude Zuud), Old Mate",
+        "chance": 1.0,
+        "rarity": "Common",
+        "type": "Pax Soar"
+      }
+    ]
+  },
+  "Arcane Circumvent": {
+    "releaseDate": "2025-12-10T20:46:20Z",
+    "updateName": "Update 41: The Old Peace ",
+    "drops": [
+      {
+        "location": "La Cathédrale (Roathe), The Descendia SP",
+        "chance": 1.0,
+        "rarity": "Rare",
+        "type": "Arcane Circumvent"
+      }
+    ]
+  },
+  "Arcane Concentration": {
+    "releaseDate": "2025-12-10T20:46:20Z",
+    "updateName": "Update 41: The Old Peace ",
+    "drops": [
+      {
+        "location": "La Cathédrale (Roathe), The Descendia SP",
+        "chance": 1.0,
+        "rarity": "Rare",
+        "type": "Arcane Concentration"
+      }
+    ]
+  },
+  "Arcane Expertise": {
+    "releaseDate": "2025-12-10T20:46:20Z",
+    "updateName": "Update 41: The Old Peace ",
+    "drops": [
+      {
+        "location": "La Cathédrale (Roathe), The Descendia SP",
+        "chance": 1.0,
+        "rarity": "Rare",
+        "type": "Arcane Expertise"
+      }
+    ]
+  },
+  "Arcane Persistence": {
+    "releaseDate": "2025-12-10T20:46:20Z",
+    "updateName": "Update 41: The Old Peace ",
+    "drops": [
+      {
+        "location": "La Cathédrale (Roathe), The Descendia SP",
+        "chance": 1.0,
+        "rarity": "Rare",
+        "type": "Arcane Persistence"
+      }
+    ]
+  },
+  "Melee Careen": {
+    "releaseDate": "2025-12-10T20:46:20Z",
+    "updateName": "Update 41: The Old Peace ",
+    "drops": [
+      {
+        "location": "La Cathédrale (Roathe), The Descendia SP",
+        "chance": 1.0,
+        "rarity": "Rare",
+        "type": "Melee Careen"
+      }
+    ]
+  },
+  "Primary Bulwark": {
+    "releaseDate": "2025-12-10T20:46:20Z",
+    "updateName": "Update 41: The Old Peace ",
+    "drops": [
+      {
+        "location": "La Cathédrale (Roathe), The Descendia SP",
+        "chance": 1.0,
+        "rarity": "Rare",
+        "type": "Primary Bulwark"
+      }
+    ]
+  },
+  "Primary Debilitate": {
+    "releaseDate": "2025-12-10T20:46:20Z",
+    "updateName": "Update 41: The Old Peace ",
+    "drops": [
+      {
+        "location": "La Cathédrale (Roathe)",
+        "chance": 1.0,
+        "rarity": "Rare",
+        "type": "Primary Debilitate"
+      }
+    ]
+  },
+  "Primary Overcharge": {
+    "releaseDate": "2025-12-10T20:46:20Z",
+    "updateName": "Update 41: The Old Peace ",
+    "drops": [
+      {
+        "location": "La Cathédrale (Roathe), The Descendia SP",
+        "chance": 1.0,
+        "rarity":"Rare",
+        "type": "Primary Overcharge"
+      }
+    ]
+  },
+  "Secondary Irradiate": {
+    "releaseDate": "2025-12-10T20:46:20Z",
+    "updateName": "Update 41: The Old Peace ",
+    "drops": [
+      {
+        "location": "La Cathédrale (Roathe)",
+        "chance": 1.0,
+        "rarity": "Rare",
+        "type": "Secondary Irradiate"
+      }
+    ]
+  }
+}
