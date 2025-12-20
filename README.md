@@ -36,7 +36,7 @@ Tool to assist with tracking warframe arcanes.
 
 5. Display extra arcane data regarding release date and drop location.
 
-This directory 
+This repository provides example files to illustrate how you can populate the `.json`  files.
 
 Note: The unninstaller does **not** remove the user data (i.e. the `../data` directory and its contents)
 
