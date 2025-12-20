@@ -84,14 +84,6 @@ async function init() {
         return acc;
       }, [])
       .map(arcane => {
-        // Fix known bad data in the API
-        // if (arcane.name === "Arcane Ice" && arcane.drops) {
-        //   // Remove Sisters of Parvos drops (those belong to Arcane Ice Storm)
-        //   arcane.drops = arcane.drops.filter(drop => 
-        //     !drop.location?.toLowerCase().includes('sister')
-        //   );
-        // }
-        
         // Merge custom drop data
         if (customDrops[arcane.name]) {
           console.log(`Applying custom data for: ${arcane.name}`);
@@ -323,13 +315,32 @@ function render() {
     return nameMatch && catMatch && dropMatch;
   });
 
+  // Separate into incomplete and complete arrays (faster than sorting)
+  const incomplete = [];
+  const complete = [];
+  
   filtered.forEach(a => {
     const have = owned[a.uniqueName] ?? 0;
     const totalNeeded = getNeededCopies(a);
+    if (have >= totalNeeded) {
+      complete.push(a);
+    } else {
+      incomplete.push(a);
+    }
+  });
+
+  // Use DocumentFragment for better performance
+  const fragment = document.createDocumentFragment();
+
+  // Render incomplete first, then complete
+  [...incomplete, ...complete].forEach(a => {
+    const have = owned[a.uniqueName] ?? 0;
+    const totalNeeded = getNeededCopies(a);
     const needed = Math.max(0, totalNeeded - have);
+    const isComplete = have >= totalNeeded;
 
     const row = document.createElement("div");
-    row.className = "arcane";
+    row.className = isComplete ? "arcane complete" : "arcane";
 
     const category = getArcaneCategory(a);
     
@@ -372,8 +383,10 @@ function render() {
       }
     };
 
-    list.appendChild(row);
+    fragment.appendChild(row);
   });
+  
+  list.appendChild(fragment);
 }
 
 // Get formatted drop locations for tooltip
