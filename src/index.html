@@ -2,31 +2,81 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Warframe Arcane Tracker</title>
+  <title>Warframe Collection Tracker</title>
   <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-  <h1>Warframe Arcane Tracker</h1>
-  <input
-    id="search"
-    type="text"
-    placeholder="Search arcanes..."
-  />
-  <div id="filters">
-    <button data-cat="All">All</button>
-    <button data-cat="Warframe">Warframe</button>
-    <button data-cat="Primary">Primary</button>
-    <button data-cat="Secondary">Secondary</button>
-    <button data-cat="Melee">Melee</button>
-    <button data-cat="Operator">Operator</button>
-    <button data-cat="Amp">Amp</button>
-    <button data-cat="Kitgun">Kitgun</button>
-    <button data-cat="Zaw">Zaw</button>
+  <h1>Warframe Collection Tracker</h1>
+  
+  <!-- Mode Selection Menu -->
+  <div id="modeSelector">
+    <button data-mode="arcanes" class="active">Arcanes</button>
+    <button data-mode="primes">Primes</button>
   </div>
 
-  <div id="dropFilters"></div>
+  <!-- Arcanes Section -->
+  <div id="arcanesSection" class="tracker-section active">
+    <input
+      id="search"
+      type="text"
+      placeholder="Search arcanes..."
+    />
+    <div id="filters">
+      <button data-cat="All">All</button>
+      <button data-cat="Warframe">Warframe</button>
+      <button data-cat="Primary">Primary</button>
+      <button data-cat="Secondary">Secondary</button>
+      <button data-cat="Melee">Melee</button>
+      <button data-cat="Operator">Operator</button>
+      <button data-cat="Amp">Amp</button>
+      <button data-cat="Kitgun">Kitgun</button>
+      <button data-cat="Zaw">Zaw</button>
+    </div>
+    <div id="dropFilters"></div>
+    <div id="list"></div>
+  </div>
 
-  <div id="list"></div>
+  <!-- Primes Section -->
+  <div id="primesSection" class="tracker-section">
+    <input
+      id="primeSearch"
+      type="text"
+      placeholder="Search primes..."
+    />
+    <div id="primeFilters">
+      <button data-cat="All">All</button>
+      <button data-cat="Warframe">Warframes</button>
+      <button data-cat="Primary">Primary</button>
+      <button data-cat="Secondary">Secondary</button>
+      <button data-cat="Melee">Melee</button>
+      <button data-cat="Arch-Gun">Arch-Guns</button>
+      <button data-cat="Arch-Melee">Arch-Melee</button>
+      <button data-cat="Sentinel">Sentinels</button>
+      <button data-cat="Archwing">Archwing</button>
+    </div>
+    <div id="primeVaultAndFounder">
+      <div id="primeVaultFilter">
+        <label>Status:</label>
+        <button data-vault="All" class="active">All</button>
+        <button data-vault="Available">Available</button>
+        <button data-vault="Resurgence">Resurgence Only</button>
+        <button data-vault="Vaulted">Vaulted</button>
+      </div>
+      <div id="founderFilter">
+        <label>
+          <input type="checkbox" id="founderToggle" />
+          <span>Show Founder Items</span>
+        </label>
+      </div>
+      <div id="specialFilter">
+        <label>
+          <input type="checkbox" id="specialToggle" />
+          <span>Show Special Items</span>
+        </label>
+      </div>
+    </div>
+    <div id="primeList"></div>
+  </div>
 
   <script type="module" src="main.js"></script>
 </body>
