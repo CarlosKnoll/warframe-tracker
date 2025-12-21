@@ -14,19 +14,23 @@
   </div>
 
   <div id="arcanesSection" class="tracker-section active">
-    <input
-      id="search"
-      type="text"
-      placeholder="Search arcanes..."
-    />
+    <div class="search-container">
+      <input
+        id="search"
+        type="text"
+        placeholder="Search arcanes..."
+      />
+      <button id="clearSearch" class="clear-search-btn" title="Clear search">✕</button>
+    </div>
     <div id="filters">
       <button data-cat="All">All</button>
       <button data-cat="Warframe">Warframe</button>
+      <button data-cat="Operator">Operator</button>
+      <button data-cat="Amp">Amp</button>
+      <button data-cat="Tektolyst Artifact">Tektolyst Artifact</button>
       <button data-cat="Primary">Primary</button>
       <button data-cat="Secondary">Secondary</button>
       <button data-cat="Melee">Melee</button>
-      <button data-cat="Operator">Operator</button>
-      <button data-cat="Amp">Amp</button>
       <button data-cat="Kitgun">Kitgun</button>
       <button data-cat="Zaw">Zaw</button>
     </div>
@@ -35,11 +39,14 @@
   </div>
 
   <div id="primesSection" class="tracker-section">
-    <input
-      id="primeSearch"
-      type="text"
-      placeholder="Search primes..."
-    />
+    <div class="search-container">
+      <input
+        id="primeSearch"
+        type="text"
+        placeholder="Search primes..."
+      />
+      <button id="clearPrimeSearch" class="clear-search-btn" title="Clear search">✕</button>
+    </div>
     <div id="primeFilters">
       <button data-cat="All">All</button>
       <button data-cat="Warframe">Warframes</button>
@@ -56,7 +63,6 @@
         <label>Status:</label>
         <button data-vault="All" class="active">All</button>
         <button data-vault="Available">Available</button>
-        <button data-vault="Resurgence">Resurgence Only</button>
         <button data-vault="Vaulted">Vaulted</button>
       </div>
       <div id="founderFilter">

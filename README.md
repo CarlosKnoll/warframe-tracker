@@ -36,7 +36,7 @@ Tool to assist with tracking warframe arcanes and prime items.
 
 5. Display extra arcane data regarding release date and drop location.
 
-6. Has the following filters for the primes list:
+6. Prime items have the following filters:
 
     - By type:
         - Warframe
@@ -49,13 +49,12 @@ Tool to assist with tracking warframe arcanes and prime items.
         - Archwings
     - By status:
         - Available
-        - Resurgence
         - Vaulted
         - Founders
         - Specials
 
+Note: No resurgence tag implemented, because I could not find a readily available endpoint for Varzia's stock data.
+
 This repository provides example files to illustrate how you can populate the `.json`  files.
 
 Note: The unninstaller does **not** remove the user data (i.e. the `../data` directory and its contents)
-
-

@@ -27,7 +27,7 @@ let ignoredPrimes = new Set();
 let saveFunction = null;
 
 let farmableRelics = new Set();
-let allAvailableRelics = new Set();
+let relicRewardsMap = new Map(); // Maps relic name to its rewards with accurate rarities
 
 function hasRelicDrops(prime) {
   if (!prime.components || prime.components.length === 0) return false;
@@ -48,10 +48,28 @@ export async function initPrimes(ownedData, ignoredData, saveFn) {
   ignoredPrimes = ignoredData;
   saveFunction = saveFn;
   
-  document.getElementById("primeSearch").oninput = e => {
+  // Show loading indicator
+  const primeList = document.getElementById("primeList");
+  primeList.innerHTML = '<div style="text-align: center; padding: 40px; opacity: 0.6;">Loading primes data...</div>';
+  
+  const searchInput = document.getElementById("primeSearch");
+  const clearBtn = document.getElementById("clearPrimeSearch");
+  
+  searchInput.oninput = e => {
     primeSearchText = e.target.value.toLowerCase();
+    clearBtn.style.display = primeSearchText ? 'block' : 'none';
     renderPrimes();
   };
+  
+  clearBtn.onclick = () => {
+    searchInput.value = '';
+    primeSearchText = '';
+    clearBtn.style.display = 'none';
+    renderPrimes();
+  };
+  
+  // Initialize clear button visibility
+  clearBtn.style.display = 'none';
   
   document.querySelectorAll("#primeFilters button").forEach(btn => {
     btn.onclick = () => {
@@ -85,6 +103,10 @@ export async function initPrimes(ownedData, ignoredData, saveFn) {
   
   document.getElementById("founderToggle").checked = showFounderItems;
   document.getElementById("specialToggle").checked = showSpecialItems;
+  clearBtn.style.display = 'none';
+  
+  // Hide empty category filters
+  updateCategoryFilters();
   
   renderPrimes();
 }
@@ -121,7 +143,8 @@ async function loadPrimes() {
       console.error("Error loading mission rewards data:", err);
     }
     
-    allAvailableRelics = new Set();
+    // Load relic rewards with accurate rarities based on drop chances
+    relicRewardsMap = new Map();
     try {
       const relicsRes = await fetch(RELICS_DROP_URL);
       const relicsJson = await relicsRes.json();
@@ -130,19 +153,36 @@ async function loadPrimes() {
       const intactRelics = relicsData.filter(relic => relic.state === 'Intact');
       
       intactRelics.forEach(relic => {
-        const format1 = `${relic.tier} ${relic.relicName}`;
-        allAvailableRelics.add(format1.toLowerCase());
+        const relicName = `${relic.tier} ${relic.relicName} Relic`;
+        const normalizedName = relicName.toLowerCase();
         
-        const format2 = `${relic.tier} ${relic.relicName} Relic`;
-        allAvailableRelics.add(format2.toLowerCase());
-        
-        allAvailableRelics.add(`${relic.tier}${relic.relicName}`.toLowerCase());
+        if (relic.rewards && Array.isArray(relic.rewards)) {
+          const rewardsWithRarity = relic.rewards.map(reward => {
+            // Determine rarity based on drop chance
+            // Common: ~25.33% (3 items), Uncommon: ~11% (2 items), Rare: ~2% (1 item)
+            let rarity = 'Common';
+            if (reward.chance <= 3) {
+              rarity = 'Rare';
+            } else if (reward.chance <= 12) {
+              rarity = 'Uncommon';
+            }
+            
+            return {
+              itemName: reward.itemName,
+              rarity: rarity,
+              chance: reward.chance
+            };
+          });
+          
+          relicRewardsMap.set(normalizedName, rewardsWithRarity);
+        }
       });
     } catch (err) {
-      console.error("Error loading all relics data:", err);
+      console.error("Error loading relics data:", err);
     }
     
-    for (const [category, url] of Object.entries(PRIME_URLS)) {
+    // Fetch all categories in parallel for faster loading
+    const categoryPromises = Object.entries(PRIME_URLS).map(async ([category, url]) => {
       try {
         const res = await fetch(url);
         const items = await res.json();
@@ -152,22 +192,26 @@ async function loadPrimes() {
           item.name.includes("Prime") && 
           item.isPrime === true
         ).map(item => {
-          const vaultStatus = checkPrimeVaultStatus(item, farmableRelics, allAvailableRelics);
+          const vaultStatus = checkPrimeVaultStatus(item, farmableRelics);
           
           return {
             ...item,
             category: category,
             vaulted: vaultStatus.vaulted,
-            resurgence: vaultStatus.resurgence,
-            components: extractPrimeComponents(item, vaultStatus, farmableRelics, allAvailableRelics)
+            resurgence: false, // Removed resurgence categorization
+            components: extractPrimeComponents(item, vaultStatus, farmableRelics)
           };
         });
         
-        primeData.push(...primes);
+        return primes;
       } catch (err) {
         console.error(`Error loading ${category}:`, err);
+        return [];
       }
-    }
+    });
+    
+    const results = await Promise.all(categoryPromises);
+    results.forEach(primes => primeData.push(...primes));
     
     allPrimes = primeData;
   } catch (err) {
@@ -175,10 +219,9 @@ async function loadPrimes() {
   }
 }
 
-function checkPrimeVaultStatus(item, farmableRelics, allAvailableRelics) {
+function checkPrimeVaultStatus(item, farmableRelics) {
   if (item.components && Array.isArray(item.components)) {
     let hasFarmableRelic = false;
-    let hasResurgenceRelic = false;
     let hasAnyRelic = false;
     
     for (const comp of item.components) {
@@ -193,28 +236,19 @@ function checkPrimeVaultStatus(item, farmableRelics, allAvailableRelics) {
             
             if (isRelicActive(relicLower, farmableRelics)) {
               hasFarmableRelic = true;
-            } else if (isRelicActive(relicLower, allAvailableRelics)) {
-              hasResurgenceRelic = true;
+              break;
             }
           }
         }
       }
+      if (hasFarmableRelic) break;
     }
     
-    if (hasFarmableRelic) {
-      return { vaulted: false, resurgence: false };
-    }
-    
-    if (hasResurgenceRelic && !hasFarmableRelic) {
-      return { vaulted: false, resurgence: true };
-    }
-    
-    if (hasAnyRelic && !hasFarmableRelic && !hasResurgenceRelic) {
-      return { vaulted: true, resurgence: false };
-    }
+    // Simplified: either available (in mission drops) or vaulted (not in mission drops)
+    return { vaulted: !hasFarmableRelic && hasAnyRelic };
   }
   
-  return { vaulted: true, resurgence: false };
+  return { vaulted: true };
 }
 
 function isRelicActive(relicName, activeRelics) {
@@ -236,16 +270,18 @@ function isRelicActive(relicName, activeRelics) {
   return false;
 }
 
-function extractPrimeComponents(item, vaultStatus, farmableRelics, allAvailableRelics) {
+function extractPrimeComponents(item, vaultStatus, farmableRelics) {
   const components = [];
   const seen = new Set();
+  
+  // Determine if this is a Warframe/Archwing/Sentinel category (which uses "Owned" instead of "Blueprint")
+  const isWarframeCategory = item.category === "Warframe" || item.category === "Archwing" || item.category === "Sentinel";
   
   const mainKey = `${item.uniqueName}_owned`;
   components.push({
     name: "Owned",
     uniqueName: mainKey,
     vaulted: vaultStatus.vaulted,
-    resurgence: vaultStatus.resurgence,
     isMainItem: true,
     drops: item.drops || []
   });
@@ -277,20 +313,20 @@ function extractPrimeComponents(item, vaultStatus, farmableRelics, allAvailableR
       if (seen.has(compKey)) return;
       seen.add(compKey);
       
-      if (comp.name === "Blueprint" && components.length > 1) {
+      // Only skip Blueprint for Warframe/Archwing/Sentinel categories
+      if (comp.name === "Blueprint" && isWarframeCategory && components.length > 1) {
         return;
       }
       
-      let compStatus = { vaulted: vaultStatus.vaulted, resurgence: vaultStatus.resurgence };
+      let compStatus = { vaulted: vaultStatus.vaulted };
       if (comp.drops && comp.drops.length > 0) {
-        compStatus = checkPrimeVaultStatus({ components: [comp] }, farmableRelics, allAvailableRelics);
+        compStatus = checkPrimeVaultStatus({ components: [comp] }, farmableRelics);
       }
       
       components.push({
         name: comp.name || "Component",
         uniqueName: compKey,
         vaulted: compStatus.vaulted,
-        resurgence: compStatus.resurgence,
         isMainItem: false,
         drops: comp.drops || []
       });
@@ -316,18 +352,18 @@ export function renderPrimes() {
     
     let vaultMatch = true;
     if (primeVaultStatus === "Available") {
-      vaultMatch = !p.vaulted && !p.resurgence;
-    } else if (primeVaultStatus === "Resurgence") {
-      vaultMatch = p.resurgence === true && !p.vaulted;
+      vaultMatch = !p.vaulted;
     } else if (primeVaultStatus === "Vaulted") {
       vaultMatch = p.vaulted === true;
     }
+    // Removed "Resurgence" filter option
     
     return nameMatch && catMatch && vaultMatch;
   });
 
   const incomplete = [];
-  const complete = [];
+  const completeTradeable = [];
+  const completeNonTradeable = [];
   
   filtered.forEach(p => {
     const isIgnored = ignoredPrimes.has(p.uniqueName);
@@ -335,7 +371,17 @@ export function renderPrimes() {
     const isOwned = ownedComp && (owned[ownedComp.uniqueName] ?? 0) > 0;
     
     if (isOwned || isIgnored) {
-      complete.push(p);
+      // Check if it's tradeable (owned + all components checked)
+      const nonOwnedComponents = p.components.filter(c => !c.isMainItem);
+      const allComponentsChecked = nonOwnedComponents.length > 0 && 
+        nonOwnedComponents.every(c => (owned[c.uniqueName] ?? 0) > 0);
+      const hasTradeableSet = isOwned && allComponentsChecked;
+      
+      if (hasTradeableSet) {
+        completeTradeable.push(p);
+      } else {
+        completeNonTradeable.push(p);
+      }
     } else {
       incomplete.push(p);
     }
@@ -343,22 +389,32 @@ export function renderPrimes() {
 
   const fragment = document.createDocumentFragment();
 
-  [...incomplete, ...complete].forEach(p => {
+  [...incomplete, ...completeTradeable, ...completeNonTradeable].forEach(p => {
     const isIgnored = ignoredPrimes.has(p.uniqueName);
     const ownedComp = p.components.find(c => c.isMainItem);
     const isOwned = ownedComp && (owned[ownedComp.uniqueName] ?? 0) > 0;
     const isComplete = isOwned || isIgnored;
+    
+    // Check if all non-owned components are checked (indicating a complete set for trade)
+    const nonOwnedComponents = p.components.filter(c => !c.isMainItem);
+    const allComponentsChecked = nonOwnedComponents.length > 0 && 
+      nonOwnedComponents.every(c => (owned[c.uniqueName] ?? 0) > 0);
+    const hasTradeableSet = isOwned && allComponentsChecked;
+    
     const isFounder = FOUNDER_ITEMS.includes(p.name);
     const isSpecial = !isFounder && !hasRelicDrops(p);
 
     const row = document.createElement("div");
     row.className = isComplete ? "prime complete" : "prime";
+    if (hasTradeableSet) {
+      row.classList.add("tradeable");
+    }
 
     const founderBadge = isFounder ? '<span class="founder-badge">FOUNDER</span>' : '';
     const specialBadge = isSpecial ? '<span class="special-badge">SPECIAL</span>' : '';
     const vaultBadge = (p.vaulted && !isFounder && !isSpecial) ? '<span class="vaulted-badge">VAULTED</span>' : '';
-    const resurgenceBadge = (p.resurgence && !p.vaulted && !isFounder && !isSpecial) ? '<span class="resurgence-badge">RESURGENCE</span>' : '';
     const ignoredLabel = isIgnored ? '<span class="ignored-label">(Ignored)</span>' : '';
+    const tradeableBadge = hasTradeableSet ? '<span class="tradeable-badge">TRADEABLE SET</span>' : '';
 
     row.innerHTML = `
       <div class="prime-header">
@@ -366,7 +422,7 @@ export function renderPrimes() {
         ${founderBadge}
         ${specialBadge}
         ${vaultBadge}
-        ${resurgenceBadge}
+        ${tradeableBadge}
         ${ignoredLabel}
         <span class="prime-category">${p.category}</span>
         ${(isFounder || isSpecial) ? `<button class="ignore-btn" data-unique="${p.uniqueName}">${isIgnored ? 'Unignore' : 'Ignore'}</button>` : ''}
@@ -383,15 +439,20 @@ export function renderPrimes() {
           `;
         }).join('')}
       </div>
-      <div class="drop-table" style="display: none;" data-unique="${p.uniqueName}">
-        ${buildDropTable(p)}
-      </div>
+      <div class="drop-table" style="display: none;" data-unique="${p.uniqueName}" data-loaded="false"></div>
     `;
 
     const expandBtn = row.querySelector('.expand-btn');
     const dropTable = row.querySelector('.drop-table');
     expandBtn.onclick = () => {
       const isExpanded = dropTable.style.display === 'block';
+      
+      if (!isExpanded && dropTable.dataset.loaded === 'false') {
+        // Lazy load the drop table content only when first expanded
+        dropTable.innerHTML = buildDropTable(p);
+        dropTable.dataset.loaded = 'true';
+      }
+      
       dropTable.style.display = isExpanded ? 'none' : 'block';
       expandBtn.textContent = isExpanded ? '▼' : '▲';
     };
@@ -449,7 +510,6 @@ function normalizeRelicName(location) {
 
 function buildDropTable(prime) {
   const farmableRows = [];
-  const resurgenceRows = [];
   const vaultedRows = [];
   
   prime.components.forEach(comp => {
@@ -464,79 +524,71 @@ function buildDropTable(prime) {
         
         if (!relicData.has(relicName)) {
           const relicLower = relicName.toLowerCase();
-          
           const isFarmable = isRelicActive(relicLower, farmableRelics);
-          const isAvailable = isRelicActive(relicLower, allAvailableRelics);
           
-          let status = 'vaulted';
-          if (isFarmable) {
-            status = 'farmable';
-          } else if (isAvailable) {
-            status = 'resurgence';
+          // Look up accurate rarity from relicRewardsMap
+          let rarity = 'Unknown';
+          const relicRewards = relicRewardsMap.get(relicLower);
+          if (relicRewards) {
+            // More efficient search - check if comp name is in item name
+            const compNameLower = comp.name.toLowerCase();
+            const reward = relicRewards.find(r => 
+              r.itemName && r.itemName.toLowerCase().includes(compNameLower)
+            );
+            if (reward) {
+              rarity = reward.rarity;
+            }
+          }
+          
+          // If still unknown, try fallback to original drop rarity
+          if (rarity === 'Unknown' && drop.rarity) {
+            rarity = drop.rarity;
           }
           
           relicData.set(relicName, {
             name: relicName,
-            rarity: drop.rarity || 'Unknown',
-            status: status
+            rarity: rarity,
+            status: isFarmable ? 'farmable' : 'vaulted'
           });
         }
       });
       
-      const farmable = [];
-      const resurgence = [];
-      const vaulted = [];
-      
       relicData.forEach(relic => {
+        const row = {
+          partName: comp.name,
+          relicName: relic.name,
+          rarity: relic.rarity
+        };
+        
         if (relic.status === 'farmable') {
-          farmable.push(relic);
-        } else if (relic.status === 'resurgence') {
-          resurgence.push(relic);
+          farmableRows.push(row);
         } else {
-          vaulted.push(relic);
+          vaultedRows.push(row);
         }
-      });
-      
-      farmable.sort((a, b) => a.name.localeCompare(b.name));
-      resurgence.sort((a, b) => a.name.localeCompare(b.name));
-      vaulted.sort((a, b) => a.name.localeCompare(b.name));
-      
-      farmable.forEach(relic => {
-        farmableRows.push({
-          partName: comp.name,
-          relicName: relic.name,
-          rarity: relic.rarity
-        });
-      });
-      
-      resurgence.forEach(relic => {
-        resurgenceRows.push({
-          partName: comp.name,
-          relicName: relic.name,
-          rarity: relic.rarity
-        });
-      });
-      
-      vaulted.forEach(relic => {
-        vaultedRows.push({
-          partName: comp.name,
-          relicName: relic.name,
-          rarity: relic.rarity
-        });
       });
     }
   });
   
-  if (farmableRows.length === 0 && resurgenceRows.length === 0 && vaultedRows.length === 0) {
+  if (farmableRows.length === 0 && vaultedRows.length === 0) {
     return '<div class="drop-tables-container"><p class="no-drops">No relic data available</p></div>';
   }
+  
+  // Sort by part name first, then by relic name
+  farmableRows.sort((a, b) => {
+    const partCompare = a.partName.localeCompare(b.partName);
+    return partCompare !== 0 ? partCompare : a.relicName.localeCompare(b.relicName);
+  });
+  vaultedRows.sort((a, b) => {
+    const partCompare = a.partName.localeCompare(b.partName);
+    return partCompare !== 0 ? partCompare : a.relicName.localeCompare(b.relicName);
+  });
   
   let html = '<div class="drop-tables-container">';
   
   if (farmableRows.length > 0) {
     html += `
       <div class="drop-table-wrapper farmable">
-        <h4>Farmable Relics (${farmableRows.length})</h4>
+        <h4>Available Relics (${farmableRows.length})</h4>
         <table>
           <thead>
             <tr>
@@ -550,32 +602,6 @@ function buildDropTable(prime) {
               <tr>
                 <td class="part-name">${row.partName}</td>
                 <td class="relic-name">${row.relicName}</td>
-                <td class="rarity rarity-${row.rarity.toLowerCase()}">${row.rarity}</td>
-              </tr>
-            `).join('')}
-          </tbody>
-        </table>
-      </div>
-    `;
-  }
-  
-  if (resurgenceRows.length > 0) {
-    html += `
-      <div class="drop-table-wrapper resurgence">
-        <h4>Prime Resurgence Only (${resurgenceRows.length})</h4>
-        <table>
-          <thead>
-            <tr>
-              <th>Part</th>
-              <th>Relic</th>
-              <th>Rarity</th>
-            </tr>
-          </thead>
-          <tbody>
-            ${resurgenceRows.map(row => `
-              <tr>
-                <td class="part-name">${row.partName}</td>
-                <td class="relic-name resurgence-relic">${row.relicName}</td>
                 <td class="rarity rarity-${row.rarity.toLowerCase()}">${row.rarity}</td>
               </tr>
             `).join('')}
@@ -625,4 +651,23 @@ export function togglePrimeIgnore(uniqueName) {
   } else {
     ignoredPrimes.add(uniqueName);
   }
+}
+
+function updateCategoryFilters() {
+  // Count items in each category
+  const categoryCounts = {};
+  allPrimes.forEach(prime => {
+    categoryCounts[prime.category] = (categoryCounts[prime.category] || 0) + 1;
+  });
+  
+  // Hide filter buttons for empty categories
+  document.querySelectorAll("#primeFilters button").forEach(btn => {
+    const category = btn.dataset.cat;
+    if (category === "All") {
+      btn.style.display = "inline-block";
+    } else {
+      const count = categoryCounts[category] || 0;
+      btn.style.display = count > 0 ? "inline-block" : "none";
+    }
+  });
 }

@@ -1,5 +1,6 @@
 {
   "Arcane Defense": {
+    "type": "Warframe Arcane",
     "drops": [
       {
         "location": "???",
@@ -10,6 +11,7 @@
     ]
   },
   "Arcane Detoxifier": {
+    "type": "Warframe Arcane",
     "drops": [
       {
         "location": "???",
@@ -20,6 +22,7 @@
     ]
   },
   "Arcane Liquid": {
+    "type": "Warframe Arcane",
     "drops": [
       {
         "location": "???",
@@ -30,6 +33,7 @@
     ]
   },
   "Arcane Protection": {
+    "type": "Warframe Arcane",
     "drops": [
       {
         "location": "???",
@@ -40,6 +44,7 @@
     ]
   },
   "Arcane Shield": {
+    "type": "Warframe Arcane",
     "drops": [
       {
         "location": "???",
@@ -50,6 +55,7 @@
     ]
   },
   "Arcane Survival": {
+    "type": "Warframe Arcane",
     "drops": [
       {
         "location": "???",
@@ -60,6 +66,7 @@
     ]
   },
   "Arcane Temperance": {
+    "type": "Warframe Arcane",
     "drops": [
       {
         "location": "???",
@@ -70,140 +77,403 @@
     ]
   },
   "Pax Bolt": {
+    "type": "Kitgun Arcane",
     "drops": [
       {
         "location": "Solaris United (Rude Zuud), Old Mate",
-        "chance": 1.0,
+        "chance": 100.0,
         "rarity": "Common",
         "type": "Pax Bolt"
       }
     ]
   },
   "Pax Charge": {
+    "type": "Kitgun Arcane",
     "drops": [
       {
         "location": "Solaris United (Rude Zuud), Old Mate",
-        "chance": 1.0,
+        "chance": 100.0,
         "rarity": "Common",
         "type": "Pax Charge"
       }
     ]
   },
   "Pax Soar": {
+    "type": "Kitgun Arcane",
     "drops": [
       {
         "location": "Solaris United (Rude Zuud), Old Mate",
-        "chance": 1.0,
+        "chance": 100.0,
         "rarity": "Common",
         "type": "Pax Soar"
       }
     ]
   },
   "Arcane Circumvent": {
+    "type": "Warframe Arcane",
     "releaseDate": "2025-12-10T20:46:20Z",
-    "updateName": "Update 41: The Old Peace ",
+    "updateName": "Update 41: The Old Peace",
     "drops": [
       {
-        "location": "La Cathédrale (Roathe), The Descendia SP",
-        "chance": 1.0,
+        "location": "La Cathédrale (Roathe)",
+        "chance": 100.0,
         "rarity": "Rare",
-        "type": "Arcane Circumvent"
+        "type": "Primary Overcharge"
+      },
+      {
+        "location": "The Descendia SP (Infernum 6)",
+        "chance": 11.0,
+        "rarity": "Rare",
+        "type": "Primary Overcharge"
+      },
+      {
+        "location": "The Descendia SP (Infernum 13)",
+        "chance": 11.0,
+        "rarity": "Rare",
+        "type": "Primary Overcharge"
+      },
+      {
+        "location": "The Descendia SP (Infernum 20) x3",
+        "chance": 11.0,
+        "rarity": "Rare",
+        "type": "Primary Overcharge"
       }
     ]
   },
   "Arcane Concentration": {
+    "type": "Warframe Arcane",
     "releaseDate": "2025-12-10T20:46:20Z",
-    "updateName": "Update 41: The Old Peace ",
+    "updateName": "Update 41: The Old Peace",
     "drops": [
       {
-        "location": "La Cathédrale (Roathe), The Descendia SP",
-        "chance": 1.0,
+        "location": "La Cathédrale (Roathe)",
+        "chance": 100.0,
         "rarity": "Rare",
-        "type": "Arcane Concentration"
+        "type": "Primary Overcharge"
+      },
+      {
+        "location": "The Descendia SP (Infernum 6)",
+        "chance": 11.0,
+        "rarity": "Rare",
+        "type": "Primary Overcharge"
+      },
+      {
+        "location": "The Descendia SP (Infernum 13)",
+        "chance": 11.0,
+        "rarity": "Rare",
+        "type": "Primary Overcharge"
+      },
+      {
+        "location": "The Descendia SP (Infernum 20) x3",
+        "chance": 11.0,
+        "rarity": "Rare",
+        "type": "Primary Overcharge"
       }
     ]
   },
   "Arcane Expertise": {
+    "type": "Warframe Arcane",
     "releaseDate": "2025-12-10T20:46:20Z",
-    "updateName": "Update 41: The Old Peace ",
+    "updateName": "Update 41: The Old Peace",
     "drops": [
       {
-        "location": "La Cathédrale (Roathe), The Descendia SP",
-        "chance": 1.0,
+        "location": "La Cathédrale (Roathe)",
+        "chance": 100.0,
         "rarity": "Rare",
-        "type": "Arcane Expertise"
+        "type": "Primary Overcharge"
+      },
+      {
+        "location": "The Descendia SP (Infernum 6)",
+        "chance": 11.0,
+        "rarity": "Rare",
+        "type": "Primary Overcharge"
+      },
+      {
+        "location": "The Descendia SP (Infernum 13)",
+        "chance": 11.0,
+        "rarity": "Rare",
+        "type": "Primary Overcharge"
+      },
+      {
+        "location": "The Descendia SP (Infernum 20) x3",
+        "chance": 11.0,
+        "rarity": "Rare",
+        "type": "Primary Overcharge"
       }
     ]
   },
   "Arcane Persistence": {
+    "type": "Warframe Arcane",
     "releaseDate": "2025-12-10T20:46:20Z",
-    "updateName": "Update 41: The Old Peace ",
+    "updateName": "Update 41: The Old Peace",
     "drops": [
       {
-        "location": "La Cathédrale (Roathe), The Descendia SP",
-        "chance": 1.0,
+        "location": "La Cathédrale (Roathe)",
+        "chance": 100.0,
         "rarity": "Rare",
-        "type": "Arcane Persistence"
+        "type": "Primary Overcharge"
+      },
+      {
+        "location": "The Descendia SP (Infernum 6)",
+        "chance": 11.0,
+        "rarity": "Rare",
+        "type": "Primary Overcharge"
+      },
+      {
+        "location": "The Descendia SP (Infernum 13)",
+        "chance": 11.0,
+        "rarity": "Rare",
+        "type": "Primary Overcharge"
+      },
+      {
+        "location": "The Descendia SP (Infernum 20) x3",
+        "chance": 11.0,
+        "rarity": "Rare",
+        "type": "Primary Overcharge"
       }
     ]
   },
   "Melee Careen": {
+    "type": "Melee Arcane",
     "releaseDate": "2025-12-10T20:46:20Z",
-    "updateName": "Update 41: The Old Peace ",
+    "updateName": "Update 41: The Old Peace",
     "drops": [
       {
-        "location": "La Cathédrale (Roathe), The Descendia SP",
-        "chance": 1.0,
+        "location": "La Cathédrale (Roathe)",
+        "chance": 100.0,
         "rarity": "Rare",
-        "type": "Melee Careen"
+        "type": "Primary Overcharge"
+      },
+      {
+        "location": "The Descendia SP (Infernum 6)",
+        "chance": 11.0,
+        "rarity": "Rare",
+        "type": "Primary Overcharge"
+      },
+      {
+        "location": "The Descendia SP (Infernum 13)",
+        "chance": 11.0,
+        "rarity": "Rare",
+        "type": "Primary Overcharge"
+      },
+      {
+        "location": "The Descendia SP (Infernum 20) x3",
+        "chance": 11.0,
+        "rarity": "Rare",
+        "type": "Primary Overcharge"
       }
     ]
   },
   "Primary Bulwark": {
+    "type": "Primary Arcane",
     "releaseDate": "2025-12-10T20:46:20Z",
-    "updateName": "Update 41: The Old Peace ",
+    "updateName": "Update 41: The Old Peace",
     "drops": [
       {
-        "location": "La Cathédrale (Roathe), The Descendia SP",
-        "chance": 1.0,
+        "location": "La Cathédrale (Roathe)",
+        "chance": 100.0,
         "rarity": "Rare",
-        "type": "Primary Bulwark"
+        "type": "Primary Overcharge"
+      },
+      {
+        "location": "The Descendia SP (Infernum 6)",
+        "chance": 11.0,
+        "rarity": "Rare",
+        "type": "Primary Overcharge"
+      },
+      {
+        "location": "The Descendia SP (Infernum 13)",
+        "chance": 11.0,
+        "rarity": "Rare",
+        "type": "Primary Overcharge"
+      },
+      {
+        "location": "The Descendia SP (Infernum 20) x3",
+        "chance": 11.0,
+        "rarity": "Rare",
+        "type": "Primary Overcharge"
       }
     ]
   },
   "Primary Debilitate": {
+    "type": "Primary Arcane",
     "releaseDate": "2025-12-10T20:46:20Z",
-    "updateName": "Update 41: The Old Peace ",
+    "updateName": "Update 41: The Old Peace",
     "drops": [
       {
         "location": "La Cathédrale (Roathe)",
-        "chance": 1.0,
+        "chance": 100.0,
         "rarity": "Rare",
         "type": "Primary Debilitate"
       }
     ]
   },
   "Primary Overcharge": {
+    "type": "Primary Arcane",
     "releaseDate": "2025-12-10T20:46:20Z",
-    "updateName": "Update 41: The Old Peace ",
+    "updateName": "Update 41: The Old Peace",
     "drops": [
       {
-        "location": "La Cathédrale (Roathe), The Descendia SP",
-        "chance": 1.0,
-        "rarity":"Rare",
+        "location": "La Cathédrale (Roathe)",
+        "chance": 100.0,
+        "rarity": "Rare",
+        "type": "Primary Overcharge"
+      },
+      {
+        "location": "The Descendia SP (Infernum 6)",
+        "chance": 11.0,
+        "rarity": "Rare",
+        "type": "Primary Overcharge"
+      },
+      {
+        "location": "The Descendia SP (Infernum 13)",
+        "chance": 11.0,
+        "rarity": "Rare",
+        "type": "Primary Overcharge"
+      },
+      {
+        "location": "The Descendia SP (Infernum 20) x3",
+        "chance": 11.0,
+        "rarity": "Rare",
         "type": "Primary Overcharge"
       }
     ]
   },
   "Secondary Irradiate": {
+    "type": "Secondary Arcane",
     "releaseDate": "2025-12-10T20:46:20Z",
-    "updateName": "Update 41: The Old Peace ",
+    "updateName": "Update 41: The Old Peace",
     "drops": [
       {
         "location": "La Cathédrale (Roathe)",
-        "chance": 1.0,
+        "chance": 100.0,
         "rarity": "Rare",
         "type": "Secondary Irradiate"
+      }
+    ]
+  },
+  "Zid-An Asheir": {
+    "type": "Tektolyst Artifact Arcane",
+    "releaseDate": "2025-12-10T20:46:20Z",
+    "updateName": "Update 41: The Old Peace",
+    "drops": [
+      {
+        "location": "The Perita Rebellion (Prime Vanguard), Rotation C",
+        "chance": 20.0,
+        "rarity": "Rare",
+        "type": "Zid-An Asheir"
+      },
+      {
+        "location": "The Perita Rebellion (Dactolyst), Rotation C",
+        "chance": 20.0,
+        "rarity": "Rare",
+        "type": "Zid-An Asheir"
+      },
+      {
+        "location": "The Perita Rebellion (Hunhullus), Rotation C",
+        "chance": 20.0,
+        "rarity": "Rare",
+        "type": "Zid-An Asheir"
+      }
+    ]
+  },
+  "Zid-An Haras": {
+    "type": "Tektolyst Artifact Arcane",
+    "releaseDate": "2025-12-10T20:46:20Z",
+    "updateName": "Update 41: The Old Peace",
+    "drops": [
+      {
+        "location": "The Perita Rebellion (Prime Vanguard), Rotation C",
+        "chance": 20.0,
+        "rarity": "Rare",
+        "type": "Zid-An Haras"
+      },
+      {
+        "location": "The Perita Rebellion (Dactolyst), Rotation C",
+        "chance": 20.0,
+        "rarity": "Rare",
+        "type": "Zid-An Haras"
+      },
+      {
+        "location": "The Perita Rebellion (Hunhullus), Rotation C",
+        "chance": 20.0,
+        "rarity": "Rare",
+        "type": "Zid-An Haras"
+      }
+    ]
+  },
+  "Zid-An Sek-Eel": {
+    "type": "Tektolyst Artifact Arcane",
+    "releaseDate": "2025-12-10T20:46:20Z",
+    "updateName": "Update 41: The Old Peace",
+    "drops": [
+      {
+        "location": "The Perita Rebellion (Prime Vanguard), Rotation C",
+        "chance": 20.0,
+        "rarity": "Rare",
+        "type": "Zid-An Sek-Eel"
+      },
+      {
+        "location": "The Perita Rebellion (Dactolyst), Rotation C",
+        "chance": 20.0,
+        "rarity": "Rare",
+        "type": "Zid-An Sek-Eel"
+      },
+      {
+        "location": "The Perita Rebellion (Hunhullus), Rotation C",
+        "chance": 20.0,
+        "rarity": "Rare",
+        "type": "Zid-An Sek-Eel"
+      }
+    ]
+  },
+  "Zid-An Uskos": {
+    "type": "Tektolyst Artifact Arcane",
+    "releaseDate": "2025-12-10T20:46:20Z",
+    "updateName": "Update 41: The Old Peace",
+    "drops": [
+      {
+        "location": "The Perita Rebellion (Prime Vanguard), Rotation C",
+        "chance": 20.0,
+        "rarity": "Rare",
+        "type": "Zid-An Uskos"
+      },
+      {
+        "location": "The Perita Rebellion (Dactolyst), Rotation C",
+        "chance": 20.0,
+        "rarity": "Rare",
+        "type": "Zid-An Uskos"
+      },
+      {
+        "location": "The Perita Rebellion (Hunhullus), Rotation C",
+        "chance": 20.0,
+        "rarity": "Rare",
+        "type": "Zid-An Uskos"
+      }
+    ]
+  },
+  "Zid-An Osbok": {
+    "type": "Tektolyst Artifact Arcane",
+    "releaseDate": "2025-12-10T20:46:20Z",
+    "updateName": "Update 41: The Old Peace",
+    "drops": [
+      {
+        "location": "The Perita Rebellion (Prime Vanguard), Rotation C",
+        "chance": 20.0,
+        "rarity": "Rare",
+        "type": "Zid-An Osbok"
+      },
+      {
+        "location": "The Perita Rebellion (Dactolyst), Rotation C",
+        "chance": 20.0,
+        "rarity": "Rare",
+        "type": "Zid-An Osbok"
+      },
+      {
+        "location": "The Perita Rebellion (Hunhullus), Rotation C",
+        "chance": 20.0,
+        "rarity": "Rare",
+        "type": "Zid-An Osbok"
       }
     ]
   }

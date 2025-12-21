@@ -14,10 +14,24 @@ export async function initArcanes(ownedData, saveFn) {
   owned = ownedData;
   saveFunction = saveFn;
   
-  document.getElementById("search").oninput = e => {
+  const searchInput = document.getElementById("search");
+  const clearBtn = document.getElementById("clearSearch");
+  
+  searchInput.oninput = e => {
     searchText = e.target.value.toLowerCase();
+    clearBtn.style.display = searchText ? 'block' : 'none';
     renderArcanes();
   };
+  
+  clearBtn.onclick = () => {
+    searchInput.value = '';
+    searchText = '';
+    clearBtn.style.display = 'none';
+    renderArcanes();
+  };
+  
+  // Initialize clear button visibility
+  clearBtn.style.display = 'none';
   
   document.querySelectorAll("#filters button").forEach(btn => {
     btn.onclick = () => {
@@ -77,30 +91,89 @@ async function loadArcanes() {
         return acc;
       }, [])
       .map(arcane => {
-        if (customDrops[arcane.name]) {
-          if (!arcane.drops || arcane.drops.length === 0) {
-            arcane.drops = customDrops[arcane.name].drops;
-          } else {
-            arcane.drops = [...arcane.drops, ...customDrops[arcane.name].drops];
+        const customData = customDrops[arcane.name];
+        if (customData) {
+          // Start with API drops (could be empty, could have data)
+          let mergedDrops = arcane.drops || [];
+          
+          // Add custom drops if they exist
+          if (customData.drops && customData.drops.length > 0) {
+            mergedDrops = [...mergedDrops, ...customData.drops];
           }
-          if (customDrops[arcane.name].releaseDate || customDrops[arcane.name].updateName) {
+          
+          // Assign the merged drops back
+          arcane.drops = mergedDrops;
+          
+          // Only use custom type if API type is missing or generic "Arcanes"
+          if (customData.type && (!arcane.type || arcane.type === "Arcanes")) {
+            arcane.type = customData.type;
+          }
+          
+          // Only add release info if it exists in custom data
+          if (customData.releaseDate || customData.updateName) {
             if (!arcane.patchlogs) arcane.patchlogs = [];
             arcane.patchlogs.push({
-              name: customDrops[arcane.name].updateName || "Custom Entry",
-              date: customDrops[arcane.name].releaseDate || new Date().toISOString(),
-              url: "", additions: "", changes: "", fixes: ""
+              name: customData.updateName || "Custom Entry",
+              date: customData.releaseDate || new Date().toISOString(),
+              url: "", 
+              additions: "", 
+              changes: "", 
+              fixes: ""
             });
           }
         }
         return arcane;
-      })
-      .filter(arcane => {
-        if (!arcane.drops || arcane.drops.length === 0) return true;
-        const allDropsAreUnknown = arcane.drops.every(drop => drop.location === "???");
-        return !allDropsAreUnknown;
       });
 
-    allArcanes = arcanes;
+    // Add custom-only arcanes that don't exist in the API
+    Object.keys(customDrops).forEach(arcaneName => {
+      const existsInAPI = arcanes.find(a => a.name === arcaneName);
+      if (!existsInAPI) {
+        const customData = customDrops[arcaneName];
+        // Filter out unknown drops from custom data
+        const validDrops = customData.drops ? customData.drops.filter(drop => 
+          drop && drop.location && drop.location !== "???"
+        ) : [];
+        
+        // Only add if it has valid drops AND a type
+        if (validDrops.length > 0 && customData.type) {
+          const newArcane = {
+            name: arcaneName,
+            uniqueName: `/Lotus/Upgrades/Mods/Warframe/${arcaneName.replace(/\s+/g, '')}`,
+            type: customData.type,
+            drops: validDrops,
+            levelStats: null,
+            maxRank: 5
+          };
+          
+          if (customData.releaseDate || customData.updateName) {
+            newArcane.patchlogs = [{
+              name: customData.updateName || "Custom Entry",
+              date: customData.releaseDate || new Date().toISOString(),
+              url: "", 
+              additions: "", 
+              changes: "", 
+              fixes: ""
+            }];
+          }
+          
+          arcanes.push(newArcane);
+        }
+      }
+    });
+
+    // Final filter: Remove any arcanes that ONLY have "???" drops or no drops at all
+    allArcanes = arcanes.filter(arcane => {
+      // If no drops, keep it (might be obtainable through other means)
+      if (!arcane.drops || arcane.drops.length === 0) return true;
+      
+      // If all drops are "???", filter it out
+      const hasValidDrop = arcane.drops.some(drop => 
+        drop && drop.location && drop.location !== "???"
+      );
+      
+      return hasValidDrop;
+    });
     updateDropSourceFilters();
   } catch (err) {
     console.error("Error loading arcanes:", err);
@@ -166,11 +239,13 @@ function parseDropSource(location) {
   if (loc.includes('netracell')) return 'Cavia';
   if (loc.includes('whisper')) return 'Cavia';
   if (loc.includes('circulus') || loc.includes('conjunction')) return 'Conjunction Survival';
+  if (loc.includes('descendia')) return 'Descendia';
   if (loc.includes('isolation vault')) return 'Isolation Vaults';
   if (loc.includes('duviri') && !loc.includes('undercroft')) return 'Duviri';
   if (loc.includes('eidolon')) return 'Eidolons';
   if (loc.includes('cathédrale')) return 'La Cathédrale';
   if (loc.includes('tyana') || loc.includes('mirror defense')) return 'Mirror Defense';
+  if (loc.includes('perita')) return 'Perita Rebellion';
   if (loc.includes('ostron')) return 'Ostron';
   if (loc.includes('operational supply')) return 'Plague Star';
   if (loc.includes('the quills')) return 'The Quills';
@@ -305,8 +380,9 @@ function getNeededCopies(arcane) {
 
 function isValidArcane(a) {
   if (!a.name) return false;
-  if (a.name === "Arcane") return false;
-  if (!a.type || a.type === "Arcanes") return false;
+  // Filter out the generic "Arcane" entry that's a placeholder
+  if (a.name === "Arcane" && !a.type) return false;
+  if (a.name === "Arcane" && a.type === "Arcane") return false;
   if (!a.uniqueName) return false;
   return true;
 }
@@ -315,11 +391,12 @@ function getArcaneCategory(arcane) {
   if (!arcane.type) return "Unknown";
   const type = arcane.type.toLowerCase();
   if (type.includes("warframe")) return "Warframe";
+  if (type.includes("operator") || type.includes("magus") || type.includes("emergence")) return "Operator";
+  if (type.includes("amp") || type.includes("virtuos")) return "Amp";
+  if (type.includes("tektolyst")) return "Tektolyst Artifact";
   if (type.includes("primary") || type.includes("bow arcane") || type.includes("shotgun arcane")) return "Primary";
   if (type.includes("secondary")) return "Secondary";
   if (type.includes("melee")) return "Melee";
-  if (type.includes("operator") || type.includes("magus") || type.includes("emergence")) return "Operator";
-  if (type.includes("amp") || type.includes("virtuos")) return "Amp";
   if (type.includes("kitgun") || type.includes("pax")) return "Kitgun";
   if (type.includes("zaw") || type.includes("exodia")) return "Zaw";
   return arcane.type;
