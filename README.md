@@ -1,5 +1,5 @@
 # warframe-tracker
-Tool to assist with tracking warframe arcanes.
+Tool to assist with tracking warframe arcanes and prime items.
 
 ### What it does?
 1. It fetches as much information as possible from the public available [API](https://raw.githubusercontent.com/WFCD/warframe-items/master/data/json/Arcanes.json).
@@ -15,7 +15,7 @@ Tool to assist with tracking warframe arcanes.
         - Operator
         - Amp
         - Kitgun
-        - Zawz
+        - Zaw
 
     - And then, by source:
         - Arbitrations
@@ -35,6 +35,24 @@ Tool to assist with tracking warframe arcanes.
         - Zariman
 
 5. Display extra arcane data regarding release date and drop location.
+
+6. Has the following filters for the primes list:
+
+    - By type:
+        - Warframe
+        - Primary
+        - Secondary
+        - Melee
+        - Arch-gun
+        - Arch-melee
+        - Sentinels
+        - Archwings
+    - By status:
+        - Available
+        - Resurgence
+        - Vaulted
+        - Founders
+        - Specials
 
 This repository provides example files to illustrate how you can populate the `.json`  files.
 

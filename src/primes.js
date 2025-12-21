@@ -117,8 +117,6 @@ async function loadPrimes() {
           }
         });
       });
-      
-      console.log(`Found ${farmableRelics.size} farmable relics from missions`);
     } catch (err) {
       console.error("Error loading mission rewards data:", err);
     }
@@ -140,8 +138,6 @@ async function loadPrimes() {
         
         allAvailableRelics.add(`${relic.tier}${relic.relicName}`.toLowerCase());
       });
-      
-      console.log(`Found ${intactRelics.length} total available relics (including Prime Resurgence)`);
     } catch (err) {
       console.error("Error loading all relics data:", err);
     }
@@ -174,26 +170,6 @@ async function loadPrimes() {
     }
     
     allPrimes = primeData;
-    console.log(`Total primes loaded: ${primeData.length}`);
-    
-    const primesWithoutRelics = primeData.filter(p => !hasRelicDrops(p) && !FOUNDER_ITEMS.includes(p.name));
-    console.log(`\n=== PRIMES WITHOUT RELIC DROPS (excluding Founders) ===`);
-    console.log(`Found ${primesWithoutRelics.length} special primes:`);
-    primesWithoutRelics.forEach(p => {
-      console.log(`  - ${p.name} (${p.category})`);
-      console.log(`    Components: ${p.components?.length || 0}`);
-      if (p.components && p.components.length > 0) {
-        p.components.forEach(comp => {
-          console.log(`      • ${comp.name}: ${comp.drops?.length || 0} drops`);
-          if (comp.drops && comp.drops.length > 0) {
-            comp.drops.forEach(drop => {
-              console.log(`        - ${drop.location}`);
-            });
-          }
-        });
-      }
-    });
-    console.log(`===\n`);
   } catch (err) {
     console.error("Error loading primes:", err);
   }
@@ -395,7 +371,6 @@ export function renderPrimes() {
         <span class="prime-category">${p.category}</span>
         ${(isFounder || isSpecial) ? `<button class="ignore-btn" data-unique="${p.uniqueName}">${isIgnored ? 'Unignore' : 'Ignore'}</button>` : ''}
         <button class="expand-btn" data-unique="${p.uniqueName}">▼</button>
-        <button class="debug-btn" data-unique="${p.uniqueName}" style="padding: 4px 8px; background: #444; margin-left: 8px; font-size: 0.8rem;">🐛 Debug</button>
       </div>
       <div class="prime-components">
         ${p.components.map(comp => {
@@ -421,60 +396,6 @@ export function renderPrimes() {
       expandBtn.textContent = isExpanded ? '▼' : '▲';
     };
 
-    const debugBtn = row.querySelector('.debug-btn');
-    if (debugBtn) {
-      debugBtn.onclick = () => {
-        console.log('╔═══════════════════════════════════════════════════════╗');
-        console.log(`║ DEBUG INFO FOR: ${p.name}`);
-        console.log('╚═══════════════════════════════════════════════════════╝');
-        console.log('Prime Status:');
-        console.log(`  - Vaulted:    ${p.vaulted}`);
-        console.log(`  - Resurgence: ${p.resurgence}`);
-        console.log(`  - Category:   ${p.category}`);
-        console.log(`\nComponents: ${p.components.length}`);
-        
-        p.components.forEach((comp, idx) => {
-          console.log(`\n  Component ${idx + 1}: ${comp.name}`);
-          console.log(`    - Is Main Item: ${comp.isMainItem}`);
-          console.log(`    - Component Status: vaulted=${comp.vaulted}, resurgence=${comp.resurgence}`);
-          console.log(`    - Drops count:  ${comp.drops?.length || 0}`);
-          
-          if (comp.drops && comp.drops.length > 0) {
-            const uniqueRelics = new Map();
-            comp.drops.forEach(drop => {
-              if (drop.location && drop.location.toLowerCase().includes('relic')) {
-                const normalized = normalizeRelicName(drop.location);
-                if (normalized && !uniqueRelics.has(normalized)) {
-                  uniqueRelics.set(normalized, drop);
-                }
-              }
-            });
-            
-            console.log(`    - Unique relics: ${uniqueRelics.size}`);
-            uniqueRelics.forEach((drop, relicName) => {
-              const relicLower = relicName.toLowerCase();
-              const isFarmable = isRelicActive(relicLower, farmableRelics);
-              const isAvailable = isRelicActive(relicLower, allAvailableRelics);
-              const status = isFarmable ? '🟢 FARMABLE' : isAvailable ? '🟡 RESURGENCE' : '🔴 VAULTED';
-              
-              console.log(`      • ${relicName}`);
-              console.log(`        - Original:   ${drop.location}`);
-              console.log(`        - Farmable:   ${isFarmable}`);
-              console.log(`        - Available:  ${isAvailable}`);
-              console.log(`        - Status:     ${status}`);
-              console.log(`        - Rarity:     ${drop.rarity || 'Unknown'}`);
-            });
-          }
-        });
-        
-        console.log(`\n  Global Relic Sets:`);
-        console.log(`    - Farmable relics loaded:  ${farmableRelics.size}`);
-        console.log(`    - Available relics loaded: ${allAvailableRelics.size}`);
-        
-        alert(`Debug info for ${p.name} printed to console (F12)`);
-      };
-    }
-
     const ignoreBtn = row.querySelector('.ignore-btn');
     if (ignoreBtn) {
       ignoreBtn.onclick = async () => {
@@ -493,7 +414,6 @@ export function renderPrimes() {
       checkbox.onchange = async (e) => {
         const uniqueName = e.target.dataset.unique;
         owned[uniqueName] = e.target.checked ? 1 : 0;
-        console.log(`Updated ${uniqueName} to ${e.target.checked}`);
         try {
           await saveFunction();
           renderPrimes();

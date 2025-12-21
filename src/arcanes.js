@@ -3,7 +3,6 @@ const invoke = window.__TAURI_INTERNALS__.invoke;
 
 const ARCANE_URL = "https://raw.githubusercontent.com/WFCD/warframe-items/master/data/json/Arcanes.json";
 
-// State
 let allArcanes = [];
 let searchText = "";
 let activeCategory = "All";
@@ -15,13 +14,11 @@ export async function initArcanes(ownedData, saveFn) {
   owned = ownedData;
   saveFunction = saveFn;
   
-  // Search handler
   document.getElementById("search").oninput = e => {
     searchText = e.target.value.toLowerCase();
     renderArcanes();
   };
   
-  // Category filter buttons
   document.querySelectorAll("#filters button").forEach(btn => {
     btn.onclick = () => {
       activeCategory = btn.dataset.cat;
@@ -47,7 +44,6 @@ async function loadArcanes() {
     let customDrops = {};
     try {
       customDrops = await invoke("load_custom_drops");
-      console.log("Loaded custom drops:", Object.keys(customDrops).length, "entries");
     } catch (err) {
       console.error("Error loading custom drop data:", err);
     }
@@ -82,7 +78,6 @@ async function loadArcanes() {
       }, [])
       .map(arcane => {
         if (customDrops[arcane.name]) {
-          console.log(`Applying custom data for: ${arcane.name}`);
           if (!arcane.drops || arcane.drops.length === 0) {
             arcane.drops = customDrops[arcane.name].drops;
           } else {
@@ -102,15 +97,10 @@ async function loadArcanes() {
       .filter(arcane => {
         if (!arcane.drops || arcane.drops.length === 0) return true;
         const allDropsAreUnknown = arcane.drops.every(drop => drop.location === "???");
-        if (allDropsAreUnknown) {
-          console.log(`Filtering out debug arcane: ${arcane.name}`);
-          return false;
-        }
-        return true;
+        return !allDropsAreUnknown;
       });
 
     allArcanes = arcanes;
-    console.log(`Total arcanes loaded: ${arcanes.length}`);
     updateDropSourceFilters();
   } catch (err) {
     console.error("Error loading arcanes:", err);
@@ -276,7 +266,6 @@ export function renderArcanes() {
     input.onchange = async (e) => {
       const newValue = Number(e.target.value);
       owned[a.uniqueName] = newValue;
-      console.log(`Updated ${a.name} to ${newValue}`);
       try {
         await saveFunction();
         renderArcanes();
