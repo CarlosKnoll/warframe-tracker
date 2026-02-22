@@ -31,7 +31,7 @@ jobs:
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
           tagName: ${{ github.ref_name }}
-          releaseName: "App v__VERSION__"
+          releaseName: "Warframe Tracker v__VERSION__"
           releaseBody: "See assets below to download this version."
           releaseDraft: true
           prerelease: false
