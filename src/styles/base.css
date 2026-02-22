@@ -1,0 +1,12 @@
+body {
+  font-family: system-ui, -apple-system, Segoe UI, sans-serif;
+  background: radial-gradient(circle at top, #1a1f2b, #0c0f16);
+  color: #e5e9f0;
+  padding: 24px;
+}
+
+h1 {
+  margin-bottom: 16px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}

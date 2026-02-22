@@ -1,0 +1,208 @@
+.prime {
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  padding: 16px;
+  margin-bottom: 8px;
+  transition: opacity 0.2s, background 0.2s;
+}
+
+.prime.complete {
+  opacity: 0.4;
+  background: rgba(255, 255, 255, 0.02);
+}
+
+.prime:hover {
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.prime.complete:hover {
+  opacity: 0.6;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.prime.tradeable {
+  border: 2px solid #88c0d0;
+  background: rgba(136, 192, 208, 0.08);
+}
+
+.prime.tradeable:hover {
+  background: rgba(136, 192, 208, 0.12);
+}
+
+.prime.complete.tradeable {
+  opacity: 0.5;
+  background: rgba(136, 192, 208, 0.06);
+}
+
+.prime.complete.tradeable:hover {
+  opacity: 0.7;
+  background: rgba(136, 192, 208, 0.09);
+}
+
+.prime-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+
+.prime-header strong {
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #d4af37;
+}
+
+.prime-category {
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+/* Badges */
+.vaulted-badge {
+  background: #bf616a;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.founder-badge {
+  background: #d4af37;
+  color: #0c0f16;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.special-badge {
+  background: #b48ead;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.tradeable-badge {
+  background: #88c0d0;
+  color: #0c0f16;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.resurgence-badge {
+  background: #d08770;
+  color: #fff;
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+.ignored-label {
+  color: #88c0d0;
+  font-size: 0.85rem;
+  opacity: 0.8;
+  font-style: italic;
+}
+
+/* Buttons */
+.ignore-btn {
+  padding: 4px 12px;
+  background: #bf616a;
+  border: 1px solid #a54a52;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: all 0.2s;
+}
+
+.ignore-btn:hover {
+  background: #d08770;
+  border-color: #bf616a;
+}
+
+.expand-btn {
+  margin-left: auto;
+  padding: 4px 12px;
+  background: #5e81ac;
+  border: 1px solid #4c6a92;
+  color: #fff;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: all 0.2s;
+}
+
+.expand-btn:hover {
+  background: #81a1c1;
+  border-color: #5e81ac;
+}
+
+/* Components */
+.prime-components {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.component {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid #2b3248;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.component.main-item {
+  background: rgba(212, 175, 55, 0.15);
+  border-color: #d4af37;
+  font-weight: 600;
+}
+
+.component:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #3d4a6e;
+}
+
+.component.main-item:hover {
+  background: rgba(212, 175, 55, 0.25);
+  border-color: #d4af37;
+}
+
+.component.owned {
+  background: rgba(163, 190, 140, 0.15);
+  border-color: #a3be8c;
+}
+
+.component.main-item.owned {
+  background: rgba(163, 190, 140, 0.25);
+  border-color: #a3be8c;
+}
+
+.component input[type="checkbox"] {
+  margin: 0;
+  cursor: pointer;
+  width: 16px;
+  height: 16px;
+}
+
+.component span {
+  font-size: 0.9rem;
+  user-select: none;
+}

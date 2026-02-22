@@ -31,7 +31,7 @@ document.querySelectorAll("#modeSelector button").forEach(btn => {
     } else {
       document.getElementById("primesSection").classList.add("active");
       if (!primesInitialized) {
-        primesModule = await import('./primes.js');
+        primesModule = await import('./primes/index.js');
         await primesModule.initPrimes(owned, ignoredPrimes, save);
         primesInitialized = true;
       }

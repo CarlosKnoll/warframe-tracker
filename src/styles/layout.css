@@ -1,0 +1,85 @@
+/* Mode Selector */
+#modeSelector {
+  margin-bottom: 24px;
+  display: flex;
+  gap: 8px;
+}
+
+#modeSelector button {
+  padding: 10px 24px;
+  background: #1b2238;
+  border: 2px solid #2b3248;
+  color: #e5e9f0;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 1rem;
+  font-weight: 500;
+  transition: all 0.2s;
+}
+
+#modeSelector button:hover {
+  background: #2a3556;
+  border-color: #3d4a6e;
+}
+
+#modeSelector button.active {
+  background: #5e81ac;
+  border-color: #5e81ac;
+  color: #fff;
+}
+
+/* Tracker Sections */
+.tracker-section {
+  display: none;
+}
+
+.tracker-section.active {
+  display: block;
+}
+
+#list, #primeList {
+  max-width: 1200px;
+}
+
+/* Search */
+.search-container {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+  max-width: 400px;
+  margin-bottom: 16px;
+}
+
+input[type="text"] {
+  width: 100%;
+  padding: 8px 35px 8px 10px;
+  background: #121726;
+  color: #e5e9f0;
+  border: 1px solid #2b3248;
+  border-radius: 6px;
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #e5e9f0;
+  font-size: 1.2rem;
+  cursor: pointer;
+  opacity: 0.5;
+  padding: 4px 8px;
+  line-height: 1;
+  transition: opacity 0.2s;
+  display: none;
+}
+
+.clear-search-btn:hover {
+  opacity: 1;
+}
+
+.clear-search-btn:active {
+  transform: translateY(-50%) scale(0.9);
+}

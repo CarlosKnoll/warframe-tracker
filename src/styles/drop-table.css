@@ -1,0 +1,125 @@
+.drop-table {
+  margin-top: 12px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  border: 1px solid #2b3248;
+}
+
+.drop-tables-container {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+}
+
+.drop-table-wrapper {
+  flex: 1;
+  min-width: 300px;
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 6px;
+  padding: 12px;
+  border: 1px solid #2b3248;
+}
+
+.drop-table-wrapper.farmable {
+  border-color: #a3be8c;
+}
+
+.drop-table-wrapper.farmable h4 {
+  color: #a3be8c;
+  border-bottom-color: #a3be8c;
+}
+
+.drop-table-wrapper.vaulted {
+  border-color: #d08770;
+}
+
+.drop-table-wrapper.vaulted h4 {
+  color: #d08770;
+  border-bottom-color: #d08770;
+}
+
+.drop-table-wrapper.unvaulted {
+  border-color: #a3be8c;
+}
+
+.drop-table-wrapper.resurgence {
+  border-color: #d08770;
+}
+
+.drop-table-wrapper.resurgence h4 {
+  color: #d08770;
+  border-bottom-color: #d08770;
+}
+
+.drop-table-wrapper h4 {
+  margin: 0 0 12px 0;
+  font-size: 0.95rem;
+  font-weight: 600;
+  opacity: 0.9;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.drop-table table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.drop-table th {
+  text-align: left;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-bottom: 2px solid #2b3248;
+}
+
+.drop-table td {
+  padding: 6px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.9rem;
+}
+
+.drop-table tr:last-child td {
+  border-bottom: none;
+}
+
+.part-name {
+  color: #88c0d0;
+  font-weight: 500;
+}
+
+.relic-name {
+  color: #e5e9f0;
+}
+
+.vaulted-relic {
+  color: #d08770;
+  opacity: 0.7;
+}
+
+.resurgence-relic {
+  color: #d08770;
+  opacity: 0.9;
+}
+
+.rarity {
+  text-align: center;
+  font-weight: 600;
+  text-transform: uppercase;
+  font-size: 0.8rem;
+}
+
+.rarity-common { color: #cd7f32; }
+.rarity-uncommon { color: #c0c0c0; }
+.rarity-rare { color: #ffd700; }
+
+.no-drops {
+  text-align: center;
+  opacity: 0.6;
+  padding: 12px;
+  font-size: 0.9rem;
+}

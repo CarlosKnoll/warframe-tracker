@@ -1,0 +1,113 @@
+/* Relic button — looks like text, acts like a button */
+.relic-btn {
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 0;
+  font: inherit;
+  font-size: 0.9rem;
+  color: #e5e9f0;
+  cursor: pointer;
+  text-decoration: underline dotted;
+  text-underline-offset: 3px;
+  transition: opacity 0.2s;
+}
+
+.relic-btn:hover {
+  opacity: 0.75;
+}
+
+.relic-btn.vaulted-relic {
+  color: #d08770;
+  opacity: 0.7;
+}
+
+.relic-btn.vaulted-relic:hover {
+  opacity: 1;
+}
+
+/* Modal overlay */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-overlay.hidden {
+  display: none;
+}
+
+/* Modal box */
+.modal-box {
+  background: #1a1f2b;
+  border: 1px solid #2b3248;
+  border-radius: 8px;
+  padding: 20px;
+  min-width: 420px;
+  max-width: 580px;
+  max-height: 80vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 16px;
+  padding-bottom: 12px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.1);
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: #d4af37;
+}
+
+#modalClose {
+  background: transparent;
+  border: none;
+  color: #e5e9f0;
+  font-size: 1.2rem;
+  cursor: pointer;
+  opacity: 0.5;
+  padding: 4px 8px;
+  line-height: 1;
+  transition: opacity 0.2s;
+}
+
+#modalClose:hover {
+  opacity: 1;
+}
+
+/* Modal table */
+.modal-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.modal-table th {
+  text-align: left;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.05);
+  font-weight: 600;
+  font-size: 0.9rem;
+  border-bottom: 2px solid #2b3248;
+}
+
+.modal-table td {
+  padding: 6px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+  font-size: 0.9rem;
+}
+
+.modal-table tr:last-child td {
+  border-bottom: none;
+}
