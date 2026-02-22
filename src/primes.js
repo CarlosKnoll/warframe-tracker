@@ -1,5 +1,6 @@
 // primes.js - Primes tracking logic
 const invoke = window.__TAURI_INTERNALS__.invoke;
+import { openRelicModal } from './modal.js';
 
 const RELICS_DROP_URL = "https://raw.githubusercontent.com/WFCD/warframe-drop-data/gh-pages/data/relics.json";
 const MISSION_REWARDS_URL = "https://raw.githubusercontent.com/WFCD/warframe-drop-data/gh-pages/data/missionRewards.json";
@@ -451,6 +452,15 @@ export function renderPrimes() {
         // Lazy load the drop table content only when first expanded
         dropTable.innerHTML = buildDropTable(p);
         dropTable.dataset.loaded = 'true';
+
+        // Wire up relic buttons after inserting HTML
+        dropTable.querySelectorAll('.relic-btn').forEach(btn => {
+          btn.onclick = () => {
+            const relicName = btn.dataset.relic;
+            const rewards = relicRewardsMap.get(relicName.toLowerCase());
+            openRelicModal(relicName, rewards);
+          };
+        });
       }
       
       dropTable.style.display = isExpanded ? 'none' : 'block';
@@ -530,7 +540,6 @@ function buildDropTable(prime) {
           let rarity = 'Unknown';
           const relicRewards = relicRewardsMap.get(relicLower);
           if (relicRewards) {
-            // More efficient search - check if comp name is in item name
             const compNameLower = comp.name.toLowerCase();
             const reward = relicRewards.find(r => 
               r.itemName && r.itemName.toLowerCase().includes(compNameLower)
@@ -601,7 +610,7 @@ function buildDropTable(prime) {
             ${farmableRows.map(row => `
               <tr>
                 <td class="part-name">${row.partName}</td>
-                <td class="relic-name">${row.relicName}</td>
+                <td><button class="relic-btn" data-relic="${row.relicName}">${row.relicName}</button></td>
                 <td class="rarity rarity-${row.rarity.toLowerCase()}">${row.rarity}</td>
               </tr>
             `).join('')}
@@ -627,7 +636,7 @@ function buildDropTable(prime) {
             ${vaultedRows.map(row => `
               <tr>
                 <td class="part-name">${row.partName}</td>
-                <td class="relic-name vaulted-relic">${row.relicName}</td>
+                <td><button class="relic-btn vaulted-relic" data-relic="${row.relicName}">${row.relicName}</button></td>
                 <td class="rarity rarity-${row.rarity.toLowerCase()}">${row.rarity}</td>
               </tr>
             `).join('')}
