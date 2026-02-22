@@ -1,32 +1,51 @@
+use log::{error, info};
 use tauri::AppHandle;
-use tauri::Manager;
-use tauri::process::restart;
 use tauri_plugin_updater::UpdaterExt;
+use tauri_plugin_log::TargetKind;
 
 #[tauri::command]
 pub async fn check_for_updates(app: AppHandle) -> Result<bool, String> {
-    let updater = app.updater().map_err(|e| e.to_string())?;
+    let updater = app.updater().map_err(|e| {
+        error!("[Updater] Failed to initialize updater: {}", e);
+        e.to_string()
+    })?;
+
+    info!("[Updater] Checking for updates...");
 
     match updater.check().await {
         Ok(Some(update)) => {
-            println!("Update available: {}", update.version);
+            info!(
+                "[Updater] Update found: {} -> {}",
+                update.current_version, update.version
+            );
 
             update
-                .download_and_install(|_, _| {}, || {})
+                .download_and_install(
+                    |chunk_length, content_length| {
+                        info!(
+                            "[Updater] Downloading... {} / {:?} bytes",
+                            chunk_length, content_length
+                        );
+                    },
+                    || {
+                        info!("[Updater] Download complete, installing...");
+                    },
+                )
                 .await
-                .map_err(|e| e.to_string())?;
+                .map_err(|e| {
+                    error!("[Updater] Download/install failed: {}", e);
+                    e.to_string()
+                })?;
 
-            // Restart the app to apply the update
-            restart(&app.env());
-
+            info!("[Updater] Install complete.");
             Ok(true)
         }
         Ok(None) => {
-            println!("App is up to date");
+            info!("[Updater] App is up to date.");
             Ok(false)
         }
         Err(e) => {
-            eprintln!("Failed to check for updates: {}", e);
+            error!("[Updater] Check failed: {}", e);
             Err(e.to_string())
         }
     }

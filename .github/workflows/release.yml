@@ -23,6 +23,9 @@ jobs:
       - name: Install deps
         run: npm install
 
+      - name: Install Tauri CLI
+        run: npm install --save-dev @tauri-apps/cli@latest
+
       - name: Build & Release
         uses: tauri-apps/tauri-action@v0
         env:
@@ -35,3 +38,4 @@ jobs:
           releaseBody: "See assets below to download this version."
           releaseDraft: true
           prerelease: false
+          tauriScript: npx tauri
