@@ -15,9 +15,12 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(
                 Builder::new()
-                    .target(Target::new(TargetKind::LogDir { file_name: Some("updater".into()) }))
+                    .target(Target::new(TargetKind::Folder {
+                        path: utils::get_install_dir().join("logs"),
+                        file_name: Some("updater".into()),
+                    }))
                     .build()
-            )
+                )
         .invoke_handler(tauri::generate_handler![
             commands::data::load_owned,
             commands::data::save_owned,

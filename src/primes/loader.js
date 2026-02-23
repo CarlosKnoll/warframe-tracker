@@ -73,7 +73,6 @@ export async function loadPrimes() {
           .filter(item => item.name && item.name.includes("Prime") && item.isPrime === true)
           .map(item => {
             const vaultStatus = checkPrimeVaultStatus(item, state.farmableRelics);
-            if (item.name === "Akbronco Prime") { console.log(JSON.stringify(item.components, null, 2)) };
             return {
               ...item,
               category,

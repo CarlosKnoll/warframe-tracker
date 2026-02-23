@@ -1,7 +1,6 @@
 use std::fs;
 use std::path::PathBuf;
 use std::env;
-use serde_json::Value;
 use tauri::AppHandle;
 
 /// Get the installation directory (where the exe is located)
