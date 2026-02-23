@@ -1,3 +1,4 @@
+use tauri::Manager;
 use tauri_plugin_log::Builder;
 use tauri_plugin_log::Target;
 use tauri_plugin_log::TargetKind;
@@ -9,7 +10,23 @@ mod utils;
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
+
     tauri::Builder::default()
+
+        .setup(|app| {
+            #[cfg(debug_assertions)]
+            {
+                // In dev, skip updater and show main window directly
+                if let Some(main) = app.get_webview_window("main") {
+                    main.show().ok();
+                }
+                if let Some(updater_win) = app.get_webview_window("updater") {
+                    updater_win.close().ok();
+                }
+            }
+            Ok(())
+        })
+
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())

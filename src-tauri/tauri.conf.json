@@ -36,7 +36,20 @@
         "width": 1200,
         "height": 800,
         "resizable": true,
-        "fullscreen": false
+        "fullscreen": false,
+        "visible": false,
+        "label": "main"
+      },
+      {
+        "title": "Checking for updates...",
+        "width": 420,
+        "height": 240,
+        "resizable": false,
+        "fullscreen": false,
+        "decorations": false,
+        "center": true,
+        "label": "updater",
+        "url": "updater.html"
       }
     ],
     "security": {
