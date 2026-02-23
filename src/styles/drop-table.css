@@ -87,6 +87,24 @@
   border-bottom: none;
 }
 
+.drop-table tbody {
+  display: block;
+  max-height: 250px;
+  overflow-y: auto;
+}
+
+.drop-table thead {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.drop-table tr {
+  display: table;
+  width: 100%;
+  table-layout: fixed;
+}
+
 .part-name {
   color: #88c0d0;
   font-weight: 500;

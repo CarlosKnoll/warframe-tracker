@@ -58,10 +58,35 @@
   cursor: help;
   font-size: 1.1rem;
   opacity: 0.6;
-  transition: opacity 0.2s;
   text-align: center;
 }
 
 .drop-hint:hover {
   opacity: 1;
+}
+
+.drop-hint {
+  position: relative;
+}
+
+.drop-hint .drop-tooltip {
+  display: none;
+  position: fixed;
+  z-index: 9999;
+  background: #1b2238;
+  border: 1px solid #2b3248;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.82rem;
+  color: #e5e9f0;
+  white-space: pre;
+  max-height: 300px;
+  overflow-y: auto;
+  pointer-events: none;
+  line-height: 1.6;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+
+.drop-hint:hover .drop-tooltip {
+  display: block;
 }

@@ -1,7 +1,7 @@
 // arcanes.js - Arcanes tracking logic
 const invoke = window.__TAURI_INTERNALS__.invoke;
 
-import { t, tArcaneName, tDropSource, tLocation, tCategory, formatDate } from './i18n.js';
+import { t, tArcaneName, tDropSource, tLocation, tCategory, formatDate, getLanguage } from './i18n.js';
 
 const ARCANE_URL = "https://raw.githubusercontent.com/WFCD/warframe-items/master/data/json/Arcanes.json";
 
@@ -11,6 +11,12 @@ let activeCategory = "All";
 let activeDropSource = "All";
 let owned = {};
 let saveFunction = null;
+
+const localeMap = {
+  'en': 'en',
+  'pt': 'pt-BR',
+  // add future languages here e.g. 'es': 'es-ES'
+};
 
 export async function initArcanes(ownedData, saveFn) {
   owned = ownedData;
@@ -46,6 +52,42 @@ export async function initArcanes(ownedData, saveFn) {
       renderArcanes();
     };
   });
+
+  document.getElementById('list').addEventListener('mouseover', (e) => {
+    if (!e.target.closest('.drop-hint')) {
+      document.querySelectorAll('.drop-tooltip').forEach(t => t.style.display = 'none');
+    }
+  });
+
+  document.addEventListener('mouseleave', () => {
+    document.querySelectorAll('.drop-tooltip').forEach(t => t.style.display = 'none');
+  });
+
+  document.getElementById('list').addEventListener('mousemove', (e) => {
+    const hint = e.target.closest('.drop-hint');
+    if (!hint) return;
+    const tooltip = hint.querySelector('.drop-tooltip');
+    if (!tooltip) return;
+
+    const alreadyVisible = tooltip.style.display === 'block';
+
+    tooltip.style.display = 'block';
+
+    const tw = tooltip.offsetWidth;
+    const th = tooltip.offsetHeight;
+    const margin = 12;
+
+    let x = e.clientX + margin;
+    let y = e.clientY + margin;
+
+    if (x + tw > window.innerWidth - margin) x = e.clientX - tw - margin;
+    if (y + th > window.innerHeight - margin) y = e.clientY - th - margin;
+
+    if (!alreadyVisible) {
+      tooltip.style.left = x + 'px';
+      tooltip.style.top = y + 'px';
+    }
+  }, true);
   
   await loadArcanes();
   renderArcanes();
@@ -285,7 +327,8 @@ export function renderArcanes() {
     }
     
     return nameMatch && catMatch && dropMatch;
-  });
+  })
+  .sort((a, b) => tArcaneName(a.name).localeCompare(tArcaneName(b.name), localeMap[getLanguage()] ?? getLanguage()));
 
   const incomplete = [];
   const complete = [];
@@ -326,7 +369,7 @@ export function renderArcanes() {
       ${releaseDateHTML}
       <input type="number" min="0" value="${have}" />
       <span>${t('label.need')} ${needed}</span>
-      <span class="drop-hint" title="${dropInfo}">📍</span>
+      <span class="drop-hint">📍<span class="drop-tooltip">${dropInfo}</span></span>
     `;
 
     const input = row.querySelector("input");
@@ -349,16 +392,12 @@ export function renderArcanes() {
 }
 
 function getDropLocations(arcane) {
-  if (!arcane.drops || arcane.drops.length === 0) {
-    return t('drops.none');
-  }
-  const drops = arcane.drops.slice(0, 10)
-    .map(d => `${tLocation(d.location)} (${d.chance.toFixed(2)}%)`)
+  if (!arcane.drops || arcane.drops.length === 0) return t('drops.none');
+  return arcane.drops
+    .map(d => ({ translated: tLocation(d.location), chance: d.chance }))
+    .sort((a, b) => a.translated.localeCompare(b.translated, localeMap[getLanguage()] ?? getLanguage()))
+    .map(d => `${d.translated} (${d.chance.toFixed(2)}%)`)
     .join('\n');
-  const suffix = arcane.drops.length > 10
-    ? `\n${t('drops.more', { count: arcane.drops.length - 10 })}`
-    : '';
-  return drops + suffix;
 }
 
 function getNeededCopies(arcane) {

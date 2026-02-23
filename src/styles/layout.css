@@ -38,7 +38,7 @@
 }
 
 #list, #primeList {
-  max-width: 1200px;
+  width: 100%;
 }
 
 /* Search */
