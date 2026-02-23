@@ -1,8 +1,5 @@
 import { initI18n, setLanguage } from './i18n.js';
 
-const { check } = window.__TAURI__.updater;
-const { relaunch } = window.__TAURI__.process;
-
 // main.js - Main orchestrator with lazy loading
 const invoke = window.__TAURI_INTERNALS__.invoke;
 
@@ -98,17 +95,6 @@ async function init() {
     console.error("Initialization error:", err);
   }
 }
-
-async function checkForUpdates() {
-    const update = await check();
-    if (update) {
-        console.log(`Update available: ${update.version}`);
-        await update.downloadAndInstall();
-        await relaunch();
-    }
-}
-
-checkForUpdates();
 
 export { owned, ignoredPrimes, save };
 

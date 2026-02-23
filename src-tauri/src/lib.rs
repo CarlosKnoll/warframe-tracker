@@ -32,6 +32,7 @@ pub fn run() {
         .plugin(tauri_plugin_process::init())
         .plugin(
                 Builder::new()
+                    .level(log::LevelFilter::Info)
                     .target(Target::new(TargetKind::Folder {
                         path: utils::get_install_dir().join("logs"),
                         file_name: Some("updater".into()),
@@ -44,6 +45,7 @@ pub fn run() {
             commands::data::load_custom_drops,
             commands::data::get_data_path,
             commands::updater::check_for_updates,
+            commands::updater::js_log,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

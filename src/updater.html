@@ -82,6 +82,14 @@
   </div>
   <div id="version"></div>
 
-  <script type="module" src="updater.js"></script>
+<script>
+  window.__TAURI__.core.invoke('js_log', { message: 'INLINE SCRIPT RAN' }).catch(() => {});
+  
+  window.onerror = function(msg, src, line, col, err) {
+    window.__TAURI__.core.invoke('js_log', { message: 'JS ERROR: ' + msg + ' at ' + src + ':' + line }).catch(() => {});
+  };
+</script>
+<script src="updater.js"></script>
+</body>
 </body>
 </html>

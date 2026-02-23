@@ -1,64 +1,74 @@
+function log(msg) {
+  window.__TAURI__.core.invoke('js_log', { message: msg }).catch(() => {});
+}
+
+log('1: script parsed');
+
 const { listen } = window.__TAURI__.event;
+log('2: tauri event available');
+
 const { invoke } = window.__TAURI__.core;
 const { getCurrentWindow } = window.__TAURI__.window;
 const { WebviewWindow } = window.__TAURI__.webviewWindow;
 
-const status = document.getElementById('status');
-const progressTrack = document.getElementById('progressTrack');
-const progressBar = document.getElementById('progressBar');
-const versionEl = document.getElementById('version');
-const spinner = document.getElementById('spinner');
+log('3: all tauri apis destructured');
 
 async function showMainAndClose() {
+  log('showMainAndClose: start');
   const main = await WebviewWindow.getByLabel('main');
-  if (main) await main.show();
+  log('showMainAndClose: got main = ' + !!main);
+  if (main) {
+    await main.show();
+    log('showMainAndClose: main shown');
+  }
+  log('showMainAndClose: closing updater');
   await getCurrentWindow().close();
+  log('showMainAndClose: done');
 }
 
-await listen('updater:checking', () => {
-  status.textContent = 'Checking for updates...';
-});
+async function init() {
+  log('4: init called');
 
-await listen('updater:found', (e) => {
-  status.textContent = `Downloading update ${e.payload}...`;
-  versionEl.textContent = `v${e.payload}`;
-  progressTrack.classList.remove('hidden');
-});
+  await listen('updater:checking', () => { log('event: checking'); status.textContent = 'Checking for updates...'; });
+  log('5: checking listener registered');
 
-await listen('updater:progress', (e) => {
-  const [chunk, total] = e.payload;
-  if (total) {
-    const pct = Math.round((chunk / total) * 100);
-    progressBar.style.width = `${pct}%`;
-  }
-});
+  await listen('updater:found', (e) => { log('event: found ' + e.payload); });
+  log('6: found listener registered');
 
-await listen('updater:installing', () => {
-  status.textContent = 'Installing update...';
-  progressBar.style.width = '100%';
-});
+  await listen('updater:progress', (e) => {});
+  log('7: progress listener registered');
 
-await listen('updater:done', () => {
-  status.textContent = 'Update installed. Restarting...';
-  spinner.classList.add('hidden');
-});
+  await listen('updater:installing', () => { log('event: installing'); });
+  log('8: installing listener registered');
 
-await listen('updater:uptodate', async () => {
-  status.textContent = 'Up to date!';
-  spinner.classList.add('hidden');
-  await new Promise(r => setTimeout(r, 600));
+  await listen('updater:done', () => { log('event: done'); });
+  log('9: done listener registered');
+
+  await listen('updater:uptodate', async () => {
+    log('event: uptodate');
+    await new Promise(r => setTimeout(r, 600));
+    await showMainAndClose();
+  });
+  log('10: uptodate listener registered');
+
+  await listen('updater:error', async (e) => {
+    log('event: error ' + e.payload);
+    await new Promise(r => setTimeout(r, 2000));
+    await showMainAndClose();
+  });
+  log('11: all listeners registered');
+
+  log('12: about to invoke check_for_updates');
+  invoke('check_for_updates').catch(async (e) => {
+    log('invoke failed: ' + e);
+    await showMainAndClose();
+  });
+  log('13: invoke called (non-blocking)');
+}
+
+log('14: about to call init');
+init().catch(async (e) => {
+  log('init threw: ' + e);
   await showMainAndClose();
 });
-
-await listen('updater:error', async (e) => {
-  status.textContent = `Update check failed.`;
-  versionEl.textContent = e.payload;
-  spinner.classList.add('hidden');
-  await new Promise(r => setTimeout(r, 2000));
-  await showMainAndClose();
-});
-
-// Kick off the update check
-invoke('check_for_updates').catch(async () => {
-  await showMainAndClose();
-});
+log('15: init called (non-blocking)');

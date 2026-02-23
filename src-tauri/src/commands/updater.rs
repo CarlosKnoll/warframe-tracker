@@ -44,3 +44,8 @@ pub async fn check_for_updates(app: AppHandle) -> Result<bool, String> {
         }
     }
 }
+
+#[tauri::command]
+pub async fn js_log(message: String) {
+    log::info!("[JS] {}", message);
+}
