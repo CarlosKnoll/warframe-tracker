@@ -68,10 +68,12 @@ export async function loadPrimes() {
         const res = await fetch(url);
         const items = await res.json();
 
+
         return items
           .filter(item => item.name && item.name.includes("Prime") && item.isPrime === true)
           .map(item => {
             const vaultStatus = checkPrimeVaultStatus(item, state.farmableRelics);
+            if (item.name === "Akbronco Prime") { console.log(JSON.stringify(item.components, null, 2)) };
             return {
               ...item,
               category,
@@ -99,9 +101,16 @@ function checkPrimeVaultStatus(item, farmableRelics) {
   if (item.components && Array.isArray(item.components)) {
     let hasFarmableRelic = false;
     let hasAnyRelic = false;
+    let allRelicsFromBuiltPrimes = true;
 
     for (const comp of item.components) {
+      const isBuiltPrime = comp.name && comp.name.includes("Prime") && comp.drops && comp.drops.some(d => d.location && d.location.toLowerCase().includes('relic'));
+      if (isBuiltPrime) continue;
+
       if (comp.drops && comp.drops.length > 0) {
+        const hasRelicDrop = comp.drops.some(d => d.location && d.location.toLowerCase().includes('relic'));
+        if (hasRelicDrop) allRelicsFromBuiltPrimes = false;
+
         for (const drop of comp.drops) {
           if (drop.location && drop.location.toLowerCase().includes('relic')) {
             const normalizedRelic = normalizeRelicName(drop.location);
@@ -118,6 +127,25 @@ function checkPrimeVaultStatus(item, farmableRelics) {
         }
       }
       if (hasFarmableRelic) break;
+    }
+
+    if (!hasAnyRelic && allRelicsFromBuiltPrimes) {
+      for (const comp of item.components) {
+        const isBuiltPrime = comp.name && comp.name.includes("Prime") && comp.drops && comp.drops.some(d => d.location && d.location.toLowerCase().includes('relic'));
+        if (!isBuiltPrime) continue;
+        for (const drop of comp.drops) {
+          if (drop.location && drop.location.toLowerCase().includes('relic')) {
+            const normalizedRelic = normalizeRelicName(drop.location);
+            if (!normalizedRelic) continue;
+            hasAnyRelic = true;
+            if (isRelicActive(normalizedRelic.toLowerCase(), farmableRelics)) {
+              hasFarmableRelic = true;
+              break;
+            }
+          }
+        }
+        if (hasFarmableRelic) break;
+      }
     }
 
     return { vaulted: !hasFarmableRelic && hasAnyRelic };
@@ -170,8 +198,20 @@ function extractPrimeComponents(item, vaultStatus, farmableRelics) {
     item.components.forEach(comp => {
       if (comp.name && EXCLUDED_COMPONENTS.some(ex => comp.name.includes(ex))) return;
 
-      const compKey = comp.uniqueName || `${item.uniqueName}_${comp.name}`;
-      if (seen.has(compKey)) return;
+      const baseKey = comp.uniqueName || `${item.uniqueName}_${comp.name}`;
+      const isBuiltPrime = comp.name && comp.name.includes("Prime") && comp.drops && comp.drops.some(d => d.location && d.location.toLowerCase().includes('relic'));
+
+      let compKey = baseKey;
+      if (isBuiltPrime) {
+        // Valid duplicates (e.g. two Bronco Prime for Akbronco) — allow them with indexed keys
+        let index = 1;
+        while (seen.has(compKey)) {
+          compKey = `${baseKey}_${index++}`;
+        }
+      } else {
+        // Genuine duplicates (e.g. repeated blueprint entries) — deduplicate as before
+        if (seen.has(compKey)) return;
+      }
       seen.add(compKey);
 
       if (comp.name === "Blueprint" && isWarframeCategory && components.length > 1) return;
@@ -186,6 +226,7 @@ function extractPrimeComponents(item, vaultStatus, farmableRelics) {
         uniqueName: compKey,
         vaulted: compStatus.vaulted,
         isMainItem: false,
+        isBuiltPrime: isBuiltPrime || false,
         drops: comp.drops || []
       });
     });

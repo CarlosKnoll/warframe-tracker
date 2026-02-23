@@ -7,8 +7,13 @@ import { t, tRarity, tCategory, tLocation, tComponent, tRelicName } from '../i18
 
 export function hasRelicDrops(prime) {
   if (!prime.components || prime.components.length === 0) return false;
+  let allRelicsFromBuiltPrimes = true;
   for (const comp of prime.components) {
+    const isBuiltPrime = comp.name && comp.name.includes("Prime") && comp.drops && comp.drops.some(d => d.location && d.location.toLowerCase().includes('relic'));
+    if (isBuiltPrime) continue;
     if (comp.drops && comp.drops.length > 0) {
+      const hasRelicDrop = comp.drops.some(d => d.location && d.location.toLowerCase().includes('relic'));
+      if (hasRelicDrop) allRelicsFromBuiltPrimes = false;
       for (const drop of comp.drops) {
         if (drop.location && drop.location.toLowerCase().includes('relic')) {
           return true;
@@ -178,6 +183,7 @@ function buildDropTable(prime) {
 
   prime.components.forEach(comp => {
     if (!comp.drops || comp.drops.length === 0) return;
+    if (comp.isBuiltPrime) return;
 
     const relicData = new Map();
 
