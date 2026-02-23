@@ -83,6 +83,8 @@ async function init() {
   try {
     // i18n must initialize before anything renders
     await initI18n();
+    const version = await window.__TAURI__.app.getVersion();
+    document.getElementById('app-version').textContent = `v${version}`;
 
     const stored = await invoke("load_owned");
     owned = stored.owned || {};
