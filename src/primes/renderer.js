@@ -3,6 +3,7 @@
 import { state, FOUNDER_ITEMS } from './state.js';
 import { normalizeRelicName } from './loader.js';
 import { openRelicModal } from '../modal.js';
+import { t, tRarity, tCategory, tLocation, tComponent, tRelicName } from '../i18n.js';
 
 export function hasRelicDrops(prime) {
   if (!prime.components || prime.components.length === 0) return false;
@@ -81,11 +82,11 @@ export function renderPrimes() {
     row.className = isComplete ? "prime complete" : "prime";
     if (hasTradeableSet) row.classList.add("tradeable");
 
-    const founderBadge = isFounder ? '<span class="founder-badge">FOUNDER</span>' : '';
-    const specialBadge = isSpecial ? '<span class="special-badge">SPECIAL</span>' : '';
-    const vaultBadge = (p.vaulted && !isFounder && !isSpecial) ? '<span class="vaulted-badge">VAULTED</span>' : '';
-    const ignoredLabel = isIgnored ? '<span class="ignored-label">(Ignored)</span>' : '';
-    const tradeableBadge = hasTradeableSet ? '<span class="tradeable-badge">TRADEABLE SET</span>' : '';
+    const founderBadge = isFounder ? `<span class="founder-badge">${t('badge.founder')}</span>` : '';
+    const specialBadge = isSpecial ? `<span class="special-badge">${t('badge.special')}</span>` : '';
+    const vaultBadge = (p.vaulted && !isFounder && !isSpecial) ? `<span class="vaulted-badge">${t('badge.vaulted')}</span>` : '';
+    const ignoredLabel = isIgnored ? `<span class="ignored-label">${t('badge.ignored')}</span>` : '';
+    const tradeableBadge = hasTradeableSet ? `<span class="tradeable-badge">${t('badge.tradeable')}</span>` : '';
 
     row.innerHTML = `
       <div class="prime-header">
@@ -95,17 +96,18 @@ export function renderPrimes() {
         ${vaultBadge}
         ${tradeableBadge}
         ${ignoredLabel}
-        <span class="prime-category">${p.category}</span>
-        ${(isFounder || isSpecial) ? `<button class="ignore-btn" data-unique="${p.uniqueName}">${isIgnored ? 'Unignore' : 'Ignore'}</button>` : ''}
+        <span class="prime-category">${tCategory(p.category)}</span>
+        ${(isFounder || isSpecial) ? `<button class="ignore-btn" data-unique="${p.uniqueName}">${isIgnored ? t('btn.unignore') : t('btn.ignore')}</button>` : ''}
         <button class="expand-btn" data-unique="${p.uniqueName}">▼</button>
       </div>
       <div class="prime-components">
         ${p.components.map(comp => {
           const have = (state.owned[comp.uniqueName] ?? 0) > 0;
+          const compName = comp.isMainItem ? t('label.owned') : tComponent(comp.name);
           return `
             <label class="component ${have ? 'owned' : ''} ${comp.isMainItem ? 'main-item' : ''}">
               <input type="checkbox" ${have ? 'checked' : ''} data-unique="${comp.uniqueName}" />
-              <span>${comp.name}</span>
+              <span>${compName}</span>
             </label>
           `;
         }).join('')}
@@ -126,7 +128,7 @@ export function renderPrimes() {
           btn.onclick = () => {
             const relicName = btn.dataset.relic;
             const rewards = state.relicRewardsMap.get(relicName.toLowerCase());
-            openRelicModal(relicName, rewards);
+            openRelicModal(tRelicName(relicName), rewards);
           };
         });
       }
@@ -205,14 +207,15 @@ function buildDropTable(prime) {
     });
 
     relicData.forEach(relic => {
-      const row = { partName: comp.name, relicName: relic.name, rarity: relic.rarity };
+      const compDisplayName = comp.isMainItem ? t('label.owned') : tComponent(comp.name);
+      const row = { partName: compDisplayName, relicName: relic.name, rarity: relic.rarity };
       if (relic.status === 'farmable') farmableRows.push(row);
       else vaultedRows.push(row);
     });
   });
 
   if (farmableRows.length === 0 && vaultedRows.length === 0) {
-    return '<div class="drop-tables-container"><p class="no-drops">No relic data available</p></div>';
+    return `<div class="drop-tables-container"><p class="no-drops">${t('table.noRelicData')}</p></div>`;
   }
 
   const sortRows = (a, b) => {
@@ -226,13 +229,13 @@ function buildDropTable(prime) {
     <div class="drop-table-wrapper ${wrapperClass}">
       <h4>${title} (${rows.length})</h4>
       <table>
-        <thead><tr><th>Part</th><th>Relic</th><th>Rarity</th></tr></thead>
+        <thead><tr><th>${t('table.colPart')}</th><th>${t('table.colRelic')}</th><th>${t('table.colRarity')}</th></tr></thead>
         <tbody>
           ${rows.map(row => `
             <tr>
               <td class="part-name">${row.partName}</td>
-              <td><button class="relic-btn ${btnClass}" data-relic="${row.relicName}">${row.relicName}</button></td>
-              <td class="rarity rarity-${row.rarity.toLowerCase()}">${row.rarity}</td>
+              <td><button class="relic-btn ${btnClass}" data-relic="${row.relicName}">${tRelicName(row.relicName)}</button></td>
+              <td class="rarity rarity-${row.rarity.toLowerCase()}">${tRarity(row.rarity)}</td>
             </tr>
           `).join('')}
         </tbody>
@@ -241,8 +244,8 @@ function buildDropTable(prime) {
   `;
 
   let html = '<div class="drop-tables-container">';
-  if (farmableRows.length > 0) html += buildTable(farmableRows, 'farmable', 'Available Relics');
-  if (vaultedRows.length > 0) html += buildTable(vaultedRows, 'vaulted', 'Vaulted Relics', 'vaulted-relic');
+  if (farmableRows.length > 0) html += buildTable(farmableRows, 'farmable', t('table.availableRelics'));
+  if (vaultedRows.length > 0) html += buildTable(vaultedRows, 'vaulted', t('table.vaultedRelics'), 'vaulted-relic');
   html += '</div>';
 
   return html;

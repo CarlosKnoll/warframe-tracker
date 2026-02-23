@@ -4,6 +4,7 @@ import { state } from './state.js';
 import { loadPrimes } from './loader.js';
 import { renderPrimes } from './renderer.js';
 import { initFilters, updateCategoryFilters } from './filters.js';
+import { t } from '../i18n.js';
 
 export async function initPrimes(ownedData, ignoredData, saveFn) {
   state.owned = ownedData;
@@ -11,7 +12,7 @@ export async function initPrimes(ownedData, ignoredData, saveFn) {
   state.saveFunction = saveFn;
 
   document.getElementById("primeList").innerHTML =
-    '<div style="text-align: center; padding: 40px; opacity: 0.6;">Loading primes data...</div>';
+    `<div style="text-align: center; padding: 40px; opacity: 0.6;">${t('loading.primes')}</div>`;
 
   initFilters();
 

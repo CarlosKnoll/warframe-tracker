@@ -1,5 +1,7 @@
 // modal.js - Reusable relic modal logic
 
+import { t, tRarity, tItemName } from './i18n.js';
+
 const modal = document.getElementById("relicModal");
 const modalTitle = document.getElementById("modalTitle");
 const modalBody = document.getElementById("modalBody");
@@ -22,7 +24,7 @@ export function openRelicModal(relicName, rewards) {
   modalTitle.textContent = relicName;
 
   if (!rewards || rewards.length === 0) {
-    modalBody.innerHTML = '<p class="no-drops">No reward data available for this relic.</p>';
+    modalBody.innerHTML = `<p class="no-drops">${t('modal.noRewards')}</p>`;
   } else {
     const sorted = [...rewards].sort((a, b) => b.chance - a.chance);
 
@@ -30,16 +32,16 @@ export function openRelicModal(relicName, rewards) {
       <table class="modal-table">
         <thead>
           <tr>
-            <th>Item</th>
-            <th>Rarity</th>
-            <th>Chance</th>
+            <th>${t('modal.colItem')}</th>
+            <th>${t('modal.colRarity')}</th>
+            <th>${t('modal.colChance')}</th>
           </tr>
         </thead>
         <tbody>
           ${sorted.map(r => `
             <tr>
-              <td>${r.itemName}</td>
-              <td class="rarity rarity-${r.rarity.toLowerCase()}">${r.rarity}</td>
+              <td>${tItemName(r.itemName)}</td>
+              <td class="rarity rarity-${r.rarity.toLowerCase()}">${tRarity(r.rarity)}</td>
               <td>${r.chance.toFixed(2)}%</td>
             </tr>
           `).join('')}

@@ -58,3 +58,6 @@ Note: No resurgence tag implemented, because I could not find a readily availabl
 This repository provides example files to illustrate how you can populate the `.json`  files.
 
 Note: The unninstaller does **not** remove the user data (i.e. the `../data` directory and its contents)
+
+### Language Support
+It supports two languages: **Portuguese-Brazil** and **English**. This can be expanded in the future with additions to the `index.html` buttons/images and through new mappings and locales files. 

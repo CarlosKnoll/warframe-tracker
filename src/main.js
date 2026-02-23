@@ -1,3 +1,5 @@
+import { initI18n, setLanguage } from './i18n.js';
+
 const { check } = window.__TAURI__.updater;
 const { relaunch } = window.__TAURI__.process;
 
@@ -13,10 +15,32 @@ let primesModule = null;
 let arcanesInitialized = false;
 let primesInitialized = false;
 
-document.querySelectorAll("#modeSelector button").forEach(btn => {
+// ─── Language switcher ─────────────────────────────────────────────────────────
+
+document.querySelectorAll('.lang-btn').forEach(btn => {
+  btn.onclick = async () => {
+    await setLanguage(btn.dataset.lang);
+  };
+  btn.onkeydown = async (e) => {
+    if (e.key === 'Enter' || e.key === ' ') await setLanguage(btn.dataset.lang);
+  };
+});
+
+// Re-render active module when language changes
+window.addEventListener('langchange', async () => {
+  if (activeMode === 'arcanes' && arcanesInitialized) {
+    arcanesModule.renderArcanes();
+  } else if (activeMode === 'primes' && primesInitialized) {
+    primesModule.renderPrimes();
+  }
+});
+
+// ─── Mode selector ─────────────────────────────────────────────────────────────
+
+document.querySelectorAll("#modeSelector button[data-mode]").forEach(btn => {
   btn.onclick = async () => {
     activeMode = btn.dataset.mode;
-    document.querySelectorAll("#modeSelector button").forEach(b => b.classList.remove("active"));
+    document.querySelectorAll("#modeSelector button[data-mode]").forEach(b => b.classList.remove("active"));
     btn.classList.add("active");
     
     document.querySelectorAll(".tracker-section").forEach(section => section.classList.remove("active"));
@@ -39,6 +63,8 @@ document.querySelectorAll("#modeSelector button").forEach(btn => {
   };
 });
 
+// ─── Save ──────────────────────────────────────────────────────────────────────
+
 async function save() {
   try {
     const result = await invoke("save_owned", { 
@@ -54,8 +80,13 @@ async function save() {
   }
 }
 
+// ─── Init ──────────────────────────────────────────────────────────────────────
+
 async function init() {
   try {
+    // i18n must initialize before anything renders
+    await initI18n();
+
     const stored = await invoke("load_owned");
     owned = stored.owned || {};
     ignoredPrimes = new Set(stored.ignoredPrimes || []);

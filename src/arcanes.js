@@ -1,6 +1,8 @@
 // arcanes.js - Arcanes tracking logic
 const invoke = window.__TAURI_INTERNALS__.invoke;
 
+import { t, tArcaneName, tDropSource, tLocation, tCategory, formatDate } from './i18n.js';
+
 const ARCANE_URL = "https://raw.githubusercontent.com/WFCD/warframe-items/master/data/json/Arcanes.json";
 
 let allArcanes = [];
@@ -30,7 +32,6 @@ export async function initArcanes(ownedData, saveFn) {
     renderArcanes();
   };
   
-  // Initialize clear button visibility
   clearBtn.style.display = 'none';
   
   document.querySelectorAll("#filters button").forEach(btn => {
@@ -93,23 +94,18 @@ async function loadArcanes() {
       .map(arcane => {
         const customData = customDrops[arcane.name];
         if (customData) {
-          // Start with API drops (could be empty, could have data)
           let mergedDrops = arcane.drops || [];
           
-          // Add custom drops if they exist
           if (customData.drops && customData.drops.length > 0) {
             mergedDrops = [...mergedDrops, ...customData.drops];
           }
           
-          // Assign the merged drops back
           arcane.drops = mergedDrops;
           
-          // Only use custom type if API type is missing or generic "Arcanes"
           if (customData.type && (!arcane.type || arcane.type === "Arcanes")) {
             arcane.type = customData.type;
           }
           
-          // Only add release info if it exists in custom data
           if (customData.releaseDate || customData.updateName) {
             if (!arcane.patchlogs) arcane.patchlogs = [];
             arcane.patchlogs.push({
@@ -125,17 +121,14 @@ async function loadArcanes() {
         return arcane;
       });
 
-    // Add custom-only arcanes that don't exist in the API
     Object.keys(customDrops).forEach(arcaneName => {
       const existsInAPI = arcanes.find(a => a.name === arcaneName);
       if (!existsInAPI) {
         const customData = customDrops[arcaneName];
-        // Filter out unknown drops from custom data
         const validDrops = customData.drops ? customData.drops.filter(drop => 
           drop && drop.location && drop.location !== "???"
         ) : [];
         
-        // Only add if it has valid drops AND a type
         if (validDrops.length > 0 && customData.type) {
           const newArcane = {
             name: arcaneName,
@@ -162,18 +155,14 @@ async function loadArcanes() {
       }
     });
 
-    // Final filter: Remove any arcanes that ONLY have "???" drops or no drops at all
     allArcanes = arcanes.filter(arcane => {
-      // If no drops, keep it (might be obtainable through other means)
       if (!arcane.drops || arcane.drops.length === 0) return true;
-      
-      // If all drops are "???", filter it out
       const hasValidDrop = arcane.drops.some(drop => 
         drop && drop.location && drop.location !== "???"
       );
-      
       return hasValidDrop;
     });
+
     updateDropSourceFilters();
   } catch (err) {
     console.error("Error loading arcanes:", err);
@@ -214,10 +203,10 @@ function updateDropSourceFilters() {
   
   dropFiltersDiv.style.display = "block";
   dropFiltersDiv.innerHTML = `
-    <label>Drop Source:</label>
-    <button data-source="All" class="${activeDropSource === 'All' ? 'active' : ''}">All</button>
+    <label>${t('filter.dropSource')}</label>
+    <button data-source="All" class="${activeDropSource === 'All' ? 'active' : ''}">${t('filter.all')}</button>
     ${sortedSources.map(source => 
-      `<button data-source="${source}" class="${activeDropSource === source ? 'active' : ''}">${source}</button>`
+      `<button data-source="${source}" class="${activeDropSource === source ? 'active' : ''}">${tDropSource(source)}</button>`
     ).join('')}
   `;
   
@@ -267,7 +256,10 @@ export function renderArcanes() {
   list.innerHTML = "";
 
   const filtered = allArcanes.filter(a => {
-    const nameMatch = a.name.toLowerCase().includes(searchText);
+    // Search matches against both EN name and translated name
+    const translatedName = tArcaneName(a.name);
+    const nameMatch = a.name.toLowerCase().includes(searchText) ||
+                      translatedName.toLowerCase().includes(searchText);
     const cat = getArcaneCategory(a);
     const catMatch = activeCategory === "All" || cat === activeCategory;
     
@@ -322,18 +314,18 @@ export function renderArcanes() {
     const category = getArcaneCategory(a);
     const dropInfo = getDropLocations(a);
     const releaseInfo = getArcaneReleaseInfo(a);
-    const releaseDateStr = formatReleaseDate(releaseInfo.date);
-    const releaseTooltip = releaseInfo.updateName || "Unknown update";
+    const releaseDateStr = formatDate(releaseInfo.date);
+    const releaseTooltip = releaseInfo.updateName || t('unknown');
     const releaseDateHTML = releaseInfo.date 
       ? `<span class="release-date" title="${releaseTooltip}">${releaseDateStr}</span>`
       : '<span class="release-date"></span>';
 
     row.innerHTML = `
-      <strong>${a.name}</strong>
-      <span>${category}</span>
+      <strong>${tArcaneName(a.name)}</strong>
+      <span>${tCategory(category)}</span>
       ${releaseDateHTML}
       <input type="number" min="0" value="${have}" />
-      <span>Need: ${needed}</span>
+      <span>${t('label.need')} ${needed}</span>
       <span class="drop-hint" title="${dropInfo}">📍</span>
     `;
 
@@ -358,10 +350,14 @@ export function renderArcanes() {
 
 function getDropLocations(arcane) {
   if (!arcane.drops || arcane.drops.length === 0) {
-    return "No drop data available";
+    return t('drops.none');
   }
-  const drops = arcane.drops.slice(0, 10).map(d => `${d.location} (${d.chance.toFixed(2)}%)`).join('\n');
-  const suffix = arcane.drops.length > 10 ? `\n... and ${arcane.drops.length - 10} more` : '';
+  const drops = arcane.drops.slice(0, 10)
+    .map(d => `${tLocation(d.location)} (${d.chance.toFixed(2)}%)`)
+    .join('\n');
+  const suffix = arcane.drops.length > 10
+    ? `\n${t('drops.more', { count: arcane.drops.length - 10 })}`
+    : '';
   return drops + suffix;
 }
 
@@ -380,7 +376,6 @@ function getNeededCopies(arcane) {
 
 function isValidArcane(a) {
   if (!a.name) return false;
-  // Filter out the generic "Arcane" entry that's a placeholder
   if (a.name === "Arcane" && !a.type) return false;
   if (a.name === "Arcane" && a.type === "Arcane") return false;
   if (!a.uniqueName) return false;
@@ -411,12 +406,6 @@ function getArcaneReleaseInfo(arcane) {
     date: new Date(firstMention.date),
     updateName: firstMention.name
   };
-}
-
-function formatReleaseDate(date) {
-  if (!date) return "Unknown";
-  const options = { year: 'numeric', month: 'short' };
-  return date.toLocaleDateString('en-US', options);
 }
 
 export function updateArcaneOwned(uniqueName, value) {

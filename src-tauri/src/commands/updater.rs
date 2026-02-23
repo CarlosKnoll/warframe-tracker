@@ -1,7 +1,6 @@
 use log::{error, info};
 use tauri::AppHandle;
 use tauri_plugin_updater::UpdaterExt;
-use tauri_plugin_log::TargetKind;
 
 #[tauri::command]
 pub async fn check_for_updates(app: AppHandle) -> Result<bool, String> {
