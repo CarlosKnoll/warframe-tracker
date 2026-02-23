@@ -64,6 +64,11 @@ export function renderPrimes() {
 
   const fragment = document.createDocumentFragment();
 
+  const vaultSort = (a, b) => (a.vaulted ? 1 : 0) - (b.vaulted ? 1 : 0);
+  incomplete.sort(vaultSort);
+  completeTradeable.sort(vaultSort);
+  completeNonTradeable.sort(vaultSort);
+
   [...incomplete, ...completeTradeable, ...completeNonTradeable].forEach(p => {
     const isIgnored = state.ignoredPrimes.has(p.uniqueName);
     const ownedComp = p.components.find(c => c.isMainItem);
