@@ -83,8 +83,6 @@
   <div id="version"></div>
 
 <script>
-  window.__TAURI__.core.invoke('js_log', { message: 'INLINE SCRIPT RAN' }).catch(() => {});
-  
   window.onerror = function(msg, src, line, col, err) {
     window.__TAURI__.core.invoke('js_log', { message: 'JS ERROR: ' + msg + ' at ' + src + ':' + line }).catch(() => {});
   };
