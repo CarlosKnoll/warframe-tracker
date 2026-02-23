@@ -21,13 +21,13 @@ export async function initI18n() {
 
 async function loadLocale(lang) {
   const [ui, arcaneNames, locations] = await Promise.all([
-    fetch(`./locales/${lang}.json`).then(r => r.json()).catch(() => ({})),
+    fetch(`./locales/${lang}/${lang}.json`).then(r => r.json()).catch(() => ({})),
     lang === 'en'
       ? Promise.resolve({})
-      : fetch(`./mappings/arcane-names.pt.json`).then(r => r.json()).catch(() => ({})),
+      : fetch(`./locales/pt/arcane-names.pt.json`).then(r => r.json()).catch(() => ({})),
     lang === 'en'
       ? Promise.resolve({})
-      : fetch(`./mappings/dropLocations.pt.json`).then(r => r.json()).catch(() => ({})),
+      : fetch(`./locales/pt/dropLocations.pt.json`).then(r => r.json()).catch(() => ({})),
   ]);
 
   uiStrings = ui;

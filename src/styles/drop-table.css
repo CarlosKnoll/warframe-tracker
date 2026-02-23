@@ -77,6 +77,10 @@
   border-bottom: 2px solid #2b3248;
 }
 
+.drop-table th.rarity {
+  text-align: center;
+}
+
 .drop-table td {
   padding: 6px 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
@@ -140,4 +144,14 @@
   opacity: 0.6;
   padding: 12px;
   font-size: 0.9rem;
+}
+
+tr.part-owned td {
+  text-decoration: line-through;
+  opacity: 0.45;
+}
+
+tr.part-owned .relic-btn {
+  text-decoration: line-through;
+  opacity: 0.45;
 }
