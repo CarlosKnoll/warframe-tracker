@@ -2,6 +2,8 @@ use std::fs;
 use serde_json::Value;
 use tauri::AppHandle;
 use std::collections::HashMap;
+use reqwest;
+use base64::{Engine as _, engine::general_purpose};
 use crate::utils::{get_user_data_file, get_custom_drops_file, get_data_dir};
 
 #[tauri::command]
@@ -60,6 +62,13 @@ pub fn load_custom_drops(app: AppHandle) -> Value {
     }
 }
 
+#[tauri::command]
+pub async fn fetch_image_base64(url: String) -> Result<String, String> {
+    let response = reqwest::get(&url).await.map_err(|e| e.to_string())?;
+    let bytes = response.bytes().await.map_err(|e| e.to_string())?;
+    Ok(base64::encode(&bytes))
+}
+
 /// Get the data directory path for display to users
 #[tauri::command]
 pub fn get_data_path(_app: AppHandle) -> String {
@@ -81,6 +90,23 @@ pub fn load_image_cache() -> Result<HashMap<String, String>, String> {
 #[tauri::command]
 pub fn save_image_cache(cache: HashMap<String, String>) -> Result<(), String> {
     let path = get_data_dir().join("image_cache.json");
+    let content = serde_json::to_string_pretty(&cache).map_err(|e| e.to_string())?;
+    fs::write(path, content).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn load_prime_image_cache() -> Result<HashMap<String, String>, String> {
+    let path = get_data_dir().join("prime_image_cache.json");
+    if !path.exists() {
+        return Ok(HashMap::new());
+    }
+    let content = fs::read_to_string(path).map_err(|e| e.to_string())?;
+    serde_json::from_str(&content).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn save_prime_image_cache(cache: HashMap<String, String>) -> Result<(), String> {
+    let path = get_data_dir().join("prime_image_cache.json");
     let content = serde_json::to_string_pretty(&cache).map_err(|e| e.to_string())?;
     fs::write(path, content).map_err(|e| e.to_string())
 }

@@ -1,6 +1,8 @@
 // primes/loader.js - All data fetching and processing logic
 
-import { state, RELICS_DROP_URL, MISSION_REWARDS_URL, PRIME_URLS } from './state.js';
+import { state, RELICS_DROP_URL, MISSION_REWARDS_URL, PRIME_URLS, PRIME_IMAGE_BASE, primeImageCache } from './state.js';
+
+const invoke = window.__TAURI_INTERNALS__.invoke;
 
 export async function loadPrimes() {
   try {
@@ -75,6 +77,7 @@ export async function loadPrimes() {
             const vaultStatus = checkPrimeVaultStatus(item, state.farmableRelics);
             return {
               ...item,
+              imageName: item.imageName || null,
               category,
               vaulted: vaultStatus.vaulted,
               resurgence: false,
@@ -91,6 +94,7 @@ export async function loadPrimes() {
     results.forEach(primes => primeData.push(...primes));
 
     state.allPrimes = primeData;
+    await buildPrimeImageCache(state.allPrimes);
   } catch (err) {
     console.error("Error loading primes:", err);
   }
@@ -249,4 +253,31 @@ export function normalizeRelicName(location) {
   }
 
   return normalized;
+}
+
+async function buildPrimeImageCache(primes) {
+  let diskCache = {};
+  try {
+    diskCache = await invoke("load_prime_image_cache");
+  } catch (e) {
+    console.warn("No prime image cache found, building fresh");
+  }
+
+  // No HEAD requests — just build URLs directly for uncached primes
+  primes.forEach(p => {
+    if (!diskCache[p.uniqueName] && p.imageName) {
+      diskCache[p.uniqueName] = `${PRIME_IMAGE_BASE}${p.imageName}`;
+    }
+  });
+
+  // Populate in-memory cache
+  primes.forEach(p => {
+    if (diskCache[p.uniqueName]) primeImageCache.set(p.uniqueName, diskCache[p.uniqueName]);
+  });
+
+  try {
+    await invoke("save_prime_image_cache", { cache: diskCache });
+  } catch (e) {
+    console.error("Failed to save prime image cache:", e);
+  }
 }

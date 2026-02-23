@@ -40,6 +40,8 @@
   "badge.special": "SPECIAL",
   "badge.vaulted": "VAULTED",
   "badge.tradeable": "TRADEABLE SET",
+  "badge.farming": "FARMING",
+  "badge.owned": "OWNED",
   "badge.ignored": "(Ignored)",
 
   "btn.ignore": "Ignore",

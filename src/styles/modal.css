@@ -213,3 +213,27 @@
   align-items: center;
   gap: 4px;
 }
+
+/* ─── Scrollbar styling ───────────────────────────────────────────────────────── */
+
+.modal-detail-right {
+  scrollbar-width: thin;
+  scrollbar-color: #2b3248 transparent;
+}
+
+.modal-detail-right::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-detail-right::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.modal-detail-right::-webkit-scrollbar-thumb {
+  background: #2b3248;
+  border-radius: 3px;
+}
+
+.modal-detail-right::-webkit-scrollbar-thumb:hover {
+  background: #3d4a6e;
+}
