@@ -1,6 +1,7 @@
 use std::fs;
 use serde_json::Value;
 use tauri::AppHandle;
+use std::collections::HashMap;
 use crate::utils::{get_user_data_file, get_custom_drops_file, get_data_dir};
 
 #[tauri::command]
@@ -65,4 +66,21 @@ pub fn get_data_path(_app: AppHandle) -> String {
     get_data_dir()
         .to_string_lossy()
         .to_string()
+}
+
+#[tauri::command]
+pub fn load_image_cache() -> Result<HashMap<String, String>, String> {
+    let path = get_data_dir().join("image_cache.json");
+    if !path.exists() {
+        return Ok(HashMap::new());
+    }
+    let content = fs::read_to_string(path).map_err(|e| e.to_string())?;
+    serde_json::from_str(&content).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn save_image_cache(cache: HashMap<String, String>) -> Result<(), String> {
+    let path = get_data_dir().join("image_cache.json");
+    let content = serde_json::to_string_pretty(&cache).map_err(|e| e.to_string())?;
+    fs::write(path, content).map_err(|e| e.to_string())
 }

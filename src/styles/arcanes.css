@@ -1,92 +1,139 @@
-.arcane {
+/* ─── Arcane grid ─────────────────────────────────────────────────────────────── */
+
+#list {
   display: grid;
-  grid-template-columns: 2.2fr 1.2fr 120px 90px 100px 40px;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
-  border-radius: 6px;
-  margin-bottom: 6px;
-  background: rgba(255, 255, 255, 0.04);
-  transition: opacity 0.2s, background 0.2s;
+  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
+  gap: 11px;
 }
 
-.arcane.complete {
+/* ─── Arcane card ─────────────────────────────────────────────────────────────── */
+
+.arcane-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 7px;
+  padding: 9px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid transparent;
+  transition: background 0.15s, border-color 0.15s;
+  cursor: default;
+}
+
+.arcane-card:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: #2b3248;
+}
+
+.arcane-card.complete {
   opacity: 0.4;
   background: rgba(255, 255, 255, 0.02);
 }
 
-.arcane:hover {
-  background: rgba(255, 255, 255, 0.08);
-}
-
-.arcane.complete:hover {
-  opacity: 0.6;
+.arcane-card.complete:hover {
+  opacity: 0.65;
   background: rgba(255, 255, 255, 0.05);
 }
 
-.release-date {
-  font-size: 0.85rem;
-  opacity: 0.7;
-  cursor: help;
-}
+/* ─── Card image ──────────────────────────────────────────────────────────────── */
 
-.arcane strong {
-  font-weight: 600;
-}
-
-.arcane span {
-  opacity: 0.85;
-  font-size: 0.9rem;
-}
-
-.arcane input {
-  width: 80px;
-  padding: 4px;
-  background: #121726;
-  color: #e5e9f0;
-  border: 1px solid #2b3248;
-  border-radius: 4px;
-  text-align: center;
-}
-
-.arcane input:focus {
-  outline: none;
-  border-color: #5e81ac;
-}
-
-.drop-hint {
-  cursor: help;
-  font-size: 1.1rem;
-  opacity: 0.6;
-  text-align: center;
-}
-
-.drop-hint:hover {
-  opacity: 1;
-}
-
-.drop-hint {
-  position: relative;
-}
-
-.drop-hint .drop-tooltip {
-  display: none;
-  position: fixed;
-  z-index: 9999;
-  background: #1b2238;
-  border: 1px solid #2b3248;
+.arcane-card-image {
+  width: 100%;
+  aspect-ratio: 1;
+  background: rgba(0, 0, 0, 0.3);
   border-radius: 6px;
-  padding: 8px 12px;
-  font-size: 0.82rem;
-  color: #e5e9f0;
-  white-space: pre;
-  max-height: 300px;
-  overflow-y: auto;
-  pointer-events: none;
-  line-height: 1.6;
-  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+  overflow: hidden;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: opacity 0.15s;
 }
 
-.drop-hint:hover .drop-tooltip {
-  display: block;
+.arcane-card-image:hover {
+  opacity: 0.85;
+}
+
+.arcane-card-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 8px;
+}
+
+/* ─── Card name ───────────────────────────────────────────────────────────────── */
+
+.arcane-card-name {
+  font-size: 0.70rem;
+  font-weight: 600;
+  text-align: center;
+  color: #e5e9f0;
+  line-height: 1.3;
+  min-height: 2.2em;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* ─── Card counter row ────────────────────────────────────────────────────────── */
+
+.arcane-card-input {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.arcane-counter-btn {
+  width: 18px;
+  height: 18px;
+  padding: 0;
+  background: transparent;
+  color: #5e81ac;
+  border: 1px solid #2b3248;
+  border-radius: 3px;
+  font-size: 0.85rem;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.1s, color 0.1s;
+  flex-shrink: 0;
+}
+
+.arcane-counter-btn:hover {
+  background: #2b3248;
+  color: #88c0d0;
+}
+
+.arcane-counter-display {
+  font-size: 0.75rem;
+  color: #e5e9f0;
+  white-space: nowrap;
+  cursor: text;
+  padding: 1px 3px;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  transition: border-color 0.15s, background 0.15s;
+  min-width: 36px;
+  text-align: center;
+}
+
+.arcane-counter-display:hover {
+  border-color: #2b3248;
+  background: rgba(255,255,255,0.04);
+}
+
+.arcane-counter-display.editing {
+  border-color: #5e81ac;
+  background: #121726;
+  outline: none;
+  cursor: text;
+}
+
+.arcane-counter-need {
+  font-size: 0.68rem;
+  opacity: 0.45;
+  white-space: nowrap;
 }

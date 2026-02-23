@@ -1,4 +1,5 @@
-/* Relic button — looks like text, acts like a button */
+/* ─── Relic button ────────────────────────────────────────────────────────────── */
+
 .relic-btn {
   background: none;
   border: none;
@@ -13,20 +14,17 @@
   transition: opacity 0.2s;
 }
 
-.relic-btn:hover {
-  opacity: 0.75;
-}
+.relic-btn:hover { opacity: 0.75; }
 
 .relic-btn.vaulted-relic {
   color: #d08770;
   opacity: 0.7;
 }
 
-.relic-btn.vaulted-relic:hover {
-  opacity: 1;
-}
+.relic-btn.vaulted-relic:hover { opacity: 1; }
 
-/* Modal overlay */
+/* ─── Modal overlay ───────────────────────────────────────────────────────────── */
+
 .modal-overlay {
   position: fixed;
   inset: 0;
@@ -37,20 +35,29 @@
   z-index: 1000;
 }
 
-.modal-overlay.hidden {
-  display: none;
-}
+.modal-overlay.hidden { display: none; }
 
-/* Modal box */
+/* ─── Modal box ───────────────────────────────────────────────────────────────── */
+
 .modal-box {
   background: #1a1f2b;
   border: 1px solid #2b3248;
   border-radius: 8px;
   padding: 20px;
-  min-width: 420px;
-  max-width: 580px;
   max-height: 80vh;
   overflow-y: auto;
+
+  /* Default (relic) size */
+  min-width: 420px;
+  max-width: 580px;
+}
+
+/* Wider box for arcane and prime detail modals */
+.modal-box[data-type="arcane"],
+.modal-box[data-type="prime"] {
+  min-width: 640px;
+  max-width: 860px;
+  width: 90vw;
 }
 
 .modal-header {
@@ -83,11 +90,10 @@
   transition: opacity 0.2s;
 }
 
-#modalClose:hover {
-  opacity: 1;
-}
+#modalClose:hover { opacity: 1; }
 
-/* Modal table */
+/* ─── Relic modal table ───────────────────────────────────────────────────────── */
+
 .modal-table {
   width: 100%;
   border-collapse: collapse;
@@ -102,12 +108,108 @@
   border-bottom: 2px solid #2b3248;
 }
 
+.modal-table th.rarity { text-align: center; }
+
 .modal-table td {
   padding: 6px 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.05);
   font-size: 0.9rem;
 }
 
-.modal-table tr:last-child td {
-  border-bottom: none;
+.modal-table tr:last-child td { border-bottom: none; }
+
+/* ─── Detail modal (arcane + prime) two-column layout ────────────────────────── */
+
+.modal-detail {
+  display: grid;
+  grid-template-columns: 200px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+.modal-detail-left {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+}
+
+.modal-item-image {
+  width: 160px;
+  height: 160px;
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 8px;
+  border: 1px solid #2b3248;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.modal-item-image img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  padding: 8px;
+}
+
+.modal-item-name {
+  font-size: 1rem;
+  font-weight: 600;
+  text-align: center;
+  color: #e5e9f0;
+}
+
+/* Arcane owned counter */
+.modal-item-counter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+}
+
+.modal-item-counter label {
+  font-size: 0.8rem;
+  opacity: 0.6;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.modal-need-label {
+  font-size: 0.85rem;
+  opacity: 0.6;
+}
+
+/* Prime component checklist */
+.modal-prime-components {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  width: 100%;
+}
+
+/* Right side — scrollable */
+.modal-detail-right {
+  max-height: calc(80vh - 120px);
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+/* Drop list for arcane modal */
+.modal-drop-list {
+  white-space: pre-wrap;
+  font-size: 0.85rem;
+  line-height: 1.7;
+  color: #c5cde0;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid #2b3248;
+  border-radius: 6px;
+  padding: 12px;
+}
+
+.modal-counter-row {
+  display: flex;
+  align-items: center;
+  gap: 4px;
 }

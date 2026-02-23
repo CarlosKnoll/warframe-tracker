@@ -44,6 +44,8 @@ pub fn run() {
             commands::data::save_owned,
             commands::data::load_custom_drops,
             commands::data::get_data_path,
+            commands::data::load_image_cache,
+            commands::data::save_image_cache,
             commands::updater::check_for_updates,
             commands::updater::js_log,
         ])
