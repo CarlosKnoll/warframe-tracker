@@ -81,3 +81,33 @@
   background: #81a1c1;
   border-color: #81a1c1;
 }
+
+.search-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.search-container input[type="text"] {
+  width: 100%;
+  padding-right: 32px;
+  box-sizing: border-box;
+}
+
+.clear-search-btn {
+  position: absolute;
+  right: 8px;
+  background: transparent;
+  border: none;
+  color: #e5e9f0;
+  cursor: pointer;
+  font-size: 0.85rem;
+  opacity: 0.5;
+  padding: 0;
+  line-height: 1;
+}
+
+.clear-search-btn:hover {
+  opacity: 1;
+}
