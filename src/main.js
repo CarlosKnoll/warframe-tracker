@@ -48,6 +48,8 @@ document.querySelectorAll("#modeSelector button[data-mode]").forEach(btn => {
         arcanesModule = await import('./arcanes.js');
         await arcanesModule.initArcanes(owned, save);
         arcanesInitialized = true;
+      } else {
+        arcanesModule.renderArcanes();
       }
     } else {
       document.getElementById("primesSection").classList.add("active");
@@ -55,6 +57,8 @@ document.querySelectorAll("#modeSelector button[data-mode]").forEach(btn => {
         primesModule = await import('./primes/index.js');
         await primesModule.initPrimes(owned, ignoredPrimes, save);
         primesInitialized = true;
+      } else {
+        primesModule.renderPrimes();
       }
     }
   };
