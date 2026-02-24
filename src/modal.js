@@ -65,13 +65,13 @@ export function closeModal() {
 // ─── Relic Modal ───────────────────────────────────────────────────────────────
 
 export function openRelicModal(relicName, rewards, pushCurrent = false) {
-  let body;
-
+  // Left side — prime parts table
+  let leftContent;
   if (!rewards || rewards.length === 0) {
-    body = `<p class="no-drops">${t('modal.noRewards')}</p>`;
+    leftContent = `<p class="no-drops">${t('modal.noRewards')}</p>`;
   } else {
     const sorted = [...rewards].sort((a, b) => b.chance - a.chance);
-    body = `
+    leftContent = `
       <table class="modal-table">
         <thead>
           <tr>
@@ -85,7 +85,7 @@ export function openRelicModal(relicName, rewards, pushCurrent = false) {
             <tr>
               <td>${tItemName(r.itemName)}</td>
               <td class="rarity rarity-${r.rarity.toLowerCase()}">${tRarity(r.rarity)}</td>
-              <td>${r.chance.toFixed(2)}%</td>
+              <td class="relic-location-chance">${r.chance.toFixed(2)}%</td>
             </tr>
           `).join('')}
         </tbody>
@@ -93,7 +93,82 @@ export function openRelicModal(relicName, rewards, pushCurrent = false) {
     `;
   }
 
-  openModal(relicName, body, 'relic', pushCurrent);
+  // Right side — drop locations table
+  const rawKey = relicName.trim().toLowerCase().replace(/\s*(intact|exceptional|flawless|radiant)\s*/gi, '').trim();
+  const locations = state.relicLocationMap.get(rawKey) || [];
+  let rightContent;
+  if (locations.length === 0) {
+    rightContent = `<p class="no-drops">${t('modal.noLocations')}</p>`;
+  } else {
+    rightContent = `
+      <table class="modal-table" id="relicLocationTable">
+        <thead>
+          <tr>
+            <th>${t('modal.colLocation')}</th>
+            <th>${t('modal.colMode')}</th>
+            <th>${t('modal.colRotation')}</th>
+            <th class="sortable-chance" style="cursor:pointer; user-select:none;">
+              ${t('modal.colChance')} <span class="sort-arrow">↕</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody id="relicLocationBody">
+          ${renderLocationRows(locations, 'desc')}
+        </tbody>
+      </table>
+    `;
+  }
+
+  const body = `
+    <div class="modal-detail">
+      <div class="modal-detail-left relic-left">
+        ${leftContent}
+      </div>
+      <div class="modal-detail-right">
+        ${rightContent}
+      </div>
+    </div>
+  `;
+
+  openModal(tRelicName(relicName), body, 'relic', pushCurrent);
+
+  // Wire sort button
+  const chanceHeader = modalBody.querySelector('.sortable-chance');
+  if (chanceHeader) {
+    let sortDir = 'desc';
+    chanceHeader.onclick = () => {
+      sortDir = sortDir === 'desc' ? 'asc' : 'desc';
+      chanceHeader.querySelector('.sort-arrow').textContent = sortDir === 'desc' ? '↓' : '↑';
+      document.getElementById('relicLocationBody').innerHTML = renderLocationRows(locations, sortDir);
+    };
+  }
+}
+
+function renderLocationRows(locations, dir) {
+  const sorted = [...locations].sort((a, b) =>
+    dir === 'desc' ? b.chance - a.chance : a.chance - b.chance
+  );
+  return sorted.map(loc => `
+    <tr>
+      <td>${tOrRaw(`planet.${loc.planet}`, loc.planet)} - ${tMission(loc.mission)}</td>
+      <td>${t(`gameMode.${loc.gameMode}`) || loc.gameMode}</td>
+      <td>${loc.rotation}</td>
+      <td class="relic-location-chance">${loc.chance.toFixed(2)}%</td>
+    </tr>
+  `).join('');
+}
+
+function tOrRaw(key, raw) {
+  const result = t(key);
+  return result === key ? raw : result;
+}
+
+function tMission(raw) {
+  const cachesSuffix = ' (Caches)';
+  const hasCaches = raw.endsWith(cachesSuffix);
+  const baseName = hasCaches ? raw.slice(0, -cachesSuffix.length) : raw;
+  const translated = tOrRaw(`mission.${baseName}`, baseName);
+  return hasCaches ? `${translated} ${tOrRaw('mission.caches', '(Caches)')}` : translated;
 }
 
 // ─── Arcane Modal ──────────────────────────────────────────────────────────────
@@ -231,7 +306,7 @@ export function openPrimeCardModal(prime, imageUrl, getDropTableHTML, onComponen
       btn.onclick = () => {
         const relicName = btn.dataset.relic;
         const rewards = state.relicRewardsMap.get(relicName.toLowerCase());
-        openRelicModal(tRelicName(relicName), rewards, true); // ← pushCurrent = true
+        openRelicModal(relicName, rewards, true);
       };
     });
   };

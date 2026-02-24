@@ -32,7 +32,13 @@ async function loadLocale(lang) {
 
   uiStrings = ui;
   arcaneNamesMap = arcaneNames;
-  locationsMap = locations;
+  // Strip prefixes (mission., planet., gameMode.) for substring matching
+  locationsMap = Object.fromEntries(
+    Object.entries(locations).map(([k, v]) => [
+      k.replace(/^(mission|planet|gameMode)\./, ''),
+      v
+    ])
+  );
 }
 
 // ─── Language switching ────────────────────────────────────────────────────────
@@ -136,19 +142,27 @@ export function tDropSource(source) {
 export function tLocation(location) {
   if (!location || currentLang === 'en') return location;
 
+  // Strip (Caches) suffix, translate, then reappend
+  const cachesSuffix = ' (Caches)';
+  const hasCaches = location.endsWith(cachesSuffix);
+  const locationKey = hasCaches ? location.slice(0, -cachesSuffix.length) : location;
+
   // Exact match
-  if (locationsMap[location]) return locationsMap[location];
+  if (locationsMap[locationKey]) {
+    const translated = locationsMap[locationKey];
+    return hasCaches ? `${translated}${cachesSuffix}` : translated;
+  }
 
   // Partial keyword replacement — longest keys first to avoid partial clobber
   const sortedKeys = Object.keys(locationsMap).sort((a, b) => b.length - a.length);
-  let translated = location;
+  let translated = locationKey;
   for (const en of sortedKeys) {
     if (translated.includes(en)) {
       translated = translated.replace(en, locationsMap[en]);
     }
   }
 
-  return translated;
+  return hasCaches ? `${translated}${cachesSuffix}` : translated;
 }
 
 /**

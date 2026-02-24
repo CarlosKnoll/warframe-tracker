@@ -12,6 +12,7 @@ export const state = {
   vaultStatus: 'All',
   showFounderItems: true,
   showSpecialItems: true,
+  relicLocationMap: new Map(), // relicName (lowercase) → [{location, rotation, chance}]
 };
 
 export const FOUNDER_ITEMS = ["Excalibur Prime", "Lato Prime", "Skana Prime"];

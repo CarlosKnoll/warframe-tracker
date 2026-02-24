@@ -14,18 +14,29 @@ export async function loadPrimes() {
       const missionsData = await missionsRes.json();
 
       const missions = missionsData.missionRewards || {};
-      Object.values(missions).forEach(planet => {
-        Object.values(planet).forEach(mission => {
+      Object.entries(missions).forEach(([planetName, planet]) => {
+        Object.entries(planet).forEach(([missionName, mission]) => {
           if (mission.rewards) {
             ['A', 'B', 'C'].forEach(rotation => {
               if (mission.rewards[rotation]) {
                 mission.rewards[rotation].forEach(reward => {
-                  if (reward.itemName && reward.itemName.toLowerCase().includes('relic')) {
-                    const relicName = normalizeRelicName(reward.itemName);
-                    if (relicName) {
-                      state.farmableRelics.add(relicName.toLowerCase());
-                    }
+                  if (!reward.itemName || !reward.itemName.toLowerCase().includes('relic')) return;
+
+                  // Item names here are already clean e.g. "Lith D7 Relic"
+                  // No need to normalize, just lowercase for the key
+                  const key = reward.itemName.trim().toLowerCase();
+                  state.farmableRelics.add(key);
+
+                  if (!state.relicLocationMap.has(key)) {
+                    state.relicLocationMap.set(key, []);
                   }
+                  state.relicLocationMap.get(key).push({
+                    planet: planetName,
+                    mission: missionName,
+                    gameMode: mission.gameMode || '',
+                    rotation,
+                    chance: reward.chance,
+                  });
                 });
               }
             });

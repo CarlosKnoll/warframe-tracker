@@ -52,6 +52,48 @@
   max-width: 580px;
 }
 
+.modal-box[data-type="relic"] {
+  min-width: 640px;
+  max-width: 900px;
+  width: 90vw;
+}
+
+.modal-box[data-type="relic"] .modal-detail {
+  grid-template-columns: 2fr 3fr;
+}
+
+.modal-box[data-type="relic"] .modal-detail-left {
+  max-height: calc(80vh - 120px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: #2b3248 transparent;
+  align-items: stretch;
+}
+
+.modal-box[data-type="relic"] .modal-detail-left .modal-table {
+  width: 100%;
+}
+
+.modal-box[data-type="relic"] .modal-detail-left::-webkit-scrollbar {
+  width: 6px;
+}
+
+.modal-box[data-type="relic"] .modal-detail-left::-webkit-scrollbar-thumb {
+  background: #2b3248;
+  border-radius: 3px;
+}
+
+/* Relic left column is narrower than prime — no image, just a table */
+.relic-left {
+  min-width: 260px;
+  max-width: unset;
+}
+
+.relic-location-chance {
+  white-space: nowrap;
+  width: 80px;
+}
+
 /* Wider box for arcane and prime detail modals */
 .modal-box[data-type="arcane"],
 .modal-box[data-type="prime"] {

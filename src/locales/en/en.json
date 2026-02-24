@@ -54,7 +54,11 @@
   "modal.colRarity": "Rarity",
   "modal.colChance": "Chance",
   "modal.noRewards": "No reward data available for this relic.",
-
+  "modal.colLocation": "Location",
+  "modal.colMode": "Mode",
+  "modal.colRotation": "Rotation",
+  "modal.noLocations": "No drop locations found.",
+  
   "table.colPart": "Part",
   "table.colRelic": "Relic",
   "table.colRarity": "Rarity",
@@ -116,5 +120,34 @@
   "dropSource.Solaris United": "Solaris United",
   "dropSource.Vox Solaris": "Vox Solaris",
   "dropSource.The Hex": "The Hex",
-  "dropSource.Zariman": "Zariman"
+  "dropSource.Zariman": "Zariman",
+
+  "gameMode.Survival": "Survival",
+  "gameMode.Interception": "Interception",
+  "gameMode.Defense": "Defense",
+  "gameMode.Disruption": "Disruption",
+  "gameMode.Excavation": "Excavation",
+  "gameMode.Defection": "Defection",
+  "gameMode.Spy": "Spy",
+  "gameMode.Assassination": "Assassination",
+  "gameMode.Mobile Defense": "Mobile Defense",
+  "gameMode.Capture": "Capture",
+  "gameMode.Exterminate": "Exterminate",
+  "gameMode.Rescue": "Rescue",
+  "gameMode.Sabotage": "Sabotage",
+  "gameMode.Junction": "Junction",
+  "gameMode.Skirmish": "Skirmish",
+  "gameMode.Infested Salvage": "Infested Salvage",
+  "gameMode.Sanctuary Onslaught": "Sanctuary Onslaught",
+  "gameMode.Legacyte Harvest": "Legacyte Harvest",
+  "gameMode.Alchemy": "Alchemy",
+  "gameMode.Caches": "Caches",
+  "gameMode.Void Flood": "Void Flood",
+  "gameMode.Void Cascade": "Void Cascade",
+  "gameMode.Void Armageddon": "Void Armageddon",
+  "gameMode.Rush": "Rush",
+  "gameMode.The Perita Rebellion": "The Perita Rebellion",
+  "gameMode.The Circuit": "The Circuit",
+  "gameMode.Volatile": "Volatile"
+
 }
