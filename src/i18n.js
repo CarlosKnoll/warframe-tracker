@@ -177,6 +177,9 @@ export function tLocation(location) {
 export function tItemName(itemName) {
   if (!itemName || currentLang === 'en') return itemName;
 
+  // Translate "Dual XXX Prime" weapon names before processing parts
+  itemName = tPrimeName(itemName);  // ← add this
+
   // Component part translations
   const partMap = {
     'Neuroptics':  t('component.neuroptics'),
@@ -244,6 +247,22 @@ export function tItemName(itemName) {
 export function tRelicName(name) {
   if (!name || currentLang === 'en') return name;
   return name.replace(/^(.+?)\s+Relic$/i, `${t('word.relic')} $1`);
+}
+
+/**
+ * Translate a prime weapon name, handling "Dual XXX Prime" -> "XXXs Duplas Prime" in PT-BR.
+ * e.g. "Dual Keres Prime" -> "Keres Duplas Prime"
+ * Adds 's' to base name if it doesn't already end in one.
+ */
+export function tPrimeName(name) {
+  if (!name || currentLang === 'en') return name;
+  const dualMatch = name.match(/^Dual\s+(.+?)\s+Prime$/i);
+  if (dualMatch) {
+    const base = dualMatch[1];
+    const baseLocalized = base.endsWith('s') ? base : `${base}s`;
+    return `${baseLocalized} Duplas Prime`;
+  }
+  return name;
 }
 
 /**

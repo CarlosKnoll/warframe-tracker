@@ -1,6 +1,6 @@
 // modal.js - Modal system for relic, arcane, and prime detail views
 
-import { t, tRarity, tItemName, tRelicName, tOrRaw, tMission } from './i18n.js';
+import { t, tRarity, tItemName, tRelicName, tOrRaw, tMission, tPrimeName } from './i18n.js';
 import { state } from './primes/state.js';
 
 const modal = document.getElementById("relicModal");
@@ -245,9 +245,9 @@ export function openPrimeCardModal(prime, imageUrl, getDropTableHTML, onComponen
       <div class="modal-detail">
         <div class="modal-detail-left">
           <div class="modal-item-image">
-            <img src="${imageUrl}" alt="${prime.name}" onerror="this.src=''" />
+            <img src="${imageUrl}" alt="${tPrimeName(prime.name)}" onerror="this.src=''" />
           </div>
-          <div class="modal-item-name">${prime.name}</div>
+          <div class="modal-item-name">${tPrimeName(prime.name)}</div>
           <div class="modal-prime-components">
             ${prime.components.map(comp => `
               <label class="component ${comp.isOwned ? 'owned' : ''} ${comp.isMainItem ? 'main-item' : ''}">
@@ -298,7 +298,7 @@ export function openPrimeCardModal(prime, imageUrl, getDropTableHTML, onComponen
     });
   };
 
-  openModal(prime.name, renderBody(), 'prime');
+  openModal(tPrimeName(prime.name), renderBody(), 'prime');
   rebind();
   if (!prime.isSpecial) bindRelicButtons();
   modalBox._primeOnClose = () => {

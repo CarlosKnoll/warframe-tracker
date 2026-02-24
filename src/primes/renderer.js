@@ -3,7 +3,7 @@
 import { state, FOUNDER_ITEMS, primeImageCache } from './state.js';
 import { openPrimeCardModal } from '../modal.js';
 import { normalizeRelicName } from './loader.js';
-import { t, tRarity, tComponent, tRelicName, tLocation, tOrRaw, tMission, parseDropLocation  } from '../i18n.js';
+import { t, tRarity, tComponent, tRelicName, tPrimeName, tOrRaw, tMission, parseDropLocation  } from '../i18n.js';
 
 const invoke = window.__TAURI_INTERNALS__.invoke;
 const resolvedImageCache = new Map();
@@ -156,7 +156,7 @@ export function renderPrimes() {
       </div>
       ${ignoreBtn}
       <div class="prime-card-image"></div>
-      <div class="prime-card-name">${p.name}</div>
+      <div class="prime-card-name">${tPrimeName(p.name)}</div>
       <div class="prime-card-footer">
         ${statusTag}
       </div>

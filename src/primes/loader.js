@@ -5,7 +5,7 @@ import { PART_ORDER } from './renderer.js';
 
 const invoke = window.__TAURI_INTERNALS__.invoke;
 
-const PRIME_CACHE_VERSION = "1";
+const PRIME_CACHE_VERSION = "2";
 
 export async function loadPrimes() {
   try {
