@@ -2,6 +2,7 @@ use std::fs;
 use std::path::PathBuf;
 use std::env;
 use tauri::AppHandle;
+use log;
 
 /// Get the installation directory (where the exe is located)
 pub fn get_install_dir() -> PathBuf {
@@ -84,4 +85,9 @@ pub fn get_custom_drops_file(_app: &AppHandle) -> Option<PathBuf> {
         println!("No custom drops file found");
         None
     }
+}
+
+#[tauri::command]
+pub async fn js_log(message: String) {
+    log::info!("[JS] {}", message);
 }

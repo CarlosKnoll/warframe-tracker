@@ -1,6 +1,6 @@
-use log::error;
 use tauri::{AppHandle, Emitter};
 use tauri_plugin_updater::UpdaterExt;
+use log::error;
 
 #[tauri::command]
 pub async fn check_for_updates(app: AppHandle) -> Result<bool, String> {
@@ -43,9 +43,4 @@ pub async fn check_for_updates(app: AppHandle) -> Result<bool, String> {
             Err(e.to_string())
         }
     }
-}
-
-#[tauri::command]
-pub async fn js_log(message: String) {
-    log::info!("[JS] {}", message);
 }

@@ -6,6 +6,7 @@ import { normalizeRelicName } from './loader.js';
 import { t, tRarity, tComponent, tRelicName } from '../i18n.js';
 
 const invoke = window.__TAURI_INTERNALS__.invoke;
+const resolvedImageCache = new Map();
 
 export function hasRelicDrops(prime) {
   if (!prime.components || prime.components.length === 0) return false;
@@ -109,8 +110,8 @@ export function renderPrimes() {
       ? `<button class="prime-ignore-btn" data-unique="${p.uniqueName}" title="${isIgnored ? t('btn.unignore') : t('btn.ignore')}">✕</button>`
       : '';
 
-    const imageUrl = primeImageCache.get(p.uniqueName) || '';
-    const FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23151b2b'/%3E%3Ctext x='40' y='44' text-anchor='middle' font-size='28' fill='%23334'%3E✦%3C/text%3E%3C/svg%3E";
+      const FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23151b2b'/%3E%3Ctext x='40' y='44' text-anchor='middle' font-size='28' fill='%23334'%3E✦%3C/text%3E%3C/svg%3E";
+      const imageUrl = primeImageCache.get(p.uniqueName) || FALLBACK;
 
     card.innerHTML = `
       <div class="prime-card-dots">
@@ -127,11 +128,20 @@ export function renderPrimes() {
     // Image
     const imgEl = document.createElement('img');
     imgEl.alt = p.name;
-    imgEl.loading = 'lazy';
+    imgEl.style.display = 'none'; // hide until loaded
+
+    imgEl.onload = () => { imgEl.style.display = ''; };
     imgEl.onerror = () => { imgEl.src = FALLBACK; };
-    if (imageUrl) {
+
+    if (resolvedImageCache.has(p.uniqueName)) {
+      imgEl.src = resolvedImageCache.get(p.uniqueName);
+    } else if (imageUrl !== FALLBACK) {
       invoke("fetch_image_base64", { url: imageUrl })
-        .then(b64 => { imgEl.src = `data:image/png;base64,${b64}`; })
+        .then(b64 => {
+          const dataUri = `data:image/png;base64,${b64}`;
+          resolvedImageCache.set(p.uniqueName, dataUri);
+          imgEl.src = dataUri;
+        })
         .catch(() => { imgEl.src = FALLBACK; });
     } else {
       imgEl.src = FALLBACK;
@@ -152,7 +162,7 @@ export function renderPrimes() {
 
     // Click card to open modal
     card.onclick = () => {
-      const imageUrl = primeImageCache.get(p.uniqueName) || '';
+      const imageUrl = primeImageCache.get(p.uniqueName) || FALLBACK;
       const ownedCompAtOpen = p.components.find(c => c.isMainItem);
       const wasCompleteAtOpen = ownedCompAtOpen && (state.owned[ownedCompAtOpen.uniqueName] ?? 0) > 0;
 

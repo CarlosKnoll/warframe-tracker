@@ -4,9 +4,12 @@ const invoke = window.__TAURI_INTERNALS__.invoke;
 import { t, tArcaneName, tDropSource, tLocation, getLanguage } from './i18n.js';
 import { openArcaneModal } from './modal.js';
 
+const log = (msg) => invoke("js_log", { message: msg });
+
 const ARCANE_URL = "https://raw.githubusercontent.com/WFCD/warframe-items/master/data/json/Arcanes.json";
 const WIKI_IMAGE_BASE = "https://wiki.warframe.com/images/thumb/";
 const FALLBACK_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23151b2b'/%3E%3Ctext x='40' y='44' text-anchor='middle' font-size='28' fill='%23334'%3E✦%3C/text%3E%3C/svg%3E";
+const CACHE_VERSION = "1";
 
 let allArcanes = [];
 let searchText = "";
@@ -78,21 +81,20 @@ async function buildImageCache(arcanes) {
   let diskCache = {};
   try {
     diskCache = await invoke("load_image_cache");
+    if (diskCache.__version !== CACHE_VERSION) {
+      diskCache = { __version: CACHE_VERSION }; // wipe and rebuild
+    }
   } catch (e) {
-    console.warn("No image cache found, building fresh");
+    diskCache = { __version: CACHE_VERSION };
   }
 
   const missing = arcanes.filter(a => !diskCache[a.name]);
 
-  // HEAD requests only for arcanes not yet cached
+  // No HEAD requests
   await Promise.allSettled(missing.map(async (a) => {
-    const url = getWikiImageUrl(a.name);
-    try {
-      const res = await fetch(url, { method: 'HEAD' });
-      diskCache[a.name] = res.ok ? url : FALLBACK_IMAGE;
-    } catch {
-      diskCache[a.name] = FALLBACK_IMAGE;
-    }
+    missing.forEach(a => {
+    diskCache[a.name] = getWikiImageUrl(a.name);
+    })
   }));
 
   // Populate in-memory cache
@@ -212,7 +214,7 @@ async function loadArcanes() {
     console.error("Error loading arcanes:", err);
   }
 
-  buildImageCache(allArcanes);
+  await buildImageCache(allArcanes);
 }
 
 function updateDropSourceFilters() {

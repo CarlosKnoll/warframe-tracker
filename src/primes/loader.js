@@ -2,6 +2,8 @@
 
 import { state, RELICS_DROP_URL, MISSION_REWARDS_URL, PRIME_URLS, PRIME_IMAGE_BASE, primeImageCache } from './state.js';
 
+const PRIME_CACHE_VERSION = "1";
+
 const invoke = window.__TAURI_INTERNALS__.invoke;
 
 export async function loadPrimes() {
@@ -270,8 +272,11 @@ async function buildPrimeImageCache(primes) {
   let diskCache = {};
   try {
     diskCache = await invoke("load_prime_image_cache");
+    if (diskCache.__version !== PRIME_CACHE_VERSION) {
+      diskCache = { __version: PRIME_CACHE_VERSION };
+    }
   } catch (e) {
-    console.warn("No prime image cache found, building fresh");
+    diskCache = { __version: PRIME_CACHE_VERSION };
   }
 
   // No HEAD requests — just build URLs directly for uncached primes
