@@ -5,6 +5,8 @@ import { PART_ORDER } from './renderer.js';
 
 const invoke = window.__TAURI_INTERNALS__.invoke;
 
+const PRIME_CACHE_VERSION = "1";
+
 export async function loadPrimes() {
   try {
     const primeData = [];
@@ -301,8 +303,11 @@ async function buildPrimeImageCache(primes) {
   let diskCache = {};
   try {
     diskCache = await invoke("load_prime_image_cache");
+    if (diskCache.__version !== PRIME_CACHE_VERSION) {
+      diskCache = { __version: PRIME_CACHE_VERSION };
+    }
   } catch (e) {
-    console.warn("No prime image cache found, building fresh");
+    diskCache = { __version: PRIME_CACHE_VERSION };
   }
 
   // No HEAD requests — just build URLs directly for uncached primes
