@@ -1,8 +1,7 @@
 // primes/loader.js - All data fetching and processing logic
 
 import { state, RELICS_DROP_URL, MISSION_REWARDS_URL, PRIME_URLS, PRIME_IMAGE_BASE, primeImageCache } from './state.js';
-
-const PRIME_CACHE_VERSION = "1";
+import { PART_ORDER } from './renderer.js';
 
 const invoke = window.__TAURI_INTERNALS__.invoke;
 
@@ -217,36 +216,66 @@ function extractPrimeComponents(item, vaultStatus, farmableRelics) {
       const baseKey = comp.uniqueName || `${item.uniqueName}_${comp.name}`;
       const isBuiltPrime = comp.name && comp.name.includes("Prime") && comp.drops && comp.drops.some(d => d.location && d.location.toLowerCase().includes('relic'));
 
+      // How many copies of this component are needed
+      const copies = comp.itemCount && comp.itemCount > 1 ? comp.itemCount : (isBuiltPrime ? null : 1);
+
+      // Deduplicate genuine duplicates (same key already seen, no itemCount > 1, not a builtPrime)
+      if (copies === 1 && seen.has(baseKey)) return;
+
+      // Find the next available indexed key
       let compKey = baseKey;
-      if (isBuiltPrime) {
-        // Valid duplicates (e.g. two Bronco Prime for Akbronco) — allow them with indexed keys
-        let index = 1;
-        while (seen.has(compKey)) {
-          compKey = `${baseKey}_${index++}`;
-        }
-      } else {
-        // Genuine duplicates (e.g. repeated blueprint entries) — deduplicate as before
-        if (seen.has(compKey)) return;
+      let index = 1;
+      while (seen.has(compKey)) {
+        compKey = `${baseKey}_${index++}`;
       }
       seen.add(compKey);
-
-      if (comp.name === "Blueprint" && isWarframeCategory && components.length > 1) return;
 
       let compStatus = { vaulted: vaultStatus.vaulted };
       if (comp.drops && comp.drops.length > 0) {
         compStatus = checkPrimeVaultStatus({ components: [comp] }, farmableRelics);
       }
 
-      components.push({
-        name: comp.name || "Component",
-        uniqueName: compKey,
-        vaulted: compStatus.vaulted,
-        isMainItem: false,
-        isBuiltPrime: isBuiltPrime || false,
-        drops: comp.drops || []
-      });
+      // Push once for the current iteration (skip warframe blueprints)
+      if (!(comp.name === "Blueprint" && isWarframeCategory && components.length > 1)) {
+        components.push({
+          name: comp.name || "Component",
+          uniqueName: compKey,
+          vaulted: compStatus.vaulted,
+          isMainItem: false,
+          isBuiltPrime: isBuiltPrime || false,
+          drops: comp.drops || []
+        });
+      }
+
+      // If itemCount > 1, push additional copies with indexed keys
+      const totalCopies = copies ?? 1;
+      for (let i = 1; i < totalCopies; i++) {
+        let extraKey = baseKey;
+        let ei = 1;
+        while (seen.has(extraKey)) {
+          extraKey = `${baseKey}_${ei++}`;
+        }
+        seen.add(extraKey);
+        components.push({
+          name: comp.name || "Component",
+          uniqueName: extraKey,
+          vaulted: compStatus.vaulted,
+          isMainItem: false,
+          isBuiltPrime: isBuiltPrime || false,
+          drops: comp.drops || []
+        });
+      }
     });
   }
+
+  components.sort((a, b) => {
+    if (a.isMainItem) return -1;
+    if (b.isMainItem) return 1;
+    const aOrder = PART_ORDER[a.name] ?? 99;
+    const bOrder = PART_ORDER[b.name] ?? 99;
+    if (aOrder !== bOrder) return aOrder - bOrder;
+    return a.name.localeCompare(b.name);
+  });
 
   return components;
 }
@@ -272,11 +301,8 @@ async function buildPrimeImageCache(primes) {
   let diskCache = {};
   try {
     diskCache = await invoke("load_prime_image_cache");
-    if (diskCache.__version !== PRIME_CACHE_VERSION) {
-      diskCache = { __version: PRIME_CACHE_VERSION };
-    }
   } catch (e) {
-    diskCache = { __version: PRIME_CACHE_VERSION };
+    console.warn("No prime image cache found, building fresh");
   }
 
   // No HEAD requests — just build URLs directly for uncached primes

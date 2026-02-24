@@ -66,6 +66,8 @@
   "table.vaultedRelics": "Relíquias no Cofre",
   "table.noRelicData": "Sem dados de relíquia disponíveis",
 
+  "table.specialDrops": "Fontes de Drop",
+
   "loading.primes": "Carregando dados dos Primes...",
   "drops.none": "Sem dados de drop disponíveis",
   "drops.more": "... e mais {{count}}",

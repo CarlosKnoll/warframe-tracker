@@ -1,6 +1,6 @@
 // modal.js - Modal system for relic, arcane, and prime detail views
 
-import { t, tRarity, tItemName, tRelicName } from './i18n.js';
+import { t, tRarity, tItemName, tRelicName, tOrRaw, tMission } from './i18n.js';
 import { state } from './primes/state.js';
 
 const modal = document.getElementById("relicModal");
@@ -158,19 +158,6 @@ function renderLocationRows(locations, dir) {
   `).join('');
 }
 
-function tOrRaw(key, raw) {
-  const result = t(key);
-  return result === key ? raw : result;
-}
-
-function tMission(raw) {
-  const cachesSuffix = ' (Caches)';
-  const hasCaches = raw.endsWith(cachesSuffix);
-  const baseName = hasCaches ? raw.slice(0, -cachesSuffix.length) : raw;
-  const translated = tOrRaw(`mission.${baseName}`, baseName);
-  return hasCaches ? `${translated} ${tOrRaw('mission.caches', '(Caches)')}` : translated;
-}
-
 // ─── Arcane Modal ──────────────────────────────────────────────────────────────
 
 export function openArcaneModal({ name, imageUrl, dropInfo, owned, totalNeeded, uniqueName, onOwnedChange }) {
@@ -296,7 +283,7 @@ export function openPrimeCardModal(prime, imageUrl, getDropTableHTML, onComponen
         modalBody.querySelector('.modal-detail-right').innerHTML = getDropTableHTML();
 
         // Rewire relic buttons after rebuild
-        bindRelicbindRelicButtons();
+        bindRelicButtons();
       };
     });
   };
@@ -313,7 +300,7 @@ export function openPrimeCardModal(prime, imageUrl, getDropTableHTML, onComponen
 
   openModal(prime.name, renderBody(), 'prime');
   rebind();
-  bindRelicButtons();
+  if (!prime.isSpecial) bindRelicButtons();
   modalBox._primeOnClose = () => {
     if (dirty) onClose();
   };

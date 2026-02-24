@@ -264,3 +264,50 @@ export function formatDate(date, options = { year: 'numeric', month: 'short' }) 
   const locale = currentLang === 'pt' ? 'pt-BR' : 'en-US';
   return date.toLocaleDateString(locale, options);
 }
+
+export function tOrRaw(key, raw) {
+  const result = t(key);
+  return result === key ? raw : result;
+}
+
+export function tMission(raw) {
+  const cachesSuffix = ' (Caches)';
+  const hasCaches = raw.endsWith(cachesSuffix);
+  const baseName = hasCaches ? raw.slice(0, -cachesSuffix.length) : raw;
+  const translated = tOrRaw(`mission.${baseName}`, baseName);
+  return hasCaches ? `${translated} ${tOrRaw('mission.caches', '(Caches)')}` : translated;
+}
+
+export function parseDropLocation(location) {
+  if (!location) return { planet: '', mission: '', gameMode: '', rotation: '' };
+
+  let rotation = '';
+  let base = location;
+
+  const rotationMatch = base.match(/,\s*Rotation\s+([A-Z])\s*$/i);
+  if (rotationMatch) {
+    rotation = rotationMatch[1];
+    base = base.slice(0, rotationMatch.index).trim();
+  }
+
+  let planet = '';
+  let mission = '';
+  let gameMode = '';
+
+  const slashIdx = base.indexOf('/');
+  if (slashIdx !== -1) {
+    planet = base.slice(0, slashIdx).trim();
+    const rest = base.slice(slashIdx + 1).trim();
+    const gameModeMatch = rest.match(/^(.*?)\s*\(([^)]+)\)\s*$/);
+    if (gameModeMatch) {
+      mission = gameModeMatch[1].trim();
+      gameMode = gameModeMatch[2].trim();
+    } else {
+      mission = rest;
+    }
+  } else {
+    mission = base;
+  }
+
+  return { planet, mission, gameMode, rotation };
+}
