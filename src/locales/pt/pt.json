@@ -1,12 +1,77 @@
 {
   "appTitle": "Coleções do Warframe",
 
+  "mode.mastery": "Maestria",
   "mode.arcanes": "Arcanos",
   "mode.primes": "Primes",
 
+  "mastery.warframes": "Warframes",
+  "mastery.primaries": "Primárias",
+  "mastery.secondaries": "Secundárias",
+  "mastery.melees": "Corpo a Corpo",
+  "mastery.robotic": "Robóticos",
+  "mastery.companions": "Companheiros",
+  "mastery.vehicles": "Veículos",
+  "mastery.archgun": "Arch-Arma",
+  "mastery.archmelee": "Arch-Arma Branca",
+  "mastery.amps": "Amps",
+  "mastery.misc": "Outros",
+
+  "mastery.section.warframe": "Warframes",
+  "mastery.section.primary": "Primárias",
+  "mastery.section.secondary": "Secundárias",
+  "mastery.section.melee": "Corpo a Corpo",
+  "mastery.section.robotic": "Robóticos",
+  "mastery.section.companion": "Companheiros",
+  "mastery.section.vehicle": "Veículos",
+  "mastery.section.archgun": "Arch-Arma",
+  "mastery.section.archmelee": "Arch-Arma Branca",
+  "mastery.section.amp": "Amps",
+  "mastery.section.misc": "Outros",
+
+  "mastery.badge.mastered": "MASTERIZADO",
+  "mastery.badge.owned": "OBTIDO",
+  "mastery.badge.missing": "FALTANDO",
+
+  "mastery.label.owned": "Adquirido",
+  "mastery.label.mastered": "Masterizado",
+  "mastery.label.xp": "XP",
+  "mastery.label.noItems": "Nenhum item corresponde aos filtros.",
+
+  "mastery.progress.mastered": "masterizados",
+  "mastery.progress.xp": "XP",
+
+  "mastery.status.all": "Todos",
+  "mastery.status.owned": "Adquiridos",
+  "mastery.status.mastered": "Masterizados",
+  "mastery.status.missing": "Faltando",
+
+  "mastery.misc.starchart.heading": "Mapa Estelar & Junções",
+  "mastery.misc.starchart.normal_nodes": "Missões - Normal",
+  "mastery.misc.starchart.normal_junctions": "Junções - Normal",
+  "mastery.misc.starchart.steel_nodes": "Missões - Percurso de Aço",
+  "mastery.misc.starchart.steel_junctions": "Junções - Percurso de Aço",
+
+  "mastery.misc.railjack.heading": "Intrínsecos da Railjack",
+  "mastery.misc.railjack.tactical": "Estratégia",
+  "mastery.misc.railjack.piloting": "Pilotagem",
+  "mastery.misc.railjack.gunnery": "Artilharia",
+  "mastery.misc.railjack.engineering": "Engenharia",
+  "mastery.misc.railjack.command": "Comando",
+
+  "mastery.misc.drifter.heading": "Intrínsecos do Peregrino",
+  "mastery.misc.drifter.riding": "Cavalgamento",
+  "mastery.misc.drifter.combat": "Combate",
+  "mastery.misc.drifter.opportunity": "Oportunismo",
+  "mastery.misc.drifter.endurance": "Resistência",
+
+  "search.mastery.placeholder": "Buscar...",
   "search.arcanes.placeholder": "Buscar arcanos...",
   "search.primes.placeholder": "Buscar primes...",
   "search.clear.title": "Limpar busca",
+
+  "loading.mastery": "Carregando dados de maestria...",
+  "loading.primes": "Carregando dados dos Primes...",
 
   "filter.status": "Status:",
   "filter.all": "Todos",
@@ -65,10 +130,8 @@
   "table.availableRelics": "Relíquias Disponíveis",
   "table.vaultedRelics": "Relíquias no Cofre",
   "table.noRelicData": "Sem dados de relíquia disponíveis",
-
   "table.specialDrops": "Fontes de Drop",
 
-  "loading.primes": "Carregando dados dos Primes...",
   "drops.none": "Sem dados de drop disponíveis",
   "drops.more": "... e mais {{count}}",
 
@@ -182,18 +245,14 @@
   "mission.Recall: Dactolyst": "Recordação: Dactolista",
   "mission.Recall: Vanguard": "Recordação: Vanguarda",
   "mission.The Circuit": "Circuito",
-  
   "mission.Outer Terminus": "Estação Exterior",
   "mission.Tyana Pass": "Passagem de Tyana",
-  
   "mission.Everview Arc": "Arco Eternavisa",
   "mission.Halako Perimeter": "Perímetro Halako",
   "mission.The Greenway": "A Ecovia",
   "mission.Oro Works": "Estações Oro",
   "mission.Tuvul Commons": "Comunas Tuvul",
-
   "mission.Solstice Square": "Praça do Solstício",
-  
   "mission.Falling Glory": "Glória Decadente",
   "mission.Vesper Strait": "Estreito de Vesper",
   "mission.Luckless Expanse": "Expansão Agourada",
@@ -227,6 +286,4 @@
   "mission.R-9 Cloud": "Nebulosa R-9",
   "mission.H-2 Cloud": "Nebulosa H-2",
   "mission.Nsu Grid": "Matriz Nsu"
-
-  
 }

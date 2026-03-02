@@ -77,9 +77,11 @@ pub fn get_data_path(_app: AppHandle) -> String {
         .to_string()
 }
 
+/// Unified image cache for all modules (arcanes, primes, mastery).
+/// Stores uniqueName → base64 data URI, persisted to shared_image_cache.json.
 #[tauri::command]
-pub fn load_image_cache() -> Result<HashMap<String, String>, String> {
-    let path = get_data_dir().join("image_cache.json");
+pub fn load_shared_image_cache() -> Result<HashMap<String, String>, String> {
+    let path = get_data_dir().join("shared_image_cache.json");
     if !path.exists() {
         return Ok(HashMap::new());
     }
@@ -88,25 +90,28 @@ pub fn load_image_cache() -> Result<HashMap<String, String>, String> {
 }
 
 #[tauri::command]
-pub fn save_image_cache(cache: HashMap<String, String>) -> Result<(), String> {
-    let path = get_data_dir().join("image_cache.json");
+pub fn save_shared_image_cache(cache: HashMap<String, String>) -> Result<(), String> {
+    let path = get_data_dir().join("shared_image_cache.json");
     let content = serde_json::to_string_pretty(&cache).map_err(|e| e.to_string())?;
     fs::write(path, content).map_err(|e| e.to_string())
 }
 
+/// Mastery item data cache — stores the full normalized item list with a
+/// timestamp so the loader can skip network fetches when the cache is fresh.
+/// Shape: { "cachedAt": "<ISO timestamp>", "items": [...] }
 #[tauri::command]
-pub fn load_prime_image_cache() -> Result<HashMap<String, String>, String> {
-    let path = get_data_dir().join("prime_image_cache.json");
+pub fn load_mastery_data_cache() -> Result<Value, String> {
+    let path = get_data_dir().join("mastery_data_cache.json");
     if !path.exists() {
-        return Ok(HashMap::new());
+        return Ok(Value::Null);
     }
     let content = fs::read_to_string(path).map_err(|e| e.to_string())?;
     serde_json::from_str(&content).map_err(|e| e.to_string())
 }
 
 #[tauri::command]
-pub fn save_prime_image_cache(cache: HashMap<String, String>) -> Result<(), String> {
-    let path = get_data_dir().join("prime_image_cache.json");
-    let content = serde_json::to_string_pretty(&cache).map_err(|e| e.to_string())?;
+pub fn save_mastery_data_cache(data: Value) -> Result<(), String> {
+    let path = get_data_dir().join("mastery_data_cache.json");
+    let content = serde_json::to_string_pretty(&data).map_err(|e| e.to_string())?;
     fs::write(path, content).map_err(|e| e.to_string())
 }

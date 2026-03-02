@@ -2,7 +2,9 @@ body {
   font-family: system-ui, -apple-system, Segoe UI, sans-serif;
   background: radial-gradient(circle at top, #1a1f2b, #0c0f16);
   color: #e5e9f0;
-  padding: 24px;
+  /* Padding removed from body — now applied per-area in layout.css */
+  margin: 0;
+  padding: 0;
 }
 
 h1 {
@@ -45,3 +47,29 @@ h1 {
   transform: scale(1.1);
 }
 
+/* ─── Scrollbars ────────────────────────────────────────────────────────────── */
+/* Applied globally so sidebar, content area, and any inner lists all match     */
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #0c0f16;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #2b3248;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #3d4a6e;
+}
+
+/* Firefox */
+* {
+  scrollbar-width: thin;
+  scrollbar-color: #2b3248 #0c0f16;
+}

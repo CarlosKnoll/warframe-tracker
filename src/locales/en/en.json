@@ -1,12 +1,77 @@
 {
   "appTitle": "Warframe Collection Tracker",
 
+  "mode.mastery": "Mastery",
   "mode.arcanes": "Arcanes",
   "mode.primes": "Primes",
 
+  "mastery.warframes": "Warframes",
+  "mastery.primaries": "Primaries",
+  "mastery.secondaries": "Secondaries",
+  "mastery.melees": "Melees",
+  "mastery.robotic": "Robotic",
+  "mastery.companions": "Companions",
+  "mastery.vehicles": "Vehicles",
+  "mastery.archgun": "Arch-Gun",
+  "mastery.archmelee": "Arch-Melee",
+  "mastery.amps": "Amps",
+  "mastery.misc": "Misc",
+
+  "mastery.section.warframe": "Warframes",
+  "mastery.section.primary": "Primaries",
+  "mastery.section.secondary": "Secondaries",
+  "mastery.section.melee": "Melees",
+  "mastery.section.robotic": "Robotic",
+  "mastery.section.companion": "Companions",
+  "mastery.section.vehicle": "Vehicles",
+  "mastery.section.archgun": "Arch-Gun",
+  "mastery.section.archmelee": "Arch-Melee",
+  "mastery.section.amp": "Amps",
+  "mastery.section.misc": "Misc",
+
+  "mastery.badge.mastered": "MASTERED",
+  "mastery.badge.owned": "OWNED",
+  "mastery.badge.missing": "MISSING",
+
+  "mastery.label.owned": "Owned",
+  "mastery.label.mastered": "Mastered",
+  "mastery.label.xp": "XP",
+  "mastery.label.noItems": "No items match your filters.",
+
+  "mastery.progress.mastered": "mastered",
+  "mastery.progress.xp": "XP",
+
+  "mastery.status.all": "All",
+  "mastery.status.owned": "Owned",
+  "mastery.status.mastered": "Mastered",
+  "mastery.status.missing": "Missing",
+
+  "mastery.misc.starchart.heading": "Starchart & Junctions",
+  "mastery.misc.starchart.normal_nodes": "Normal — Mission Nodes",
+  "mastery.misc.starchart.normal_junctions": "Normal — Junctions",
+  "mastery.misc.starchart.steel_nodes": "Steel Path — Nodes",
+  "mastery.misc.starchart.steel_junctions": "Steel Path — Junctions",
+
+  "mastery.misc.railjack.heading": "Railjack Intrinsics",
+  "mastery.misc.railjack.tactical": "Tactical",
+  "mastery.misc.railjack.piloting": "Piloting",
+  "mastery.misc.railjack.gunnery": "Gunnery",
+  "mastery.misc.railjack.engineering": "Engineering",
+  "mastery.misc.railjack.command": "Command",
+
+  "mastery.misc.drifter.heading": "Drifter Intrinsics",
+  "mastery.misc.drifter.riding": "Riding",
+  "mastery.misc.drifter.combat": "Combat",
+  "mastery.misc.drifter.opportunity": "Opportunity",
+  "mastery.misc.drifter.endurance": "Endurance",
+
+  "search.mastery.placeholder": "Search...",
   "search.arcanes.placeholder": "Search arcanes...",
   "search.primes.placeholder": "Search primes...",
   "search.clear.title": "Clear search",
+
+  "loading.mastery": "Loading mastery data...",
+  "loading.primes": "Loading primes data...",
 
   "filter.status": "Status:",
   "filter.all": "All",
@@ -58,15 +123,15 @@
   "modal.colMode": "Mode",
   "modal.colRotation": "Rotation",
   "modal.noLocations": "No drop locations found.",
-  
+
   "table.colPart": "Part",
   "table.colRelic": "Relic",
   "table.colRarity": "Rarity",
   "table.availableRelics": "Available Relics",
   "table.vaultedRelics": "Vaulted Relics",
   "table.noRelicData": "No relic data available",
+  "table.specialDrops": "Special Drops",
 
-  "loading.primes": "Loading primes data...",
   "drops.none": "No drop data available",
   "drops.more": "... and {{count}} more",
 
@@ -97,7 +162,6 @@
   "component.gauntlet": "Gauntlet",
   "component.link": "Link",
   "component.boot": "Boot",
-  
 
   "word.relic": "Relic",
   "unknown": "Unknown",
@@ -149,5 +213,6 @@
   "gameMode.The Perita Rebellion": "The Perita Rebellion",
   "gameMode.The Circuit": "The Circuit",
   "gameMode.Volatile": "Volatile"
+
 
 }

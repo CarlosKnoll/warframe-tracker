@@ -20,8 +20,14 @@ export async function initI18n() {
 }
 
 async function loadLocale(lang) {
-  const [ui, arcaneNames, locations] = await Promise.all([
-    fetch(`./locales/${lang}/${lang}.json`).then(r => r.json()).catch(() => ({})),
+  // Step 1: always load English as the baseline
+  // Step 2: overlay the target language on top (missing keys fall through to EN)
+  // Step 3: t() falls back to the key string itself if still not found
+  const [enStrings, targetStrings, arcaneNames, locations] = await Promise.all([
+    fetch(`./locales/en/en.json`).then(r => r.json()).catch(() => ({})),
+    lang === 'en'
+      ? Promise.resolve({})
+      : fetch(`./locales/${lang}/${lang}.json`).then(r => r.json()).catch(() => ({})),
     lang === 'en'
       ? Promise.resolve({})
       : fetch(`./locales/pt/arcane-names.pt.json`).then(r => r.json()).catch(() => ({})),
@@ -30,7 +36,8 @@ async function loadLocale(lang) {
       : fetch(`./locales/pt/dropLocations.pt.json`).then(r => r.json()).catch(() => ({})),
   ]);
 
-  uiStrings = ui;
+  // Target language keys override English; absent keys transparently use EN values
+  uiStrings = { ...enStrings, ...targetStrings };
   arcaneNamesMap = arcaneNames;
   // Strip prefixes (mission., planet., gameMode.) for substring matching
   locationsMap = Object.fromEntries(

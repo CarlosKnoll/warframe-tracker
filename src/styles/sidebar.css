@@ -1,0 +1,190 @@
+/* sidebar.css — Persistent left navigation sidebar */
+
+/* ─── App layout: sidebar + content ────────────────────────────────────────── */
+
+#appLayout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ─── Sidebar ───────────────────────────────────────────────────────────────── */
+
+#sidebar {
+  display: flex;
+  flex-direction: column;
+  width: 200px;
+  min-width: 200px;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+
+  /* Sidebar sits on top of content area visually with a border */
+  border-right: 1px solid var(--border, rgba(255,255,255,0.08));
+  background: var(--sidebar-bg, rgba(0,0,0,0.3));
+
+  /* Prevent sidebar from shrinking on small windows */
+  flex-shrink: 0;
+}
+
+/* ─── Sidebar header: title + version ──────────────────────────────────────── */
+
+#sidebarHeader {
+  padding: 1.25rem 1rem 0.75rem;
+  border-bottom: 1px solid var(--border, rgba(255,255,255,0.08));
+}
+
+#sidebarHeader h1 {
+  /* Inherit existing h1 styles from base.css but reset margin/size for sidebar */
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  opacity: 0.7;
+  margin: 0 0 0.25rem;
+  line-height: 1.3;
+}
+
+#app-version {
+  display: block;
+  font-size: 0.65rem;
+  opacity: 0.3;
+}
+
+/* ─── Nav area ──────────────────────────────────────────────────────────────── */
+
+#sidebarNav {
+  flex: 1;
+  padding: 0.75rem 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+}
+
+/* ─── Direct nav buttons (Primes, Arcanes) ──────────────────────────────────── */
+
+.nav-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.55rem 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-muted, rgba(255,255,255,0.55));
+  transition: color 0.15s, background 0.15s;
+  border-radius: 0;
+}
+
+.nav-btn:hover {
+  color: var(--text, rgba(255,255,255,0.9));
+  background: var(--nav-hover, rgba(255,255,255,0.05));
+}
+
+.nav-btn.active {
+  color: var(--accent, #c9a84c);
+  background: var(--nav-active-bg, rgba(201,168,76,0.08));
+  font-weight: 600;
+}
+
+/* ─── Mastery group toggle ──────────────────────────────────────────────────── */
+
+.nav-group-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  text-align: left;
+  padding: 0.55rem 1rem;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 0.9rem;
+  color: var(--text-muted, rgba(255,255,255,0.55));
+  transition: color 0.15s, background 0.15s;
+}
+
+.nav-group-toggle:hover {
+  color: var(--text, rgba(255,255,255,0.9));
+  background: var(--nav-hover, rgba(255,255,255,0.05));
+}
+
+/* Arrow rotates when expanded */
+.nav-group-arrow {
+  font-size: 0.75rem;
+  transition: transform 0.2s ease;
+  display: inline-block;
+}
+
+.nav-group-toggle[aria-expanded="true"] .nav-group-arrow {
+  transform: rotate(90deg);
+}
+
+/* Active state for the group toggle itself (any child is active) */
+.nav-group-toggle.has-active {
+  color: var(--accent, #c9a84c);
+}
+
+/* ─── Mastery sub-items ─────────────────────────────────────────────────────── */
+
+.nav-group-items {
+  display: none;
+  flex-direction: column;
+  gap: 0;
+  /* Indent sub-items relative to parent toggle */
+  padding-left: 0.75rem;
+}
+
+.nav-group-items.open {
+  display: flex;
+}
+
+.nav-sub-btn {
+  display: block;
+  width: 100%;
+  text-align: left;
+  padding: 0.4rem 1rem;
+  background: none;
+  border: none;
+  border-left: 2px solid transparent;
+  cursor: pointer;
+  font-size: 0.82rem;
+  color: var(--text-muted, rgba(255,255,255,0.45));
+  transition: color 0.15s, border-color 0.15s, background 0.15s;
+}
+
+.nav-sub-btn:hover {
+  color: var(--text, rgba(255,255,255,0.85));
+  background: var(--nav-hover, rgba(255,255,255,0.04));
+  border-left-color: rgba(201,168,76,0.3);
+}
+
+.nav-sub-btn.active {
+  color: var(--accent, #c9a84c);
+  border-left-color: var(--accent, #c9a84c);
+  background: var(--nav-active-bg, rgba(201,168,76,0.06));
+  font-weight: 600;
+}
+
+/* ─── Sidebar footer: language switcher ────────────────────────────────────── */
+
+#sidebarFooter {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--border, rgba(255,255,255,0.08));
+}
+
+#langSwitcher {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ─── Content area ──────────────────────────────────────────────────────────── */
+
+#contentArea {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  min-width: 0; /* prevents flex child overflow */
+}

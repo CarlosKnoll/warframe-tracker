@@ -1,12 +1,106 @@
 // primes/renderer.js - Rendering logic for primes list and drop tables
 
-import { state, FOUNDER_ITEMS, primeImageCache } from './state.js';
+import { state, FOUNDER_ITEMS, PRIME_IMAGE_BASE } from './state.js';
 import { openPrimeCardModal } from '../modal.js';
 import { normalizeRelicName } from './loader.js';
-import { t, tRarity, tComponent, tRelicName, tPrimeName, tOrRaw, tMission, parseDropLocation  } from '../i18n.js';
+import { t, tRarity, tComponent, tRelicName, tPrimeName, tOrRaw, tMission, parseDropLocation } from '../i18n.js';
 
 const invoke = window.__TAURI_INTERNALS__.invoke;
+
+// ─── Image cache ───────────────────────────────────────────────────────────────
+// In-memory map of uniqueName → base64 data URI.
+// Loaded from disk once at init, written back when new images are fetched.
+// Avoids re-fetching across re-renders within the same session.
+
 const resolvedImageCache = new Map();
+
+const FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23151b2b'/%3E%3Ctext x='40' y='44' text-anchor='middle' font-size='28' fill='%23334'%3E✦%3C/text%3E%3C/svg%3E";
+
+export async function initPrimeImageCache() {
+  try {
+    const diskCache = await invoke("load_shared_image_cache");
+    Object.entries(diskCache).forEach(([key, val]) => resolvedImageCache.set(key, val));
+  } catch (e) {
+    console.error("Failed to load shared image cache:", e);
+  }
+}
+
+// ─── IntersectionObserver ──────────────────────────────────────────────────────
+// One shared observer for the entire primes list.
+// When a card's <img data-src="..."> enters the viewport:
+//   1. If already in resolvedImageCache → set src immediately
+//   2. Otherwise → fetch via Rust (CORS bypass), cache, set src, persist to disk
+
+let imageObserver = null;
+let persistTimer = null;
+
+function persistImageCache() {
+  clearTimeout(persistTimer);
+  persistTimer = setTimeout(async () => {
+    try {
+      const cache = Object.fromEntries(resolvedImageCache);
+      await invoke("save_shared_image_cache", { cache });
+    } catch (e) {
+      console.error("Failed to save shared image cache:", e);
+    }
+  }, 1000);
+}
+
+function getImageObserver() {
+  if (imageObserver) return imageObserver;
+
+  const scrollRoot = document.getElementById('contentArea');
+  if (!scrollRoot) console.warn('IntersectionObserver: #contentArea not found, falling back to viewport');
+
+  imageObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (!entry.isIntersecting) return;
+
+      const img = entry.target;
+      const uniqueName = img.dataset.uniqueName;
+      const src = img.dataset.src;
+
+      if (!uniqueName || !src) {
+        imageObserver.unobserve(img);
+        return;
+      }
+
+      if (resolvedImageCache.has(uniqueName)) {
+        img.src = resolvedImageCache.get(uniqueName);
+        imageObserver.unobserve(img);
+        return;
+      }
+
+      invoke("fetch_image_base64", { url: src })
+        .then(b64 => {
+          const dataUri = `data:image/png;base64,${b64}`;
+          resolvedImageCache.set(uniqueName, dataUri);
+          img.src = dataUri;
+          persistImageCache();
+        })
+        .catch(() => {
+          img.src = FALLBACK;
+        })
+        .finally(() => {
+          imageObserver.unobserve(img);
+        });
+    });
+  }, {
+    root: scrollRoot,
+    rootMargin: '100px',
+  });
+
+  return imageObserver;
+}
+
+function resetImageObserver() {
+  if (imageObserver) {
+    imageObserver.disconnect();
+    imageObserver = null;
+  }
+}
+
+// ─── Part / rarity ordering ────────────────────────────────────────────────────
 
 export const PART_ORDER = {
   'Blueprint': 0,
@@ -33,7 +127,7 @@ export const PART_ORDER = {
   'Gauntlet': 3,
   'String': 4,
   'Link': 4,
-  'Guard': 4, 
+  'Guard': 4,
   'Boot': 4,
   'Head': 4
 };
@@ -45,28 +139,31 @@ const RARITY_ORDER = {
   'Unknown': 3,
 };
 
+// ─── Helpers ───────────────────────────────────────────────────────────────────
+
 export function hasRelicDrops(prime) {
   if (!prime.components || prime.components.length === 0) return false;
-  let allRelicsFromBuiltPrimes = true;
   for (const comp of prime.components) {
-    const isBuiltPrime = comp.name && comp.name.includes("Prime") && comp.drops && comp.drops.some(d => d.location && d.location.toLowerCase().includes('relic'));
+    const isBuiltPrime = comp.name && comp.name.includes("Prime") && comp.drops &&
+      comp.drops.some(d => d.location && d.location.toLowerCase().includes('relic'));
     if (isBuiltPrime) continue;
     if (comp.drops && comp.drops.length > 0) {
-      const hasRelicDrop = comp.drops.some(d => d.location && d.location.toLowerCase().includes('relic'));
-      if (hasRelicDrop) allRelicsFromBuiltPrimes = false;
       for (const drop of comp.drops) {
-        if (drop.location && drop.location.toLowerCase().includes('relic')) {
-          return true;
-        }
+        if (drop.location && drop.location.toLowerCase().includes('relic')) return true;
       }
     }
   }
   return false;
 }
 
+// ─── Main render ──────────────────────────────────────────────────────────────
+
 export function renderPrimes() {
   const list = document.getElementById("primeList");
   list.innerHTML = "";
+
+  // Disconnect previous observer — cards are gone, no point observing them
+  resetImageObserver();
 
   const filtered = state.allPrimes.filter(p => {
     const isFounder = FOUNDER_ITEMS.includes(p.name);
@@ -110,6 +207,7 @@ export function renderPrimes() {
   completeNonTradeable.sort(vaultSort);
 
   const fragment = document.createDocumentFragment();
+  const observer = getImageObserver();
 
   [...incomplete, ...completeTradeable, ...completeNonTradeable].forEach(p => {
     const isIgnored = state.ignoredPrimes.has(p.uniqueName);
@@ -122,7 +220,6 @@ export function renderPrimes() {
     const allChecked = nonOwned.length > 0 && nonOwned.every(c => (state.owned[c.uniqueName] ?? 0) > 0);
     const hasTradeableSet = isOwned && allChecked && !isSpecial;
 
-
     const card = document.createElement("div");
     card.className = "prime-card";
     if (isComplete) card.classList.add("complete");
@@ -131,10 +228,10 @@ export function renderPrimes() {
 
     // Status tag
     let statusTag = '';
-    if (hasTradeableSet)    statusTag = `<span class="prime-status-tag tradeable">${t('badge.tradeable')}</span>`;
-    else if (isIgnored)     statusTag = `<span class="prime-status-tag ignored">${t('badge.ignored')}</span>`;
-    else if (isOwned)       statusTag = `<span class="prime-status-tag owned">${t('badge.owned')}</span>`;
-    else                    statusTag = `<span class="prime-status-tag farming">${t('badge.farming')}</span>`;
+    if (hasTradeableSet)  statusTag = `<span class="prime-status-tag tradeable">${t('badge.tradeable')}</span>`;
+    else if (isIgnored)   statusTag = `<span class="prime-status-tag ignored">${t('badge.ignored')}</span>`;
+    else if (isOwned)     statusTag = `<span class="prime-status-tag owned">${t('badge.owned')}</span>`;
+    else                  statusTag = `<span class="prime-status-tag farming">${t('badge.farming')}</span>`;
 
     // Letter badges
     const vaultDot   = (p.vaulted && !isFounder && !isSpecial) ? `<span class="prime-dot vaulted" title="${t('badge.vaulted')}">V</span>` : '';
@@ -142,13 +239,9 @@ export function renderPrimes() {
     const specialDot = isSpecial ? `<span class="prime-dot special" title="${t('badge.special')}">S</span>` : '';
     const ignoredDot = isIgnored ? `<span class="prime-dot ignored-dot" title="${t('badge.ignored')}">I</span>` : '';
 
-    // Ignore button (Founder and Special only)
     const ignoreBtn = (isFounder || isSpecial)
       ? `<button class="prime-ignore-btn" data-unique="${p.uniqueName}" title="${isIgnored ? t('btn.unignore') : t('btn.ignore')}">✕</button>`
       : '';
-
-      const FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23151b2b'/%3E%3Ctext x='40' y='44' text-anchor='middle' font-size='28' fill='%23334'%3E✦%3C/text%3E%3C/svg%3E";
-      const imageUrl = primeImageCache.get(p.uniqueName) || FALLBACK;
 
     card.innerHTML = `
       <div class="prime-card-dots">
@@ -162,30 +255,32 @@ export function renderPrimes() {
       </div>
     `;
 
-    // Image
+    // ── Lazy image ──────────────────────────────────────────────────────────
+    // img starts hidden. data-src holds the CDN URL, data-unique-name is the
+    // cache key. The observer resolves it when the card scrolls into view.
+
     const imgEl = document.createElement('img');
     imgEl.alt = p.name;
-    imgEl.style.display = 'none'; // hide until loaded
-
-    imgEl.onload = () => { imgEl.style.display = ''; };
-    imgEl.onerror = () => { imgEl.src = FALLBACK; };
+    imgEl.style.opacity = '0';
+    imgEl.style.transition = 'opacity 0.2s';
+    imgEl.onload = () => { imgEl.style.opacity = '1'; };
+    imgEl.onerror = () => { imgEl.src = FALLBACK; imgEl.style.opacity = '1'; };
 
     if (resolvedImageCache.has(p.uniqueName)) {
+      // Already fetched this session — set immediately, no observer needed
       imgEl.src = resolvedImageCache.get(p.uniqueName);
-    } else if (imageUrl !== FALLBACK) {
-      invoke("fetch_image_base64", { url: imageUrl })
-        .then(b64 => {
-          const dataUri = `data:image/png;base64,${b64}`;
-          resolvedImageCache.set(p.uniqueName, dataUri);
-          imgEl.src = dataUri;
-        })
-        .catch(() => { imgEl.src = FALLBACK; });
+    } else if (p.imageName) {
+      // Mark for lazy fetch — observer picks this up on intersection
+      imgEl.dataset.src = `${PRIME_IMAGE_BASE}${p.imageName}`;
+      imgEl.dataset.uniqueName = p.uniqueName;
+      observer.observe(imgEl);
     } else {
       imgEl.src = FALLBACK;
     }
+
     card.querySelector('.prime-card-image').appendChild(imgEl);
 
-    // Ignore button wiring
+    // ── Ignore button ───────────────────────────────────────────────────────
     const ignoreBtnEl = card.querySelector('.prime-ignore-btn');
     if (ignoreBtnEl) {
       ignoreBtnEl.onclick = async (e) => {
@@ -197,24 +292,24 @@ export function renderPrimes() {
       };
     }
 
-    // Click card to open modal
+    // ── Card click → modal ──────────────────────────────────────────────────
     card.onclick = () => {
-      const imageUrl = primeImageCache.get(p.uniqueName) || FALLBACK;
       const ownedCompAtOpen = p.components.find(c => c.isMainItem);
       const wasCompleteAtOpen = ownedCompAtOpen && (state.owned[ownedCompAtOpen.uniqueName] ?? 0) > 0;
 
-      // Build components with display names and owned state for the modal
       const compsForModal = p.components.map(comp => ({
         ...comp,
         displayName: comp.isMainItem ? t('label.owned') : tComponent(comp.name),
         isOwned: (state.owned[comp.uniqueName] ?? 0) > 0,
       }));
 
+      // Use resolved image if available, otherwise fall back
+      const modalImageUrl = resolvedImageCache.get(p.uniqueName) || FALLBACK;
+
       openPrimeCardModal(
         { ...p, components: compsForModal, isSpecial },
-        imageUrl,
+        modalImageUrl,
         () => buildDropTable(p, isSpecial),
-        // onComponentChange — update state and card tag in place
         async (uniqueName, val) => {
           state.owned[uniqueName] = val;
           try {
@@ -224,8 +319,6 @@ export function renderPrimes() {
             console.error("Save failed:", err);
           }
         },
-        
-        // onClose — compare against snapshot
         () => {
           const ownedCompNow = p.components.find(c => c.isMainItem);
           const isCompleteNow = ownedCompNow && (state.owned[ownedCompNow.uniqueName] ?? 0) > 0;
@@ -240,14 +333,14 @@ export function renderPrimes() {
   list.appendChild(fragment);
 }
 
+// ─── Drop tables ───────────────────────────────────────────────────────────────
+
 function buildDropTable(prime, isSpecial = false) {
   if (isSpecial) return buildSpecialDropTable(prime);
 
   const farmableRows = [];
   const vaultedRows = [];
 
-  // Deduplicate by name for drop table purposes - multiple copies of a component
-  // (e.g. Tipedo Prime Ornament x2) share the same drop data, so only render once
   const seenCompNames = new Set();
   const uniqueComponents = prime.components.filter(comp => {
     if (seenCompNames.has(comp.name)) return false;
@@ -263,7 +356,6 @@ function buildDropTable(prime, isSpecial = false) {
 
     comp.drops.forEach(drop => {
       if (!drop.location) return;
-
       const relicName = normalizeRelicName(drop.location);
       if (!relicName || relicName === '') return;
 
@@ -296,7 +388,6 @@ function buildDropTable(prime, isSpecial = false) {
 
     relicData.forEach(relic => {
       const compDisplayName = comp.isMainItem ? t('label.owned') : tComponent(comp.name);
-      // For parts with itemCount > 1 (e.g. Ornament x2), only strike through if ALL copies are owned
       const allCopies = prime.components.filter(c => c.name === comp.name);
       const isOwned = allCopies.every(c => (state.owned[c.uniqueName] ?? 0) > 0);
       const row = { partName: compDisplayName, rawName: comp.name, relicName: relic.name, rarity: relic.rarity, isOwned };
@@ -371,7 +462,7 @@ function buildSpecialDropTable(prime) {
       });
     });
   });
-  
+
   rows.sort((a, b) => {
     const partDiff = (PART_ORDER[a.rawName] ?? 99) - (PART_ORDER[b.rawName] ?? 99);
     if (partDiff !== 0) return partDiff;
@@ -417,6 +508,8 @@ function buildSpecialDropTable(prime) {
   `;
 }
 
+// ─── Card tag updates (in-place, no full re-render) ────────────────────────────
+
 function updatePrimeCardTag(p, card) {
   const isFounder = FOUNDER_ITEMS.includes(p.name);
   const isSpecial = !isFounder && !hasRelicDrops(p);
@@ -447,27 +540,4 @@ function updatePrimeCardTag(p, card) {
 
   card.classList.toggle('complete', isOwned || isIgnored);
   card.classList.toggle('tradeable', hasTradeableSet);
-}
-
-function updatePrimeCard(p) {
-  const card = document.querySelector(`.prime-card[data-unique="${p.uniqueName}"]`);
-  if (!card) return false; // card not found, need full render
-
-  const isFounder = FOUNDER_ITEMS.includes(p.name);
-  const isSpecial = !isFounder && !hasRelicDrops(p);
-  const ownedComp = p.components.find(c => c.isMainItem);
-  const isOwned = ownedComp && (state.owned[ownedComp.uniqueName] ?? 0) > 0;
-  const isIgnored = state.ignoredPrimes.has(p.uniqueName);
-  const nonOwned = p.components.filter(c => !c.isMainItem);
-  const allChecked = nonOwned.length > 0 && nonOwned.every(c => (state.owned[c.uniqueName] ?? 0) > 0);
-  const hasTradeableSet = isOwned && allChecked;
-
-  const wasComplete = card.classList.contains('complete');
-  const isNowComplete = isOwned || isIgnored;
-
-  // Update tag and classes in place
-  updatePrimeCardTag(p, card);
-
-  // Return whether the card needs to move sections (requires full re-render)
-  return wasComplete !== isNowComplete;
 }

@@ -10,88 +10,160 @@
   <link rel="stylesheet" href="styles/layout.css" />
   <link rel="stylesheet" href="styles/modal.css" />
   <link rel="stylesheet" href="styles/primes.css" />
+  <link rel="stylesheet" href="styles/sidebar.css" />
+  <link rel="stylesheet" href="styles/mastery.css" />
+  <link rel="stylesheet" href="styles/misc-tracker.css" />
 </head>
 <body>
-  <h1 data-i18n="appTitle">Warframe Collection Tracker</h1>
-  
-  <div id="modeSelector">
-    <button data-mode="arcanes" class="active" data-i18n="mode.arcanes">Arcanes</button>
-    <button data-mode="primes" data-i18n="mode.primes">Primes</button>
-    <div id="langSwitcher">
-      <span id="app-version" style="opacity: 0.3; font-size: 0.75rem;"></span>
-      <img class="lang-btn active" data-lang="en" title="English" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAUCAMAAADImI+JAAAANlBMVEX////w8vfyxcx8jbJCWpAOLHFVa5sBIWnIEC7WTGLnv8qAkLTheYpecqHx0digrMfz3+T21dqBS5WQAAAApUlEQVQoz8WTyxpFMAyEpyqOuhTv/7IntImmurAzC59kfsIIhA5wnn6iASMLgzbIT2Fk6joUaAUKBsiJm+kJ0iyuR1mQBam8Cex1dINkZ6EesSZwrR8JfdYWl7AcbCRw5ypytYmPpy6w3X6jL8HXL6PxOODgTPYEcnXmFe94cuBsdJzwpIFrRwK3WPkJLQqL2aUoUVisXjOvLizWWNyMVljrV0gz/wdhEi0lRIbcAAAAAElFTkSuQmCC" width="24" height="12" role="button" tabindex="0" alt="English" />
-      <img class="lang-btn" data-lang="pt" title="Português (BR)" src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAcCAMAAAAkyw3kAAAAkFBMVEUAlED/ywAwJoEOlzwemjdQSI83oDHjxQZKpC2fthhGN3NAM3VZU5fywAjEmyQ/NYf5yQFoU101K4OVd0OvuRRzdKTSwQuOshx8ryFjqifCvQ+p0MFGP4y8w8q+0tKXrLjwyATrxwXltRC+lyhkXp+JdW12XlWkgji0uM+rqnXr8vDS593K4tmZflSJj7ROQ3x/jyqZAAAA70lEQVQ4y82T2RKCMAxFTaEKBSwUcQEUF9y3//87IwVxpEp9cbyPmTNZbpJO56/U7WphxghgZLRzVg9QPasFM20oZX9MOpmDFwaOE4QeLCbv08UAfUYKsT5AbKq5sY8ceQhJf6zyZIiNeawGmYeB4atThhxiPzsektku4i6SW8VQ0hOAtStE6kZZMkVyI2NPTpmDypOqMo2SLGVVdGA2QAchLtnLKWqAdemAins+eifzaaN0PUzICTYniurpWb2hwp6lQzjFjJzQnC5V9lSGr8ppXC5Wbwx/WeH1wwr1j+KLM9M/XPkKvs4r6D/Xz3QDO1IMs+uu/zEAAAAASUVORK5CYII=" width="24" height="17" role="button" tabindex="0" alt="Português (BR)" />
-    </div>
-  </div>
 
-  <div id="arcanesSection" class="tracker-section active">
-    <div class="search-container">
-      <input
-        id="search"
-        type="text"
-        data-i18n-placeholder="search.arcanes.placeholder"
-        placeholder="Search arcanes..."
-      />
-      <button id="clearSearch" class="clear-search-btn" data-i18n-title="search.clear.title" title="Clear search">✕</button>
-    </div>
-    <div id="filters">
-      <button data-cat="All" data-i18n="filter.all">All</button>
-      <button data-cat="Warframe" data-i18n="category.warframe">Warframe</button>
-      <button data-cat="Operator" data-i18n="category.operator">Operator</button>
-      <button data-cat="Amp" data-i18n="category.amp">Amp</button>
-      <button data-cat="Tektolyst Artifact" data-i18n="category.tektolyst_artifact">Tektolyst Artifact</button>
-      <button data-cat="Primary" data-i18n="category.primary">Primary</button>
-      <button data-cat="Secondary" data-i18n="category.secondary">Secondary</button>
-      <button data-cat="Melee" data-i18n="category.melee">Melee</button>
-      <button data-cat="Kitgun" data-i18n="category.kitgun">Kitgun</button>
-      <button data-cat="Zaw" data-i18n="category.zaw">Zaw</button>
-    </div>
-    <div id="dropFilters"></div>
-    <div id="list"></div>
-  </div>
+  <div id="appLayout">
 
-  <div id="primesSection" class="tracker-section">
-    <div class="search-container">
-      <input
-        id="primeSearch"
-        type="text"
-        data-i18n-placeholder="search.primes.placeholder"
-        placeholder="Search primes..."
-      />
-      <button id="clearPrimeSearch" class="clear-search-btn" data-i18n-title="search.clear.title" title="Clear search">✕</button>
-    </div>
-    <div id="primeFilters">
-      <button data-cat="All" data-i18n="filter.all">All</button>
-      <button data-cat="Warframe" data-i18n="category.warframe">Warframe</button>
-      <button data-cat="Primary" data-i18n="category.primary">Primary</button>
-      <button data-cat="Secondary" data-i18n="category.secondary">Secondary</button>
-      <button data-cat="Melee" data-i18n="category.melee">Melee</button>
-      <button data-cat="Arch-Gun" data-i18n="category.arch_gun">Arch-Guns</button>
-      <button data-cat="Arch-Melee" data-i18n="category.arch_melee">Arch-Melee</button>
-      <button data-cat="Sentinel" data-i18n="category.sentinel">Sentinels</button>
-      <button data-cat="Archwing" data-i18n="category.archwing">Archwing</button>
-    </div>
-    <div id="primeVaultAndFounder">
-      <div id="primeVaultFilter">
-        <label data-i18n="filter.status">Status:</label>
-        <button data-vault="All" class="active" data-i18n="filter.all">All</button>
-        <button data-vault="Available" data-i18n="filter.available">Available</button>
-        <button data-vault="Vaulted" data-i18n="filter.vaulted">Vaulted</button>
+    <!-- ─── Sidebar ─────────────────────────────────────────────────── -->
+    <nav id="sidebar">
+
+      <div id="sidebarHeader">
+        <h1 data-i18n="appTitle">Warframe Collection Tracker</h1>
+        <span id="app-version"></span>
       </div>
-      <div id="founderFilter">
-        <label>
-          <input type="checkbox" id="founderToggle" />
-          <span data-i18n="filter.showFounder">Show Founder Items</span>
-        </label>
+
+      <div id="sidebarNav">
+
+        <!-- Mastery group — expandable, no logic yet -->
+        <div class="nav-group" id="masteryNav">
+          <button class="nav-group-toggle" id="masteryToggle" aria-expanded="false">
+            <span data-i18n="mode.mastery">Mastery</span>
+            <span class="nav-group-arrow">›</span>
+          </button>
+          <div class="nav-group-items" id="masteryItems">
+            <button class="nav-sub-btn" data-section="mastery-warframes" data-i18n="mastery.warframes">Warframes</button>
+            <button class="nav-sub-btn" data-section="mastery-primaries" data-i18n="mastery.primaries">Primaries</button>
+            <button class="nav-sub-btn" data-section="mastery-secondaries" data-i18n="mastery.secondaries">Secondaries</button>
+            <button class="nav-sub-btn" data-section="mastery-melees" data-i18n="mastery.melees">Melees</button>
+            <button class="nav-sub-btn" data-section="mastery-robotic" data-i18n="mastery.robotic">Robotic</button>
+            <button class="nav-sub-btn" data-section="mastery-companions" data-i18n="mastery.companions">Companions</button>
+            <button class="nav-sub-btn" data-section="mastery-vehicles" data-i18n="mastery.vehicles">Vehicles</button>
+            <button class="nav-sub-btn" data-section="mastery-archgun" data-i18n="mastery.archgun">Arch-Gun</button>
+            <button class="nav-sub-btn" data-section="mastery-archmelee" data-i18n="mastery.archmelee">Arch-Melee</button>
+            <button class="nav-sub-btn" data-section="mastery-amps" data-i18n="mastery.amps">Amps</button>
+            <button class="nav-sub-btn" data-section="mastery-misc" data-i18n="mastery.misc">Misc</button>
+          </div>
+        </div>
+
+        <!-- Primes — direct nav button -->
+        <button class="nav-btn" data-section="primes" data-i18n="mode.primes">Primes</button>
+
+        <!-- Arcanes — direct nav button, active on load -->
+        <button class="nav-btn active" data-section="arcanes" data-i18n="mode.arcanes">Arcanes</button>
+
       </div>
-      <div id="specialFilter">
-        <label>
-          <input type="checkbox" id="specialToggle" />
-          <span data-i18n="filter.showSpecial">Show Special Items</span>
-        </label>
+
+      <div id="sidebarFooter">
+        <div id="langSwitcher">
+          <img class="lang-btn active" data-lang="en" title="English"
+            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAUCAMAAADImI+JAAAANlBMVEX////w8vfyxcx8jbJCWpAOLHFVa5sBIWnIEC7WTGLnv8qAkLTheYpecqHx0digrMfz3+T21dqBS5WQAAAApUlEQVQoz8WTyxpFMAyEpyqOuhTv/7IntImmurAzC59kfsIIhA5wnn6iASMLgzbIT2Fk6joUaAUKBsiJm+kJ0iyuR1mQBam8Cex1dINkZ6EesSZwrR8JfdYWl7AcbCRw5ypytYmPpy6w3X6jL8HXL6PxOODgTPYEcnXmFe94cuBsdJzwpIFrRwK3WPkJLQqL2aUoUVisXjOvLizWWNyMVljrV0gz/wdhEi0lRIbcAAAAAElFTkSuQmCC"
+            width="24" height="12" role="button" tabindex="0" alt="English" />
+          <img class="lang-btn" data-lang="pt" title="Português (BR)"
+            src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAACgAAAAcCAMAAAAkyw3kAAAAkFBMVEUAlED/ywAwJoEOlzwemjdQSI83oDHjxQZKpC2fthhGN3NAM3VZU5fywAjEmyQ/NYf5yQFoU101K4OVd0OvuRRzdKTSwQuOshx8ryFjqifCvQ+p0MFGP4y8w8q+0tKXrLjwyATrxwXltRC+lyhkXp+JdW12XlWkgji0uM+rqnXr8vDS593K4tmZflSJj7ROQ3x/jyqZAAAA70lEQVQ4y82T2RKCMAxFTaEKBSwUcQEUF9y3//87IwVxpEp9cbyPmTNZbpJO56/U7WphxghgZLRzVg9QPasFM20oZX9MOpmDFwaOE4QeLCbv08UAfUYKsT5AbKq5sY8ceQhJf6zyZIiNeawGmYeB4atThhxiPzsektku4i6SW8VQ0hOAtStE6kZZMkVyI2NPTpmDypOqMo2SLGVVdGA2QAchLtnLKWqAdemAins+eifzaaN0PUzICTYniurpWb2hwp6lQzjFjJzQnC5V9lSGr8ppXC5Wbwx/WeH1wwr1j+KLM9M/XPkKvs4r6D/Xz3QDO1IMs+uu/zEAAAAASUVORK5CYII="
+            width="24" height="17" role="button" tabindex="0" alt="Português (BR)" />
+        </div>
       </div>
-    </div>
-    <div id="primeList"></div>
+
+    </nav>
+
+    <!-- ─── Content area ─────────────────────────────────────────────── -->
+    <main id="contentArea">
+
+      <div id="arcanesSection" class="tracker-section active">
+        <div class="search-container">
+          <input
+            id="search"
+            type="text"
+            data-i18n-placeholder="search.arcanes.placeholder"
+            placeholder="Search arcanes..."
+          />
+          <button id="clearSearch" class="clear-search-btn" data-i18n-title="search.clear.title" title="Clear search">✕</button>
+        </div>
+        <div id="filters">
+          <button data-cat="All" data-i18n="filter.all">All</button>
+          <button data-cat="Warframe" data-i18n="category.warframe">Warframe</button>
+          <button data-cat="Operator" data-i18n="category.operator">Operator</button>
+          <button data-cat="Amp" data-i18n="category.amp">Amp</button>
+          <button data-cat="Tektolyst Artifact" data-i18n="category.tektolyst_artifact">Tektolyst Artifact</button>
+          <button data-cat="Primary" data-i18n="category.primary">Primary</button>
+          <button data-cat="Secondary" data-i18n="category.secondary">Secondary</button>
+          <button data-cat="Melee" data-i18n="category.melee">Melee</button>
+          <button data-cat="Kitgun" data-i18n="category.kitgun">Kitgun</button>
+          <button data-cat="Zaw" data-i18n="category.zaw">Zaw</button>
+        </div>
+        <div id="dropFilters"></div>
+        <div id="list"></div>
+      </div>
+
+      <div id="primesSection" class="tracker-section">
+        <div class="search-container">
+          <input
+            id="primeSearch"
+            type="text"
+            data-i18n-placeholder="search.primes.placeholder"
+            placeholder="Search primes..."
+          />
+          <button id="clearPrimeSearch" class="clear-search-btn" data-i18n-title="search.clear.title" title="Clear search">✕</button>
+        </div>
+        <div id="primeFilters">
+          <button data-cat="All" data-i18n="filter.all">All</button>
+          <button data-cat="Warframe" data-i18n="category.warframe">Warframe</button>
+          <button data-cat="Primary" data-i18n="category.primary">Primary</button>
+          <button data-cat="Secondary" data-i18n="category.secondary">Secondary</button>
+          <button data-cat="Melee" data-i18n="category.melee">Melee</button>
+          <button data-cat="Arch-Gun" data-i18n="category.arch_gun">Arch-Guns</button>
+          <button data-cat="Arch-Melee" data-i18n="category.arch_melee">Arch-Melee</button>
+          <button data-cat="Sentinel" data-i18n="category.sentinel">Sentinels</button>
+          <button data-cat="Archwing" data-i18n="category.archwing">Archwing</button>
+        </div>
+        <div id="primeVaultAndFounder">
+          <div id="primeVaultFilter">
+            <label data-i18n="filter.status">Status:</label>
+            <button data-vault="All" class="active" data-i18n="filter.all">All</button>
+            <button data-vault="Available" data-i18n="filter.available">Available</button>
+            <button data-vault="Vaulted" data-i18n="filter.vaulted">Vaulted</button>
+          </div>
+          <div id="founderFilter">
+            <label>
+              <input type="checkbox" id="founderToggle" />
+              <span data-i18n="filter.showFounder">Show Founder Items</span>
+            </label>
+          </div>
+          <div id="specialFilter">
+            <label>
+              <input type="checkbox" id="specialToggle" />
+              <span data-i18n="filter.showSpecial">Show Special Items</span>
+            </label>
+          </div>
+        </div>
+        <div id="primeList"></div>
+      </div>
+
+      <!-- Mastery section placeholder — wired in Step 9 -->
+      <div id="masterySection" class="tracker-section">
+        <div id="masteryToolbar">
+          <div id="masteryToolbarTop">
+            <div class="search-container">
+              <input id="masterySearch" type="text" data-i18n-placeholder="search.mastery.placeholder" placeholder="Search..." />
+              <button id="clearMasterySearch" class="clear-search-btn" data-i18n-title="search.clear.title" title="Clear search">✕</button>
+            </div>
+            <div id="masteryStatusFilter">
+              <button data-status="all" class="active" data-i18n="mastery.status.all">All</button>
+              <button data-status="owned" data-i18n="mastery.status.owned">Owned</button>
+              <button data-status="mastered" data-i18n="mastery.status.mastered">Mastered</button>
+              <button data-status="missing" data-i18n="mastery.status.missing">Missing</button>
+            </div>
+          </div>
+          <div id="masteryProgress"></div>
+        </div>
+        <div id="masteryList"></div>
+      </div>
+
+    </main>
   </div>
 
   <script type="module" src="main.js"></script>
@@ -105,6 +177,6 @@
       <div id="modalBody"></div>
     </div>
   </div>
-  
+
 </body>
 </html>

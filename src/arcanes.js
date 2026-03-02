@@ -9,7 +9,6 @@ const log = (msg) => invoke("js_log", { message: msg });
 const ARCANE_URL = "https://raw.githubusercontent.com/WFCD/warframe-items/master/data/json/Arcanes.json";
 const WIKI_IMAGE_BASE = "https://wiki.warframe.com/images/thumb/";
 const FALLBACK_IMAGE = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23151b2b'/%3E%3Ctext x='40' y='44' text-anchor='middle' font-size='28' fill='%23334'%3E✦%3C/text%3E%3C/svg%3E";
-const CACHE_VERSION = "1";
 
 let allArcanes = [];
 let searchText = "";
@@ -23,19 +22,9 @@ const localeMap = {
   'pt': 'pt-BR',
 };
 
-const imageCache = new Map();
-
 function getWikiImageUrl(arcaneName, size = 300) {
   const filename = arcaneName.replace(/\s+/g, '') + '.png';
   return `${WIKI_IMAGE_BASE}${filename}/${size}px-${filename}`;
-}
-
-function getImageUrl(arcane) {
-  if (!arcane?.name) return Promise.resolve(FALLBACK_IMAGE);
-  if (imageCache.has(arcane.uniqueName)) return Promise.resolve(imageCache.get(arcane.uniqueName));
-  const url = getWikiImageUrl(arcane.name);
-  imageCache.set(arcane.uniqueName, url);
-  return Promise.resolve(url);
 }
 
 
@@ -77,38 +66,6 @@ export async function initArcanes(ownedData, saveFn) {
   renderArcanes();
 }
 
-async function buildImageCache(arcanes) {
-  let diskCache = {};
-  try {
-    diskCache = await invoke("load_image_cache");
-    if (diskCache.__version !== CACHE_VERSION) {
-      diskCache = { __version: CACHE_VERSION }; // wipe and rebuild
-    }
-  } catch (e) {
-    diskCache = { __version: CACHE_VERSION };
-  }
-
-  const missing = arcanes.filter(a => !diskCache[a.name]);
-
-  // No HEAD requests
-  await Promise.allSettled(missing.map(async (a) => {
-    missing.forEach(a => {
-    diskCache[a.name] = getWikiImageUrl(a.name);
-    })
-  }));
-
-  // Populate in-memory cache
-  arcanes.forEach(a => {
-    if (diskCache[a.name]) imageCache.set(a.uniqueName, diskCache[a.name]);
-  });
-
-  // Persist to disk
-  try {
-    await invoke("save_image_cache", { cache: diskCache });
-  } catch (e) {
-    console.error("Failed to save image cache:", e);
-  }
-}
 
 async function loadArcanes() {
   try {
@@ -214,7 +171,6 @@ async function loadArcanes() {
     console.error("Error loading arcanes:", err);
   }
 
-  await buildImageCache(allArcanes);
 }
 
 function updateDropSourceFilters() {
@@ -370,15 +326,18 @@ export function renderArcanes() {
     const imgEl = document.createElement('img');
     imgEl.alt = displayName;
     imgEl.loading = 'lazy';
-    imgEl.onerror = () => { imgEl.src = FALLBACK_IMAGE; };
-    getImageUrl(a).then(url => { imgEl.src = url; }).catch(() => { imgEl.src = FALLBACK_IMAGE; });
+    imgEl.style.opacity = '0';
+    imgEl.style.transition = 'opacity 0.2s';
+    imgEl.onload = () => { imgEl.style.opacity = '1'; };
+    imgEl.onerror = () => { imgEl.src = FALLBACK_IMAGE; imgEl.style.opacity = '1'; };
+    imgEl.src = getWikiImageUrl(a.name);
     imageContainer.appendChild(imgEl);
 
     // Click image to open detail modal
     imageContainer.onclick = () => {
       openArcaneModal({
         name: displayName,
-        imageUrl: imgEl.src,
+        imageUrl: getWikiImageUrl(a.name),
         dropInfo: getDropLocations(a),
         owned: owned[a.uniqueName] ?? 0,
         totalNeeded,

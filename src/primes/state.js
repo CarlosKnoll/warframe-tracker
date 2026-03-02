@@ -30,4 +30,3 @@ export const PRIME_URLS = {
   Archwing: "https://raw.githubusercontent.com/WFCD/warframe-items/master/data/json/Archwing.json",
 };
 export const PRIME_IMAGE_BASE = "https://cdn.warframestat.us/img/";
-export const primeImageCache = new Map();

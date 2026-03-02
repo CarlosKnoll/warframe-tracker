@@ -2,7 +2,7 @@
 
 import { state } from './state.js';
 import { loadPrimes } from './loader.js';
-import { renderPrimes } from './renderer.js';
+import { renderPrimes, initPrimeImageCache } from './renderer.js';
 import { initFilters, updateCategoryFilters } from './filters.js';
 import { t } from '../i18n.js';
 
@@ -16,6 +16,8 @@ export async function initPrimes(ownedData, ignoredData, saveFn) {
 
   initFilters();
 
+  // Load disk image cache into memory before any cards are rendered
+  await initPrimeImageCache();
   await loadPrimes();
 
   document.getElementById("founderToggle").checked = state.showFounderItems;

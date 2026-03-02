@@ -1,0 +1,144 @@
+/* misc-tracker.css — Misc section tracker styles (Starchart, Intrinsics) */
+
+/* ─── Container ───────────────────────────────────────────────────────────────── */
+
+.misc-tracker-container {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 4px 2px;
+  max-width: 580px;
+}
+
+/* ─── Group ───────────────────────────────────────────────────────────────────── */
+
+.misc-tracker-group {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid #2b3248;
+  border-radius: 8px;
+  overflow: visible;
+}
+
+.misc-tracker-heading {
+  margin: 0;
+  padding: 6px 12px;
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.35);
+  background: rgba(0, 0, 0, 0.2);
+  border-bottom: 1px solid #2b3248;
+  border-radius: 8px 8px 0 0;
+}
+
+/* ─── Row ─────────────────────────────────────────────────────────────────────── */
+
+.misc-tracker-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 12px;
+  border-bottom: 1px solid rgba(43, 50, 72, 0.6);
+  transition: background 0.15s;
+}
+
+.misc-tracker-row:last-child {
+  border-bottom: none;
+}
+
+.misc-tracker-row:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.misc-tracker-label {
+  flex: 1;
+  font-size: 0.78rem;
+  color: #e5e9f0;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+/* ─── Stepper ─────────────────────────────────────────────────────────────────── */
+
+.misc-tracker-stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  /* Fixed width: btn(22) + gap(4) + input(44) + gap(4) + btn(22) + gap(4) + max(36) = ~136px */
+  width: 140px;
+}
+
+.misc-stepper-btn {
+  width: 22px;
+  height: 22px;
+  min-width: 22px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: 1px solid #2b3248;
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  user-select: none;
+}
+
+.misc-stepper-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  border-color: rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.misc-stepper-btn:active {
+  background: rgba(201, 168, 76, 0.12);
+  border-color: #c9a84c;
+  color: #c9a84c;
+}
+
+.misc-stepper-input {
+  font-size: 0.82rem;
+  color: #e5e9f0;
+  white-space: nowrap;
+  cursor: text;
+  padding: 2px 4px;
+  border-radius: 3px;
+  border: 1px solid transparent;
+  min-width: 36px;
+  text-align: center;
+  transition: border-color 0.15s, background 0.15s;
+  flex-shrink: 0;
+}
+
+.misc-stepper-input:hover {
+  border-color: #2b3248;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.misc-stepper-input:focus {
+  outline: none;
+  border-color: #c9a84c;
+  background: rgba(0, 0, 0, 0.3);
+}
+
+.misc-tracker-max {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.3);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+/* ─── XP ──────────────────────────────────────────────────────────────────────── */
+
+.misc-tracker-xp {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.3);
+  text-align: right;
+  white-space: nowrap;
+  flex-shrink: 0;
+  width: 5.5rem;
+}
