@@ -13,10 +13,10 @@ const FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' w
 
 export async function initMasteryImageCache() {
   try {
-    const diskCache = await invoke('load_shared_image_cache');
+    const diskCache = await invoke('load_mastery_image_cache');
     Object.entries(diskCache).forEach(([key, val]) => masteryState.imageCache.set(key, val));
   } catch (e) {
-    console.error('[mastery/renderer] Failed to load shared image cache:', e);
+    console.error('[mastery/renderer] Failed to load mastery image cache:', e);
   }
 }
 
@@ -27,7 +27,7 @@ function persistImageCache() {
   persistTimer = setTimeout(async () => {
     try {
       const cache = Object.fromEntries(masteryState.imageCache);
-      await invoke('save_shared_image_cache', { cache });
+      await invoke('save_mastery_image_cache', { cache });
     } catch (e) {
       console.error('[mastery/renderer] Failed to save shared image cache:', e);
     }

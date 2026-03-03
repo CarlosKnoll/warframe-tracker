@@ -6,14 +6,21 @@ import { PART_ORDER } from './renderer.js';
 
 export async function loadPrimes() {
   try {
-    const primeData = [];
+    // Fire all requests simultaneously — missions, relics, and all 8 category
+    // JSONs in one parallel wave. Processing waits for all to settle, but no
+    // fetch has to wait for another to complete before it can start.
+    const categoryEntries = Object.entries(PRIME_URLS);
 
+    const [missionsResult, relicsResult, ...categoryResults] = await Promise.allSettled([
+      fetch(MISSION_REWARDS_URL).then(r => r.json()),
+      fetch(RELICS_DROP_URL).then(r => r.json()),
+      ...categoryEntries.map(([, url]) => fetch(url).then(r => r.json())),
+    ]);
+
+    // ── Process mission rewards → farmableRelics + relicLocationMap ──────────
     state.farmableRelics = new Set();
-    try {
-      const missionsRes = await fetch(MISSION_REWARDS_URL);
-      const missionsData = await missionsRes.json();
-
-      const missions = missionsData.missionRewards || {};
+    if (missionsResult.status === 'fulfilled') {
+      const missions = missionsResult.value.missionRewards || {};
       Object.entries(missions).forEach(([planetName, planet]) => {
         Object.entries(planet).forEach(([missionName, mission]) => {
           if (mission.rewards) {
@@ -43,66 +50,56 @@ export async function loadPrimes() {
           }
         });
       });
-    } catch (err) {
-      console.error("Error loading mission rewards data:", err);
+    } else {
+      console.error("Error loading mission rewards data:", missionsResult.reason);
     }
 
+    // ── Process relics → relicRewardsMap ─────────────────────────────────────
     state.relicRewardsMap = new Map();
-    try {
-      const relicsRes = await fetch(RELICS_DROP_URL);
-      const relicsJson = await relicsRes.json();
-      const relicsData = relicsJson.relics || [];
-
-      const intactRelics = relicsData.filter(relic => relic.state === 'Intact');
-
+    if (relicsResult.status === 'fulfilled') {
+      const intactRelics = (relicsResult.value.relics || []).filter(r => r.state === 'Intact');
       intactRelics.forEach(relic => {
-        const relicName = `${relic.tier} ${relic.relicName} Relic`;
-        const normalizedName = relicName.toLowerCase();
-
+        const normalizedName = `${relic.tier} ${relic.relicName} Relic`.toLowerCase();
         if (relic.rewards && Array.isArray(relic.rewards)) {
           const rewardsWithRarity = relic.rewards.map(reward => {
             // Common: ~25.33%, Uncommon: ~11%, Rare: ~2%
             let rarity = 'Common';
             if (reward.chance <= 3) rarity = 'Rare';
             else if (reward.chance <= 12) rarity = 'Uncommon';
-
             return { itemName: reward.itemName, rarity, chance: reward.chance };
           });
-
           state.relicRewardsMap.set(normalizedName, rewardsWithRarity);
         }
       });
-    } catch (err) {
-      console.error("Error loading relics data:", err);
+    } else {
+      console.error("Error loading relics data:", relicsResult.reason);
     }
 
-    const categoryPromises = Object.entries(PRIME_URLS).map(async ([category, url]) => {
-      try {
-        const res = await fetch(url);
-        const items = await res.json();
-
-
-        return items
-          .filter(item => item.name && item.name.includes("Prime") && item.isPrime === true)
-          .map(item => {
-            const vaultStatus = checkPrimeVaultStatus(item, state.farmableRelics);
-            return {
-              ...item,
-              imageName: item.imageName || null,
-              category,
-              vaulted: vaultStatus.vaulted,
-              resurgence: false,
-              components: extractPrimeComponents(item, vaultStatus, state.farmableRelics)
-            };
-          });
-      } catch (err) {
-        console.error(`Error loading ${category}:`, err);
-        return [];
+    // ── Process category items → allPrimes ───────────────────────────────────
+    // farmableRelics is now fully populated, so checkPrimeVaultStatus and
+    // extractPrimeComponents will produce correct results.
+    const primeData = [];
+    categoryResults.forEach((result, i) => {
+      const [category] = categoryEntries[i];
+      if (result.status !== 'fulfilled') {
+        console.error(`Error loading ${category}:`, result.reason);
+        return;
       }
+      const items = result.value;
+      items
+        .filter(item => item.name && item.name.includes("Prime") && item.isPrime === true)
+        .forEach(item => {
+          const vaultStatus = checkPrimeVaultStatus(item, state.farmableRelics);
+          primeData.push({
+            ...item,
+            imageName: item.imageName || null,
+            category,
+            vaulted: vaultStatus.vaulted,
+            resurgence: false,
+            components: extractPrimeComponents(item, vaultStatus, state.farmableRelics),
+          });
+        });
     });
-
-    const results = await Promise.all(categoryPromises);
-    results.forEach(primes => primeData.push(...primes));
 
     state.allPrimes = primeData;
   } catch (err) {

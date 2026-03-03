@@ -219,6 +219,10 @@ export async function loadMasteryItems({ forceRefresh = false } = {}) {
     return true;
   });
 
-  await saveToDiskCache(masteryState.items);
+  // Don't await — the disk write has no effect on what gets rendered.
+  // Let it complete in the background so renderMastery() can proceed immediately.
+  saveToDiskCache(masteryState.items).catch(err =>
+    console.error('[mastery/loader] Background cache save failed:', err)
+  );
   console.log(`[mastery/loader] Loaded ${masteryState.items.length} mastery items.`);
 }

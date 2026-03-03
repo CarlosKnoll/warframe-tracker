@@ -18,10 +18,10 @@ const FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' w
 
 export async function initPrimeImageCache() {
   try {
-    const diskCache = await invoke("load_shared_image_cache");
+    const diskCache = await invoke("load_primes_image_cache");
     Object.entries(diskCache).forEach(([key, val]) => resolvedImageCache.set(key, val));
   } catch (e) {
-    console.error("Failed to load shared image cache:", e);
+    console.error("Failed to load primes image cache:", e);
   }
 }
 
@@ -39,7 +39,7 @@ function persistImageCache() {
   persistTimer = setTimeout(async () => {
     try {
       const cache = Object.fromEntries(resolvedImageCache);
-      await invoke("save_shared_image_cache", { cache });
+      await invoke("save_primes_image_cache", { cache });
     } catch (e) {
       console.error("Failed to save shared image cache:", e);
     }
