@@ -1,9 +1,7 @@
-/* ─── Arcane grid ─────────────────────────────────────────────────────────────── */
+/* ─── Arcane grid — column count defined in layout.css ───────────────────────── */
 
 #list {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(110px, 1fr));
-  gap: 11px;
+  gap: 10px;
 }
 
 /* ─── Arcane card ─────────────────────────────────────────────────────────────── */
@@ -19,6 +17,7 @@
   border: 1px solid transparent;
   transition: background 0.15s, border-color 0.15s;
   cursor: default;
+  min-width: 0;
 }
 
 .arcane-card:hover {

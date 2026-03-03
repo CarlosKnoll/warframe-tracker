@@ -1,9 +1,7 @@
-/* ─── Prime grid ──────────────────────────────────────────────────────────────── */
+/* ─── Prime grid — column count defined in layout.css ────────────────────────── */
 
 #primeList {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
-  gap: 11px;
+  gap: 10px;
 }
 
 /* ─── Prime card ──────────────────────────────────────────────────────────────── */
@@ -20,6 +18,7 @@
   border: 1px solid transparent;
   transition: background 0.15s, border-color 0.15s;
   cursor: pointer;
+  min-width: 0;
 }
 
 .prime-card:hover {

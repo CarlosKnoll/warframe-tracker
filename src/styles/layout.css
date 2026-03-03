@@ -1,51 +1,83 @@
-/* ─── Content area padding ──────────────────────────────────────────────────── */
-/* Previously body had padding: 24px. Now that the sidebar sits flush against   */
-/* the left edge, padding lives here so only the content area is indented.      */
+/* ─── App shell ─────────────────────────────────────────────────────────────── */
 
-#contentArea {
-  padding: 24px;
+html, body {
+  height: 100%;
+  overflow: hidden;
 }
 
-/* ─── Gap between sidebar and content ──────────────────────────────────────── */
-/* A subtle left border on the content area creates visual separation without   */
-/* needing an actual margin/gap that would break the flush sidebar edge.        */
-/* The border matches the sidebar's own right border colour for consistency.    */
+#appLayout {
+  display: flex;
+  height: 100vh;
+  overflow: hidden;
+}
+
+/* ─── Content area ──────────────────────────────────────────────────────────── */
 
 #contentArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
   border-left: 1px solid rgba(255, 255, 255, 0.06);
 }
 
-/* ─── Tracker Sections ──────────────────────────────────────────────────────── */
+/* ─── Tracker sections ──────────────────────────────────────────────────────── */
 
 .tracker-section {
   display: none;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
 }
 
 .tracker-section.active {
-  display: block;
+  display: flex;
 }
 
-#list, #primeList {
-  width: 100%;
+/* ─── Sticky toolbar area (search + filters) ────────────────────────────────── */
+
+.section-toolbar {
+  flex-shrink: 0;
+  padding: 20px 24px 0;
+  background: #0c0f16;
+  z-index: 10;
+}
+
+/* ─── Scrollable list area ──────────────────────────────────────────────────── */
+
+.section-list {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  padding: 16px 24px 24px;
 }
 
 /* ─── Search ────────────────────────────────────────────────────────────────── */
 
 .search-container {
   position: relative;
-  display: inline-block;
+  display: inline-flex;
+  align-items: center;
   width: 100%;
   max-width: 400px;
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 input[type="text"] {
   width: 100%;
-  padding: 8px 35px 8px 10px;
+  padding: 7px 35px 7px 10px;
   background: #121726;
   color: #e5e9f0;
   border: 1px solid #2b3248;
   border-radius: 6px;
+  font-size: 0.875rem;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+input[type="text"]:focus {
+  outline: none;
+  border-color: #c9a84c;
 }
 
 .clear-search-btn {
@@ -56,19 +88,23 @@ input[type="text"] {
   background: transparent;
   border: none;
   color: #e5e9f0;
-  font-size: 1.2rem;
+  font-size: 1rem;
   cursor: pointer;
   opacity: 0.5;
-  padding: 4px 8px;
+  padding: 4px 6px;
   line-height: 1;
   transition: opacity 0.2s;
   display: none;
 }
 
-.clear-search-btn:hover {
-  opacity: 1;
-}
+.clear-search-btn:hover { opacity: 1; }
+.clear-search-btn:active { transform: translateY(-50%) scale(0.9); }
 
-.clear-search-btn:active {
-  transform: translateY(-50%) scale(0.9);
+/* ─── Grid containers ───────────────────────────────────────────────────────── */
+
+#list, #primeList, #masteryList {
+  display: grid;
+  grid-template-columns: repeat(8, minmax(0, 1fr));
+  gap: 10px;
+  width: 100%;
 }

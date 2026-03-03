@@ -73,92 +73,104 @@
     <main id="contentArea">
 
       <div id="arcanesSection" class="tracker-section active">
-        <div class="search-container">
-          <input
-            id="search"
-            type="text"
-            data-i18n-placeholder="search.arcanes.placeholder"
-            placeholder="Search arcanes..."
-          />
-          <button id="clearSearch" class="clear-search-btn" data-i18n-title="search.clear.title" title="Clear search">✕</button>
+        <div class="section-toolbar">
+          <div class="search-container">
+            <input
+              id="search"
+              type="text"
+              data-i18n-placeholder="search.arcanes.placeholder"
+              placeholder="Search arcanes..."
+            />
+            <button id="clearSearch" class="clear-search-btn" data-i18n-title="search.clear.title" title="Clear search">✕</button>
+          </div>
+          <div id="filters">
+            <button data-cat="All" data-i18n="filter.all">All</button>
+            <button data-cat="Warframe" data-i18n="category.warframe">Warframe</button>
+            <button data-cat="Operator" data-i18n="category.operator">Operator</button>
+            <button data-cat="Amp" data-i18n="category.amp">Amp</button>
+            <button data-cat="Tektolyst Artifact" data-i18n="category.tektolyst_artifact">Tektolyst Artifact</button>
+            <button data-cat="Primary" data-i18n="category.primary">Primary</button>
+            <button data-cat="Secondary" data-i18n="category.secondary">Secondary</button>
+            <button data-cat="Melee" data-i18n="category.melee">Melee</button>
+            <button data-cat="Kitgun" data-i18n="category.kitgun">Kitgun</button>
+            <button data-cat="Zaw" data-i18n="category.zaw">Zaw</button>
+          </div>
+          <div id="dropFilters"></div>
         </div>
-        <div id="filters">
-          <button data-cat="All" data-i18n="filter.all">All</button>
-          <button data-cat="Warframe" data-i18n="category.warframe">Warframe</button>
-          <button data-cat="Operator" data-i18n="category.operator">Operator</button>
-          <button data-cat="Amp" data-i18n="category.amp">Amp</button>
-          <button data-cat="Tektolyst Artifact" data-i18n="category.tektolyst_artifact">Tektolyst Artifact</button>
-          <button data-cat="Primary" data-i18n="category.primary">Primary</button>
-          <button data-cat="Secondary" data-i18n="category.secondary">Secondary</button>
-          <button data-cat="Melee" data-i18n="category.melee">Melee</button>
-          <button data-cat="Kitgun" data-i18n="category.kitgun">Kitgun</button>
-          <button data-cat="Zaw" data-i18n="category.zaw">Zaw</button>
+        <div class="section-list">
+          <div id="list"></div>
         </div>
-        <div id="dropFilters"></div>
-        <div id="list"></div>
       </div>
 
       <div id="primesSection" class="tracker-section">
-        <div class="search-container">
-          <input
-            id="primeSearch"
-            type="text"
-            data-i18n-placeholder="search.primes.placeholder"
-            placeholder="Search primes..."
-          />
-          <button id="clearPrimeSearch" class="clear-search-btn" data-i18n-title="search.clear.title" title="Clear search">✕</button>
-        </div>
-        <div id="primeFilters">
-          <button data-cat="All" data-i18n="filter.all">All</button>
-          <button data-cat="Warframe" data-i18n="category.warframe">Warframe</button>
-          <button data-cat="Primary" data-i18n="category.primary">Primary</button>
-          <button data-cat="Secondary" data-i18n="category.secondary">Secondary</button>
-          <button data-cat="Melee" data-i18n="category.melee">Melee</button>
-          <button data-cat="Arch-Gun" data-i18n="category.arch_gun">Arch-Guns</button>
-          <button data-cat="Arch-Melee" data-i18n="category.arch_melee">Arch-Melee</button>
-          <button data-cat="Sentinel" data-i18n="category.sentinel">Sentinels</button>
-          <button data-cat="Archwing" data-i18n="category.archwing">Archwing</button>
-        </div>
-        <div id="primeVaultAndFounder">
-          <div id="primeVaultFilter">
-            <label data-i18n="filter.status">Status:</label>
-            <button data-vault="All" class="active" data-i18n="filter.all">All</button>
-            <button data-vault="Available" data-i18n="filter.available">Available</button>
-            <button data-vault="Vaulted" data-i18n="filter.vaulted">Vaulted</button>
+        <div class="section-toolbar">
+          <div class="search-container">
+            <input
+              id="primeSearch"
+              type="text"
+              data-i18n-placeholder="search.primes.placeholder"
+              placeholder="Search primes..."
+            />
+            <button id="clearPrimeSearch" class="clear-search-btn" data-i18n-title="search.clear.title" title="Clear search">✕</button>
           </div>
-          <div id="founderFilter">
-            <label>
-              <input type="checkbox" id="founderToggle" />
-              <span data-i18n="filter.showFounder">Show Founder Items</span>
-            </label>
+          <div id="primeFilters">
+            <button data-cat="All" data-i18n="filter.all">All</button>
+            <button data-cat="Warframe" data-i18n="category.warframe">Warframe</button>
+            <button data-cat="Primary" data-i18n="category.primary">Primary</button>
+            <button data-cat="Secondary" data-i18n="category.secondary">Secondary</button>
+            <button data-cat="Melee" data-i18n="category.melee">Melee</button>
+            <button data-cat="Arch-Gun" data-i18n="category.arch_gun">Arch-Guns</button>
+            <button data-cat="Arch-Melee" data-i18n="category.arch_melee">Arch-Melee</button>
+            <button data-cat="Sentinel" data-i18n="category.sentinel">Sentinels</button>
+            <button data-cat="Archwing" data-i18n="category.archwing">Archwing</button>
           </div>
-          <div id="specialFilter">
-            <label>
-              <input type="checkbox" id="specialToggle" />
-              <span data-i18n="filter.showSpecial">Show Special Items</span>
-            </label>
+          <div id="primeVaultAndFounder">
+            <div id="primeVaultFilter">
+              <label data-i18n="filter.status">Status:</label>
+              <button data-vault="All" class="active" data-i18n="filter.all">All</button>
+              <button data-vault="Available" data-i18n="filter.available">Available</button>
+              <button data-vault="Vaulted" data-i18n="filter.vaulted">Vaulted</button>
+            </div>
+            <div id="founderFilter">
+              <label>
+                <input type="checkbox" id="founderToggle" />
+                <span data-i18n="filter.showFounder">Show Founder Items</span>
+              </label>
+            </div>
+            <div id="specialFilter">
+              <label>
+                <input type="checkbox" id="specialToggle" />
+                <span data-i18n="filter.showSpecial">Show Special Items</span>
+              </label>
+            </div>
           </div>
         </div>
-        <div id="primeList"></div>
+        <div class="section-list">
+          <div id="primeList"></div>
+        </div>
       </div>
 
       <div id="masterySection" class="tracker-section">
-        <div id="masteryToolbar">
-          <div id="masteryToolbarTop">
-            <div class="search-container">
-              <input id="masterySearch" type="text" data-i18n-placeholder="search.mastery.placeholder" placeholder="Search..." />
-              <button id="clearMasterySearch" class="clear-search-btn" data-i18n-title="search.clear.title" title="Clear search">✕</button>
+        <div class="section-toolbar">
+          <div id="masteryToolbar">
+            <div id="masteryToolbarTop">
+              <div class="search-container">
+                <input id="masterySearch" type="text" data-i18n-placeholder="search.mastery.placeholder" placeholder="Search..." />
+                <button id="clearMasterySearch" class="clear-search-btn" data-i18n-title="search.clear.title" title="Clear search">✕</button>
+              </div>
+              <div id="masteryStatusFilter">
+                <button data-status="all" class="active" data-i18n="mastery.status.all">All</button>
+                <button data-status="owned" data-i18n="mastery.status.owned">Owned</button>
+                <button data-status="mastered" data-i18n="mastery.status.mastered">Mastered</button>
+                <button data-status="missing" data-i18n="mastery.status.missing">Missing</button>
+              </div>
             </div>
-            <div id="masteryStatusFilter">
-              <button data-status="all" class="active" data-i18n="mastery.status.all">All</button>
-              <button data-status="owned" data-i18n="mastery.status.owned">Owned</button>
-              <button data-status="mastered" data-i18n="mastery.status.mastered">Mastered</button>
-              <button data-status="missing" data-i18n="mastery.status.missing">Missing</button>
-            </div>
+            <div id="masteryProgress"></div>
           </div>
-          <div id="masteryProgress"></div>
         </div>
-        <div id="masteryList"></div>
+        <div class="section-list">
+          <div id="masteryList"></div>
+        </div>
       </div>
 
     </main>

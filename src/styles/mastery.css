@@ -1,10 +1,7 @@
 /* mastery.css — Mastery tracker section styles */
 
 /* ─── Section layout ──────────────────────────────────────────────────────────── */
-
-#masterySection {
-  padding: 20px 24px;
-}
+/* Padding is handled by .section-toolbar and .section-list in layout.css        */
 
 /* ─── Toolbar: search + status filter + progress ──────────────────────────────── */
 
@@ -12,7 +9,7 @@
   display: flex;
   flex-direction: column;
   gap: 8px;
-  margin-bottom: 16px;
+  padding-bottom: 12px;
 }
 
 #masteryToolbarTop {
@@ -62,11 +59,9 @@
   font-weight: 600;
 }
 
-/* ─── Grid ────────────────────────────────────────────────────────────────────── */
+/* ─── Grid — column count defined in layout.css ───────────────────────────────── */
 
 #masteryList {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 10px;
 }
 
@@ -94,6 +89,7 @@
   background: rgba(255, 255, 255, 0.04);
   border: 1px solid transparent;
   transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+  min-width: 0;
 }
 
 .mastery-card:hover {
