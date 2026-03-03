@@ -122,13 +122,25 @@ function normalizeItem(item, endpointKey) {
     wikiImage:     null,
     isPrime:       item.isPrime === true,
     section,
-    masteryPoints: item.masteryPoints ?? deriveMasteryPoints(section),
+    masteryPoints: deriveMasteryPoints(section, item.name, endpointKey, item.uniqueName),
   };
 }
 
-function deriveMasteryPoints(section) {
-  const highXpSections = new Set(['Warframe', 'Archwing', 'Robotic', 'SentinelWeapon', 'Companion', 'Vehicle']);
-  return highXpSections.has(section) ? 6000 : 3000;
+function deriveMasteryPoints(section, itemName, endpointKey, uniqueName) {
+  const highXpSections = new Set(['Warframe', 'Archwing', 'Robotic', 'Companion', 'Vehicle']);
+  // Kuva and Tenet weapons cap at rank 40 → 4,000 mastery
+  if (itemName.startsWith('Kuva ') || itemName.startsWith('Tenet ') || itemName === 'Paracesis') {
+    return 4000;
+  }
+
+  // Necramechs cap at rank 40 via forma → 8,000 mastery
+  if (endpointKey === 'Warframe' && uniqueName.includes('/Lotus/Powersuits/EntratiMech/')) {
+    return 8000;
+  }
+
+  else{
+    return highXpSections.has(section) ? 6000 : 3000;
+  }
 }
 
 // ─── WFCD item loader ──────────────────────────────────────────────────────────
