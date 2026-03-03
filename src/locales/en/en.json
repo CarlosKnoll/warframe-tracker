@@ -101,6 +101,7 @@
   "rarity.common": "Common",
   "rarity.uncommon": "Uncommon",
   "rarity.rare": "Rare",
+  "rarity.legendary": "Legendary",
   "rarity.unknown": "Unknown",
 
   "badge.founder": "FOUNDER",
@@ -165,5 +166,7 @@
   "gameMode.Rush": "Rush",
   "gameMode.The Perita Rebellion": "The Perita Rebellion",
   "gameMode.The Circuit": "The Circuit",
-  "gameMode.Volatile": "Volatile"
+  "gameMode.Volatile": "Volatile",
+
+  "loc.WF1999 Bounty": "Höllvania Bounty"
 }

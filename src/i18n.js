@@ -33,11 +33,18 @@ async function loadLocale(lang) {
   // Target language keys override English; absent keys transparently use EN values
   uiStrings = { ...enStrings, ...targetStrings };
 
-  // Rebuild locationsMap from loc.* keys
+  // Rebuild locationsMap from keys whose prefix is in LOCATION_PREFIXES.
+  // Add any new prefix here to have it participate in tLocation() translation.
+  const LOCATION_PREFIXES = ['loc.', 'mission.', 'quests.', 'planet.', 'gameMode.', 
+                            'dropSource.', 'events.', 'syndicateRank.', 'syndicate.', 
+                            'npc.', 'enemy.'];
   locationsMap = Object.fromEntries(
     Object.entries(uiStrings)
-      .filter(([k]) => k.startsWith('loc.'))
-      .map(([k, v]) => [k.slice(4), v])
+      .filter(([k]) => LOCATION_PREFIXES.some(p => k.startsWith(p)))
+      .map(([k, v]) => {
+        const prefix = LOCATION_PREFIXES.find(p => k.startsWith(p));
+        return [k.slice(prefix.length), v];
+      })
   );
 }
 
@@ -319,6 +326,11 @@ export function tItemName(itemName) {
     'Gauntlet':    t('component.gauntlet'),
     'Link':        t('component.link'),
     'Head':        t('component.head'),
+    'Disc':        t('component.disc'),
+    'Glove':       t('component.glove'),
+    'Core':        t('component.core'),
+    'Day Aspect':  t('component.day aspect'),
+    'Night Aspect':t('component.night aspect'),
   };
 
   const blueprint = t('component.blueprint'); // "Diagrama"

@@ -156,6 +156,11 @@ export function hasRelicDrops(prime) {
   return false;
 }
 
+// Export for use in mastery renderer (prime cards in mastery tab reuse this drop table)
+export function buildDropTableForPrime(prime, isSpecial = false) {
+  return buildDropTable(prime, isSpecial);
+}
+
 // ─── Main render ──────────────────────────────────────────────────────────────
 
 export function renderPrimes() {

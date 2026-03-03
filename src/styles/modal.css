@@ -96,7 +96,8 @@
 
 /* Wider box for arcane and prime detail modals */
 .modal-box[data-type="arcane"],
-.modal-box[data-type="prime"] {
+.modal-box[data-type="prime"],
+.modal-box[data-type="mastery"] {
   min-width: 640px;
   max-width: 860px;
   width: 90vw;
@@ -256,7 +257,41 @@
   gap: 4px;
 }
 
-/* ─── Scrollbar styling ───────────────────────────────────────────────────────── */
+/* ─── Mastery drop table (no horizontal scroll, fills right panel) ────────────── */
+
+.mastery-drop-table-wrapper {
+  width: 100%;
+}
+
+.mastery-drop-table-wrapper .drop-table {
+  width: 100%;
+  margin-top: 0;
+  table-layout: fixed;
+}
+
+.mastery-drop-table-wrapper .drop-table td,
+.mastery-drop-table-wrapper .drop-table th {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Location column gets most of the space; part/rotation/rarity/chance are narrower */
+.mastery-drop-table-wrapper .drop-table th:nth-child(1) { width: 18%; } /* Part */
+.mastery-drop-table-wrapper .drop-table th:nth-child(2) { width: 38%; } /* Location */
+.mastery-drop-table-wrapper .drop-table th:nth-child(3) { width: 10%; } /* Rotation */
+.mastery-drop-table-wrapper .drop-table th:nth-child(4) { width: 18%; } /* Rarity */
+.mastery-drop-table-wrapper .drop-table th:nth-child(5) { width: 16%; } /* Chance */
+
+/* Allow mission cell to wrap */
+.mastery-drop-table-wrapper .drop-table td:nth-child(2) {
+  white-space: normal;
+  word-break: break-word;
+}
+
+.mastery-drop-rotation {
+  white-space: nowrap;
+}
 
 .modal-detail-right {
   scrollbar-width: thin;

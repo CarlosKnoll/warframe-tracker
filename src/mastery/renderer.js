@@ -6,7 +6,11 @@ import { masteryState, IMAGE_BASE,
          STARCHART_TRACKS, RAILJACK_INTRINSICS, DRIFTER_INTRINSICS,
          INTRINSIC_XP_PER_RANK, INTRINSIC_MAX_RANK,
          MASTERY_FOUNDER_ITEMS } from './state.js';
-import { t, tMasteryItemName, getLanguage } from '../i18n.js';
+import { t, tMasteryItemName, tComponent, getLanguage } from '../i18n.js';
+import { openMasteryItemModal, openPrimeCardModal } from '../modal.js';
+import { state as primesState } from '../primes/state.js';
+import { buildDropTableForPrime, hasRelicDrops } from '../primes/renderer.js';
+import { loadPrimes } from '../primes/loader.js';
 
 // ─── Image cache ───────────────────────────────────────────────────────────────
 
@@ -205,7 +209,7 @@ function buildCard(item, observer) {
   
   card.append(imgWrap, body, controls);
 
-  // ── Interaction ──
+  // ── Checkbox state changes ──────────────────────────────────────────────────
   card.addEventListener('change', async e => {
     const action = e.target.dataset.action;
     if (!action) return;
@@ -234,6 +238,88 @@ function buildCard(item, observer) {
 
     try { await masteryState.saveFunction(); }
     catch (err) { console.error('[mastery/renderer] Save failed:', err); }
+  });
+
+  // ── Card click → modal ──────────────────────────────────────────────────────
+  // Prevent checkbox interactions from also triggering the card click
+  controls.addEventListener('click', e => e.stopPropagation());
+
+  card.addEventListener('click', async () => {
+    // Resolve the image that was loaded for this card
+    const resolvedImg = masteryState.imageCache.get(item.uniqueName)
+      || item.wikiImageUrl
+      || FALLBACK;
+
+    // If this is a prime item, use the full prime modal.
+    // Lazy-load primes data first if the Primes tab hasn't been visited yet.
+    if (item.isPrime) {
+      if (!primesState.allPrimes || primesState.allPrimes.length === 0) {
+        await loadPrimes();
+      }
+
+      const matchedPrime = primesState.allPrimes.find(p =>
+        p.uniqueName === item.uniqueName || p.name === item.name
+      );
+
+      if (matchedPrime) {
+        const isFounder = primesState.ignoredPrimes?.has(matchedPrime.uniqueName) ?? false;
+        const isSpecial = !isFounder && !hasRelicDrops(matchedPrime);
+        const compsForModal = matchedPrime.components.map(comp => ({
+          ...comp,
+          displayName: comp.isMainItem ? t('label.owned') : tComponent(comp.name),
+          isOwned: (primesState.owned[comp.uniqueName] ?? 0) > 0,
+        }));
+
+        openPrimeCardModal(
+          { ...matchedPrime, components: compsForModal, isSpecial },
+          resolvedImg,
+          () => buildDropTableForPrime(matchedPrime, isSpecial),
+          async (uniqueName, val) => {
+            primesState.owned[uniqueName] = val;
+            try { await primesState.saveFunction(); } catch (err) { console.error('Save failed:', err); }
+          },
+          () => { /* no mastery re-render needed */ }
+        );
+        return;
+      }
+    }
+
+    // Non-prime → mastery modal with component drop data fetched from API
+    const now = new Date().toISOString().slice(0, 10);
+
+    openMasteryItemModal({
+      item,
+      imageUrl: resolvedImg,
+      onOwnedChange: async (checked) => {
+        if (checked) masteryState.owned[`${item.uniqueName}_owned`] = 1;
+        else delete masteryState.owned[`${item.uniqueName}_owned`];
+        card.classList.toggle('owned', checked && !masteryState.masteryMastered[item.uniqueName]);
+        const badge = body.querySelector('.mastery-badge');
+        if (badge) badge.outerHTML = buildBadge(item);
+        const ownedBox = controls.querySelector('[data-action="owned"]');
+        if (ownedBox) ownedBox.checked = checked;
+        try { await masteryState.saveFunction(); } catch (err) { console.error(err); }
+        document.dispatchEvent(new CustomEvent('mastery-progress-update'));
+      },
+      onMasteredChange: async (checked) => {
+        if (checked) masteryState.masteryMastered[item.uniqueName] = { since: now };
+        else delete masteryState.masteryMastered[item.uniqueName];
+        card.classList.toggle('mastered', checked);
+        const badge = body.querySelector('.mastery-badge');
+        if (badge) badge.outerHTML = buildBadge(item);
+        const masteredBox = controls.querySelector('[data-action="mastered"]');
+        if (masteredBox) masteredBox.checked = checked;
+        try { await masteryState.saveFunction(); } catch (err) { console.error(err); }
+        document.dispatchEvent(new CustomEvent('mastery-progress-update'));
+      },
+      onSubsumedChange: async (checked) => {
+        if (checked) masteryState.masteryMastered[`${item.uniqueName}_subsumed`] = { since: now };
+        else delete masteryState.masteryMastered[`${item.uniqueName}_subsumed`];
+        const subsumedBox = controls.querySelector('[data-action="subsumed"]');
+        if (subsumedBox) subsumedBox.checked = checked;
+        try { await masteryState.saveFunction(); } catch (err) { console.error(err); }
+      },
+    });
   });
 
   return card;

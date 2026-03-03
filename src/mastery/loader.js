@@ -9,6 +9,7 @@ import {
 
 // ─── Cache TTL ─────────────────────────────────────────────────────────────────
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
+const CACHE_VERSION = 2; // bump when normalized shape changes
 
 // ─── Hardcoded items ───────────────────────────────────────────────────────────
 // Items not present in the WFCD API, added manually.
@@ -115,6 +116,33 @@ function normalizeItem(item, endpointKey) {
     }
   }
 
+  const RESOURCE_TYPES = new Set(['Resource', 'Misc']);
+  const EXCLUDED_COMP_NAMES = new Set([
+    'Orokin Cell', 'Argon Crystal', 'Neural Sensors', 'Neurodes',
+    'Gallium', 'Ferrite', 'Plastids', 'Nano Spores', 'Alloy Plate',
+    'Polymer Bundle', 'Rubedo', 'Salvage', 'Credits', 'Nitain Extract',
+    'Entrati Lanthorn', "Echo Voca", "Entrati Obols", "Necracoil",
+    'Pyrotic Alloy', 'Tear Azurite', 'Nistlepod', 'Fish Scales',
+    'Feersteel Alloy', 'Marquise Veridos', 'Breath Of The Eidolon',
+    'Maprico', 'Coprite Alloy', 'Esher Devar', 'Grokdul', 'Cetus Wisp',
+    'Iradite',
+    'Viper', 'Lato', 'Cestra', 'Dual Skana', 'Akstiletto', 'Kraken',
+    'Dual Zoren', 'Vasto', 'Ankyros', 'Magistar', 'The Xoris', 'Furax',
+
+  ]);
+
+  // Keep only craftable components that carry drop location data.
+  // Resources and components without drops are excluded.
+  const components = Array.isArray(item.components)
+    ? item.components
+        .filter(c =>
+          c.drops && c.drops.length > 0 &&
+          !RESOURCE_TYPES.has(c.type) &&
+          !EXCLUDED_COMP_NAMES.has(c.name)
+        )
+        .map(c => ({ name: c.name, drops: c.drops }))
+    : [];
+
   return {
     uniqueName:    item.uniqueName,
     name:          item.name,
@@ -123,6 +151,7 @@ function normalizeItem(item, endpointKey) {
     isPrime:       item.isPrime === true,
     section,
     masteryPoints: deriveMasteryPoints(section, item.name, endpointKey, item.uniqueName),
+    components,
   };
 }
 
@@ -180,8 +209,8 @@ async function loadFromDiskCache() {
     if (!cached || !cached.cachedAt || !Array.isArray(cached.items) || cached.items.length === 0) return null;
 
     const age = Date.now() - new Date(cached.cachedAt).getTime();
-    if (age > CACHE_TTL_MS) {
-      console.log('[mastery/loader] Cache expired, will re-fetch.');
+    if (age > CACHE_TTL_MS || (cached.version ?? 1) < CACHE_VERSION) {
+      console.log('[mastery/loader] Cache expired or outdated, will re-fetch.');
       return null;
     }
 
@@ -198,6 +227,7 @@ async function saveToDiskCache(items) {
     await invoke('save_mastery_data_cache', {
       data: {
         cachedAt: new Date().toISOString(),
+        version: CACHE_VERSION,
         items,
       }
     });
