@@ -6,7 +6,7 @@ const DEFAULT_LANG = 'en';
 
 let currentLang = DEFAULT_LANG;
 let uiStrings = {};
-let arcaneNamesMap = {};
+// Derived from loc.* keys in uiStrings after each locale load.
 let locationsMap = {};
 
 // ─── Bootstrap ────────────────────────────────────────────────────────────────
@@ -23,28 +23,21 @@ async function loadLocale(lang) {
   // Step 1: always load English as the baseline
   // Step 2: overlay the target language on top (missing keys fall through to EN)
   // Step 3: t() falls back to the key string itself if still not found
-  const [enStrings, targetStrings, arcaneNames, locations] = await Promise.all([
+  const [enStrings, targetStrings] = await Promise.all([
     fetch(`./locales/en/en.json`).then(r => r.json()).catch(() => ({})),
     lang === 'en'
       ? Promise.resolve({})
       : fetch(`./locales/${lang}/${lang}.json`).then(r => r.json()).catch(() => ({})),
-    lang === 'en'
-      ? Promise.resolve({})
-      : fetch(`./locales/pt/arcane-names.pt.json`).then(r => r.json()).catch(() => ({})),
-    lang === 'en'
-      ? Promise.resolve({})
-      : fetch(`./locales/pt/dropLocations.pt.json`).then(r => r.json()).catch(() => ({})),
   ]);
 
   // Target language keys override English; absent keys transparently use EN values
   uiStrings = { ...enStrings, ...targetStrings };
-  arcaneNamesMap = arcaneNames;
-  // Strip prefixes (mission., planet., gameMode.) for substring matching
+
+  // Rebuild locationsMap from loc.* keys
   locationsMap = Object.fromEntries(
-    Object.entries(locations).map(([k, v]) => [
-      k.replace(/^(mission|planet|gameMode)\./, ''),
-      v
-    ])
+    Object.entries(uiStrings)
+      .filter(([k]) => k.startsWith('loc.'))
+      .map(([k, v]) => [k.slice(4), v])
   );
 }
 
@@ -113,7 +106,119 @@ export function t(key, vars = {}) {
  */
 export function tArcaneName(name) {
   if (currentLang === 'en' || !name) return name;
-  return arcaneNamesMap[name] ?? name;
+  return uiStrings[`arcane.${name}`] ?? name;
+}
+
+/**
+ * Translate a mastery item name (weapons, companions).
+ *
+ * Resolution order:
+ *   1. Explicit map: "item.<n>" in uiStrings
+ *      Only true exceptions where the base word itself changes:
+ *      Flux Rifle, Coda Bassocyst, Bubonic, Dread, Evensong.
+ *   2. Suffix translate: "Base Vandal" -> "Base Vandalizada"
+ *                        "Base Wraith"  -> "Base Quimérica"
+ *   3. Clean prefix swap: "Prefix Base" -> "TranslatedBase Prefix"
+ *      Base is resolved through the item map first, so
+ *      "Tenet Flux Rifle" -> "Rifle de Fluxo Tenet" falls out automatically.
+ *      Covers: Kuva, Tenet, Prisma, Coda, Vaykor, Secura, Sancti, Rakta, Synoid, Dex.
+ *   4. Translated prefix swap: "Prefix Base" -> "Base TranslatedPrefix"
+ *      Covers: Mutalist -> Mutalista, Proboscis -> Probóscide, Carmine -> Carmesim.
+ *   5. tPrimeName fallback for "Dual X Prime" patterns.
+ *   6. Original name unchanged.
+ */
+export function tMasteryItemName(name) {
+  if (currentLang === 'en' || !name) return name;
+
+  // 1. Explicit map — only true exceptions where the base word itself changes
+  const fromMap = uiStrings[`item.${name}`];
+  if (fromMap) return fromMap;
+
+  // 2. Mk1-Base -> Base-Mk1
+  if (name.startsWith('Mk1-')) return name.slice(4) + '-Mk1';
+
+  // Coupund treatment
+  const parts = name.split(' ');
+
+  const SUFFIX_MAP = { 'Vandal': 'Vandalizada', 'Wraith': 'Quimérica'};
+
+  const SUFFIX_TO_PREFIX = { 'Hound': 'Predador', 'Moa': 'Moa', 'Kavat': 'Kavat', 'Kubrow': 'Kubrow', 'Vulpaphyla': 'Vulpaphyla', 'Predasite': 'Predasite', 'Prism': 'Prisma' };
+  
+  const CLEAN_SWAP = new Set([
+    'Kuva', 'Tenet', 'Prisma', 'Coda', 'Vaykor', 'Secura', 'Sancti', 'Rakta', 'Synoid', 'Dex', 'Telos', 'Mara', 'Gazal',
+  ]);
+  
+  const TRANSLATED_SWAP = { 'Mutalist': 'Mutalista', 'Proboscis': 'Probóscide', 'Carmine': 'Carmesim', 'Twin': "Gêmeas", 'Dual': "Duplas" };
+  const ALL_SWAP = new Set([...CLEAN_SWAP, ...Object.keys(TRANSLATED_SWAP)]);
+
+  // Irregular base plurals (regular plural is base + 's')
+  const IRREGULAR_PLURALS = { 'Torxica': 'Tórxicas' };
+  const pluralize = base => IRREGULAR_PLURALS[base] ?? (base.endsWith('s') ? base : base + 's');
+
+
+  // 3. Suffix translate
+  const lastWord = parts[parts.length - 1];
+  if (parts.length >= 2 && SUFFIX_MAP[lastWord]) {
+    const remainingParts = parts.slice(0, -1);
+    const translatedSuffix = SUFFIX_MAP[lastWord];
+    // After removing the suffix, check if the first word is a TRANSLATED_SWAP prefix
+    // e.g. 'Twin Vipers Wraith' -> remainingParts = ['Twin', 'Vipers']
+    // Twin -> Gêmeas, so result is 'Vipers Gêmeas Quimérica'
+    if (remainingParts.length >= 2 && TRANSLATED_SWAP[remainingParts[0]]) {
+      const translatedPrefix = TRANSLATED_SWAP[remainingParts[0]];
+      const base = remainingParts.slice(1).join(' ');
+      return `${base} ${translatedPrefix} ${translatedSuffix}`;
+    }
+    const base = remainingParts.join(' ');
+    return `${base} ${translatedSuffix}`;
+  }
+
+
+  // 3. Suffix translate and swap
+  if (parts.length >= 2 && SUFFIX_TO_PREFIX[lastWord]) {
+    const prefix = SUFFIX_TO_PREFIX[lastWord];
+    const base = parts.slice(0, -1).join(' ');
+    return `${prefix} ${base}`;
+  }
+
+
+  // 5. Three-word compound dual: one of the three words is Dual/Twin (→ Duplas/Gêmeas),
+  //    one is a swap prefix, one is the base weapon.
+  //    Position rule: if the swap prefix came BEFORE the base in the original,
+  //    it stays after Duplas/Gêmeas; if it came AFTER, it stays after Duplas/Gêmeas too.
+  //    Concretely:
+  //      prefixIdx < baseIdx  ->  BasePlural DualWord Prefix
+  //      prefixIdx > baseIdx  ->  BasePlural Prefix DualWord
+  if (parts.length === 3) {
+    const dualIdx   = parts.findIndex(w => w === 'Dual' || w === 'Twin' || w === 'Duplas' || w === 'Gêmeas');
+    const prefixIdx = parts.findIndex((w, i) => i !== dualIdx && (CLEAN_SWAP.has(w) || (TRANSLATED_SWAP[w] && w !== 'Dual' && w !== 'Twin')));
+    const baseIdx   = [0, 1, 2].find(i => i !== dualIdx && i !== prefixIdx);
+    if (dualIdx !== -1 && prefixIdx !== -1 && baseIdx !== undefined) {
+      const dualWord = TRANSLATED_SWAP[parts[dualIdx]] ?? parts[dualIdx]; // Dual->Duplas, Twin->Gêmeas
+      const prefix   = TRANSLATED_SWAP[parts[prefixIdx]] ?? parts[prefixIdx];
+      const basePl   = pluralize(uiStrings[`item.${parts[baseIdx]}`] ?? parts[baseIdx]);
+      if (prefixIdx < baseIdx) return `${basePl} ${dualWord} ${prefix}`;
+      else                     return `${basePl} ${prefix} ${dualWord}`;
+    }
+  }
+
+  // 6. Clean prefix swap: Prefix Base -> TranslatedBase Prefix
+  //    Base resolved through item map first (handles e.g. 'Tenet Flux Rifle').
+  if (parts.length >= 2 && CLEAN_SWAP.has(parts[0])) {
+    const base = parts.slice(1).join(' ');
+    const translatedBase = uiStrings[`item.${base}`] ?? base;
+    return `${translatedBase} ${parts[0]}`;
+  }
+
+  // 7. Translated prefix swap: Prefix Base -> Base TranslatedPrefix
+  if (parts.length >= 2 && TRANSLATED_SWAP[parts[0]]) {
+    // Let 'Dual/Twin X Prime' fall through to tPrimeName (rule 7)
+    if (parts[parts.length - 1] === 'Prime') return tPrimeName(name);
+    return parts.slice(1).join(' ') + ' ' + TRANSLATED_SWAP[parts[0]];
+  }
+
+  // 8. Dual Prime pattern ('Dual X Prime' -> 'Xs Duplas Prime')
+  return tPrimeName(name);
 }
 
 /**
@@ -268,6 +373,12 @@ export function tPrimeName(name) {
     const base = dualMatch[1];
     const baseLocalized = base.endsWith('s') ? base : `${base}s`;
     return `${baseLocalized} Duplas Prime`;
+  }
+  // X Prime -> TranslatedX Prime
+  if (name.endsWith(' Prime')) {
+    const base = name.slice(0, -6);
+    const translatedBase = uiStrings[`item.${base}`] ?? base;
+    return `${translatedBase} Prime`;
   }
   return name;
 }

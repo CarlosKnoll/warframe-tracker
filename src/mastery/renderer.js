@@ -5,7 +5,7 @@ const invoke = window.__TAURI_INTERNALS__.invoke;
 import { masteryState, IMAGE_BASE,
          STARCHART_TRACKS, RAILJACK_INTRINSICS, DRIFTER_INTRINSICS,
          INTRINSIC_XP_PER_RANK, INTRINSIC_MAX_RANK } from './state.js';
-import { t } from '../i18n.js';
+import { t, tMasteryItemName, getLanguage } from '../i18n.js';
 
 // ─── Image cache ───────────────────────────────────────────────────────────────
 
@@ -13,10 +13,10 @@ const FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' w
 
 export async function initMasteryImageCache() {
   try {
-    const diskCache = await invoke('load_mastery_image_cache');
+    const diskCache = await invoke('load_shared_image_cache');
     Object.entries(diskCache).forEach(([key, val]) => masteryState.imageCache.set(key, val));
   } catch (e) {
-    console.error('[mastery/renderer] Failed to load mastery image cache:', e);
+    console.error('[mastery/renderer] Failed to load shared image cache:', e);
   }
 }
 
@@ -27,7 +27,7 @@ function persistImageCache() {
   persistTimer = setTimeout(async () => {
     try {
       const cache = Object.fromEntries(masteryState.imageCache);
-      await invoke('save_mastery_image_cache', { cache });
+      await invoke('save_shared_image_cache', { cache });
     } catch (e) {
       console.error('[mastery/renderer] Failed to save shared image cache:', e);
     }
@@ -113,7 +113,7 @@ function buildCard(item, observer) {
   imgWrap.className = 'mastery-card-image';
 
   const img = document.createElement('img');
-  img.alt = item.name;
+  img.alt = tMasteryItemName(item.name);
   img.style.opacity = '0';
   img.style.transition = 'opacity 0.2s';
   img.onload  = () => { img.style.opacity = '1'; };
@@ -141,7 +141,7 @@ function buildCard(item, observer) {
   const body = document.createElement('div');
   body.className = 'mastery-card-body';
   body.innerHTML = `
-    <div class="mastery-card-name">${item.name}</div>
+    <div class="mastery-card-name">${tMasteryItemName(item.name)}</div>
     <div class="mastery-card-xp">${(item.masteryPoints ?? 0).toLocaleString()} ${t('mastery.label.xp')}</div>
     ${buildBadge(item)}
   `;
@@ -361,7 +361,8 @@ export function renderMastery() {
       ? activeSectionValue.includes(item.section)
       : item.section === activeSectionValue;
 
-    const searchMatch = !searchText || item.name.toLowerCase().includes(searchText.toLowerCase());
+    const q = searchText.toLowerCase();
+    const searchMatch = !searchText || item.name.toLowerCase().includes(q) || tMasteryItemName(item.name).toLowerCase().includes(q);
 
     const isOwned    = (masteryState.owned[`${item.uniqueName}_owned`] ?? 0) > 0;
     const isMastered = !!masteryMastered[item.uniqueName];
@@ -384,7 +385,7 @@ export function renderMastery() {
     const rank = (m, o) => m ? 2 : o ? 1 : 0;
     const diff = rank(aM, aO) - rank(bM, bO);
     if (diff !== 0) return diff;
-    return a.name.localeCompare(b.name);
+    return tMasteryItemName(a.name).localeCompare(tMasteryItemName(b.name), getLanguage() === "pt" ? "pt-BR" : "en");
   });
 
   if (sectionItems.length === 0) {
