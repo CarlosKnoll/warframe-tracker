@@ -107,7 +107,7 @@ function normalizeItem(item, endpointKey) {
       if (un.endsWith('Deck')) section = 'Vehicle';
       else return null;
     } else if ((un.includes('/SolarisUnited/Secondary/') || un.includes('/Infested/Pistols/')) && un.includes('/Barrel')) {
-      section = 'Secondary';
+      section = 'Kitgun';
     } else if (un.includes('/OperatorAmplifiers/') && un.includes('Barrel')) {
       section = 'Amp';
     } else {

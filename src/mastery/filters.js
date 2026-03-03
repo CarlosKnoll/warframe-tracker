@@ -51,7 +51,7 @@ export function updateMasteryProgress() {
 
   const SECTION_MAP = {
     'mastery-warframes':   'Warframe',
-    'mastery-primaries':   'Primary',
+    'mastery-primaries':   ['Primary', 'Kitgun'],
     'mastery-secondaries': ['Secondary', 'Kitgun'],
     'mastery-melees':      ['Melee', 'Zaw'],
     'mastery-robotic':     ['Robotic', 'SentinelWeapon'],

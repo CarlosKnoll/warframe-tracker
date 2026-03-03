@@ -343,7 +343,7 @@ export function renderMastery() {
   // Maps sidebar data-section values to the section field used by the loader
   const SECTION_MAP = {
     'mastery-warframes':   'Warframe',
-    'mastery-primaries':   'Primary',
+    'mastery-primaries':   ['Primary', 'Kitgun'],
     'mastery-secondaries': ['Secondary', 'Kitgun'],
     'mastery-melees':      ['Melee', 'Zaw'],
     'mastery-robotic':     ['Robotic', 'SentinelWeapon'],
@@ -362,7 +362,15 @@ export function renderMastery() {
       : item.section === activeSectionValue;
 
     const q = searchText.toLowerCase();
-    const searchMatch = !searchText || item.name.toLowerCase().includes(q) || tMasteryItemName(item.name).toLowerCase().includes(q);
+    const SEARCH_KEYWORDS = { 'kitgun': 'Kitgun', 'zaw': 'Zaw' };
+    const matchedSections = Object.entries(SEARCH_KEYWORDS)
+      .filter(([keyword]) => keyword.startsWith(q))
+      .map(([, section]) => section);
+
+    const searchMatch = !searchText
+      || item.name.toLowerCase().includes(q)
+      || tMasteryItemName(item.name).toLowerCase().includes(q)
+      || matchedSections.includes(item.section);
 
     const isOwned    = (masteryState.owned[`${item.uniqueName}_owned`] ?? 0) > 0;
     const isMastered = !!masteryMastered[item.uniqueName];
