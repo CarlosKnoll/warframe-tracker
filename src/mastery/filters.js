@@ -1,6 +1,6 @@
 // mastery/filters.js - Filter state management and UI wiring for mastery
 
-import { masteryState } from './state.js';
+import { masteryState, MASTERY_FOUNDER_ITEMS } from './state.js';
 import { renderMastery } from './renderer.js';
 import { t } from '../i18n.js';
 
@@ -64,11 +64,14 @@ export function updateMasteryProgress() {
 
   const sectionValue = SECTION_MAP[masteryState.activeSection] ?? masteryState.activeSection;
 
-  const sectionItems = masteryState.items.filter(item =>
-    Array.isArray(sectionValue)
+  const sectionItems = masteryState.items.filter(item => {
+    const sectionMatch = Array.isArray(sectionValue)
       ? sectionValue.includes(item.section)
-      : item.section === sectionValue
-  );
+      : item.section === sectionValue;
+    if (!sectionMatch) return false;
+    if (MASTERY_FOUNDER_ITEMS.has(item.name) && masteryState.ignoredMasteryItems.has(item.uniqueName)) return false;
+    return true;
+  });
 
   const totalItems    = sectionItems.length;
   const masteredCount = sectionItems.filter(i => !!masteryState.masteryMastered[i.uniqueName]).length;

@@ -32,6 +32,7 @@
   "mastery.badge.mastered": "MASTERED",
   "mastery.badge.owned": "OWNED",
   "mastery.badge.missing": "MISSING",
+  "mastery.badge.ignored": "IGNORED",
 
   "mastery.label.owned": "Owned",
   "mastery.label.mastered": "Mastered",

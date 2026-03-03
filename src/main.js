@@ -5,6 +5,7 @@ const invoke = window.__TAURI_INTERNALS__.invoke;
 let activeMode = "arcanes";
 let owned = {};
 let ignoredPrimes = new Set();
+let ignoredMasteryItems = new Set();
 let masteryMastered = {};
 
 let arcanesModule = null;
@@ -97,7 +98,7 @@ document.querySelectorAll("#sidebar button[data-section]").forEach(btn => {
       if (!masteryInitialized) {
         masteryModule = await import('./mastery/index.js');
         // Pass live getter functions instead of object references
-      await masteryModule.initMastery(owned, masteryMastered, save, section);
+      await masteryModule.initMastery(owned, masteryMastered, ignoredMasteryItems, save, section);
       masteryInitialized = true;
       masteryModule.renderMastery();
       } else {
@@ -115,6 +116,7 @@ async function save() {
       data: {
         owned,
         ignoredPrimes: Array.from(ignoredPrimes),
+        ignoredMasteryItems: Array.from(ignoredMasteryItems),
         masteryMastered,
       }
     });
@@ -134,9 +136,10 @@ async function init() {
     document.getElementById('app-version').textContent = `v${version}`;
 
     const stored = await invoke("load_owned");
-    owned           = stored.owned           || {};
-    ignoredPrimes   = new Set(stored.ignoredPrimes || []);
-    masteryMastered = stored.masteryMastered || {};
+    owned                = stored.owned                || {};
+    ignoredPrimes        = new Set(stored.ignoredPrimes        || []);
+    ignoredMasteryItems  = new Set(stored.ignoredMasteryItems  || []);
+    masteryMastered      = stored.masteryMastered      || {};
 
     arcanesModule = await import('./arcanes.js');
     await arcanesModule.initArcanes(owned, save);

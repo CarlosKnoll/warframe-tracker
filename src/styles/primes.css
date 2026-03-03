@@ -120,10 +120,9 @@
 }
 
 .prime-status-tag.ignored {
-  background: rgba(255, 255, 255, 0.06);
-  color: #88c0d0;
-  border: 1px solid #3d4a6e;
-  font-style: italic;
+  background: rgba(107, 1, 1, 0.466);
+  color: rgb(184, 53, 53);
+  border: 1px rgb(184, 53, 53);
 }
 
 /* ─── Letter dots ─────────────────────────────────────────────────────────────── */

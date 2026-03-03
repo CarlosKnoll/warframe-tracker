@@ -33,6 +33,7 @@
   "mastery.badge.mastered": "MASTERIZADO",
   "mastery.badge.owned": "OBTIDO",
   "mastery.badge.missing": "FALTANDO",
+  "mastery.badge.ignored": "IGNORADO",
 
   "mastery.label.owned": "Adquirido",
   "mastery.label.mastered": "Masterizado",

@@ -52,10 +52,15 @@ export const INTRINSIC_MAX_RANK    = 10;
 
 // ─── State ────────────────────────────────────────────────────────────────────
 
+export const MASTERY_FOUNDER_ITEMS = new Set([
+  "Excalibur Prime", "Lato Prime", "Skana Prime"
+]);
+
 export const masteryState = {
   items: [],
   owned: {},
   masteryMastered: {},
+  ignoredMasteryItems: new Set(),
   saveFunction: null,
   activeSection: 'mastery-warframes',
   searchText: '',

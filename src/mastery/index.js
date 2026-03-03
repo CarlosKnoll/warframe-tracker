@@ -6,12 +6,15 @@ import { initMasteryImageCache, renderMastery, resetMasteryImageObserver } from 
 import { initMasteryFilters, updateMasteryProgress } from './filters.js';
 import { t } from '../i18n.js';
 
+document.addEventListener('mastery-progress-update', updateMasteryProgress);
+
 // ─── Init ──────────────────────────────────────────────────────────────────────
 
-export async function initMastery(ownedData, masteryMasteredData, saveFn, initialSection = 'mastery-warframes') {
-  masteryState.owned           = ownedData;
-  masteryState.masteryMastered = masteryMasteredData;
-  masteryState.saveFunction    = saveFn;
+export async function initMastery(ownedData, masteryMasteredData, ignoredData, saveFn, initialSection = 'mastery-warframes') {
+  masteryState.owned              = ownedData;
+  masteryState.masteryMastered    = masteryMasteredData;
+  masteryState.ignoredMasteryItems = ignoredData;
+  masteryState.saveFunction       = saveFn;
   masteryState.activeSection = initialSection;
 
   // Show loading state immediately

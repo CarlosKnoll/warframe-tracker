@@ -4,7 +4,8 @@ const invoke = window.__TAURI_INTERNALS__.invoke;
 
 import { masteryState, IMAGE_BASE,
          STARCHART_TRACKS, RAILJACK_INTRINSICS, DRIFTER_INTRINSICS,
-         INTRINSIC_XP_PER_RANK, INTRINSIC_MAX_RANK } from './state.js';
+         INTRINSIC_XP_PER_RANK, INTRINSIC_MAX_RANK,
+         MASTERY_FOUNDER_ITEMS } from './state.js';
 import { t, tMasteryItemName, getLanguage } from '../i18n.js';
 
 // ─── Image cache ───────────────────────────────────────────────────────────────
@@ -13,10 +14,10 @@ const FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' w
 
 export async function initMasteryImageCache() {
   try {
-    const diskCache = await invoke('load_shared_image_cache');
+    const diskCache = await invoke('load_mastery_image_cache');
     Object.entries(diskCache).forEach(([key, val]) => masteryState.imageCache.set(key, val));
   } catch (e) {
-    console.error('[mastery/renderer] Failed to load shared image cache:', e);
+    console.error('[mastery/renderer] Failed to load mastery image cache:', e);
   }
 }
 
@@ -27,9 +28,9 @@ function persistImageCache() {
   persistTimer = setTimeout(async () => {
     try {
       const cache = Object.fromEntries(masteryState.imageCache);
-      await invoke('save_shared_image_cache', { cache });
+      await invoke('save_mastery_image_cache', { cache });
     } catch (e) {
-      console.error('[mastery/renderer] Failed to save shared image cache:', e);
+      console.error('[mastery/renderer] Failed to save mastery image cache:', e);
     }
   }, 1000);
 }
@@ -90,9 +91,11 @@ export function resetMasteryImageObserver() {
 function buildBadge(item) {
   const mastered = !!masteryState.masteryMastered[item.uniqueName];
   const owned    = (masteryState.owned[`${item.uniqueName}_owned`] ?? 0) > 0;
+  const ignored  = MASTERY_FOUNDER_ITEMS.has(item.name) && masteryState.ignoredMasteryItems.has(item.uniqueName);
 
   if (mastered) return `<span class="mastery-badge mastered">${t('mastery.badge.mastered')}</span>`;
   if (owned)    return `<span class="mastery-badge owned">${t('mastery.badge.owned')}</span>`;
+  if (ignored)  return `<span class="mastery-badge ignored">${t('mastery.badge.ignored')}</span>`;
   return               `<span class="mastery-badge missing">${t('mastery.badge.missing')}</span>`;
 }
 
@@ -136,6 +139,27 @@ function buildCard(item, observer) {
   }
 
   imgWrap.appendChild(img);
+
+  const isFounder = MASTERY_FOUNDER_ITEMS.has(item.name);
+  const isIgnored = masteryState.ignoredMasteryItems.has(item.uniqueName);
+
+  if (isFounder) {
+    const ignoreBtn = document.createElement('button');
+    ignoreBtn.className = 'prime-ignore-btn';
+    ignoreBtn.title = isIgnored ? t('btn.unignore') : t('btn.ignore');
+    ignoreBtn.textContent = '✕';
+    ignoreBtn.onclick = async e => {
+      e.stopPropagation();
+      if (masteryState.ignoredMasteryItems.has(item.uniqueName)) masteryState.ignoredMasteryItems.delete(item.uniqueName);
+      else masteryState.ignoredMasteryItems.add(item.uniqueName);
+      try { await masteryState.saveFunction(); } catch (err) { console.error(err); }
+      renderMastery();
+      document.dispatchEvent(new CustomEvent('mastery-progress-update'));
+    };
+    card.appendChild(ignoreBtn);
+  }
+
+  if (isIgnored) card.classList.add('mastered'); // reuse the faded style
 
   // ── Body ──
   const body = document.createElement('div');
@@ -380,7 +404,7 @@ export function renderMastery() {
       (statusFilter === 'mastered' && isMastered)               ||
       (statusFilter === 'missing'  && !isOwned);
 
-    return sectionMatch && searchMatch && statusMatch;
+      return sectionMatch && searchMatch && statusMatch;
   });
 
   // Sort alphabetically within status groups (mastered last, owned middle, missing first)
@@ -389,9 +413,11 @@ export function renderMastery() {
     const bM = !!masteryMastered[b.uniqueName];
     const aO = (masteryState.owned[`${a.uniqueName}_owned`] ?? 0) > 0;
     const bO = (masteryState.owned[`${b.uniqueName}_owned`] ?? 0) > 0;
+    const aI = MASTERY_FOUNDER_ITEMS.has(a.name) && masteryState.ignoredMasteryItems.has(a.uniqueName);
+    const bI = MASTERY_FOUNDER_ITEMS.has(b.name) && masteryState.ignoredMasteryItems.has(b.uniqueName);
 
-    const rank = (m, o) => m ? 2 : o ? 1 : 0;
-    const diff = rank(aM, aO) - rank(bM, bO);
+    const rank = (m, o, ignored) => ignored ? 3 : m ? 2 : o ? 1 : 0;
+    const diff = rank(aM, aO, aI) - rank(bM, bO, bI);
     if (diff !== 0) return diff;
     return tMasteryItemName(a.name).localeCompare(tMasteryItemName(b.name), getLanguage() === "pt" ? "pt-BR" : "en");
   });
