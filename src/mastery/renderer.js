@@ -191,6 +191,18 @@ function buildCard(item, observer) {
   masteredLabel.append(masteredBox, document.createTextNode(t('mastery.label.mastered')));
 
   controls.append(ownedLabel, masteredLabel);
+
+  if (item.section === 'Warframe' && !item.isPrime && !item.name.endsWith(' Umbra')) {
+    const subsumedLabel = document.createElement('label');
+    subsumedLabel.className = 'mastery-check';
+    const subsumedBox = document.createElement('input');
+    subsumedBox.type = 'checkbox';
+    subsumedBox.checked = !!masteryState.masteryMastered[`${item.uniqueName}_subsumed`];
+    subsumedBox.dataset.action = 'subsumed';
+    subsumedLabel.append(subsumedBox, document.createTextNode(t('mastery.label.subsumed')));
+    controls.append(subsumedLabel);
+  }
+  
   card.append(imgWrap, body, controls);
 
   // ── Interaction ──
@@ -210,6 +222,11 @@ function buildCard(item, observer) {
       if (e.target.checked) masteryState.masteryMastered[item.uniqueName] = { since: now };
       else delete masteryState.masteryMastered[item.uniqueName];
       card.classList.toggle('mastered', e.target.checked);
+    }
+
+    if (action === 'subsumed') {
+      if (e.target.checked) masteryState.masteryMastered[`${item.uniqueName}_subsumed`] = { since: now };
+      else delete masteryState.masteryMastered[`${item.uniqueName}_subsumed`];
     }
 
     const badge = body.querySelector('.mastery-badge');
