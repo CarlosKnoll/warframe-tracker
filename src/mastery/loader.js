@@ -9,7 +9,7 @@ import {
 
 // ─── Cache TTL ─────────────────────────────────────────────────────────────────
 const CACHE_TTL_MS = 24 * 60 * 60 * 1000; // 24 hours
-const CACHE_VERSION = 2; // bump when normalized shape changes
+const CACHE_VERSION = 3; // bump when normalized shape changes
 
 // ─── Hardcoded items ───────────────────────────────────────────────────────────
 // Items not present in the WFCD API, added manually.
@@ -148,7 +148,7 @@ function normalizeItem(item, endpointKey) {
     name:          item.name,
     imageName:     item.imageName || null,
     wikiImage:     null,
-    isPrime:       item.isPrime === true,
+    isPrime:       item.name.includes('Prime'),
     section,
     masteryPoints: deriveMasteryPoints(section, item.name, endpointKey, item.uniqueName),
     components,

@@ -87,7 +87,7 @@ export async function loadPrimes() {
       }
       const items = result.value;
       items
-        .filter(item => item.name && item.name.includes("Prime") && item.isPrime === true)
+        .filter(item => item.name && item.name.includes("Prime"))
         .forEach(item => {
           const vaultStatus = checkPrimeVaultStatus(item, state.farmableRelics);
           primeData.push({
