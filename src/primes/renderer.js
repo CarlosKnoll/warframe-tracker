@@ -502,7 +502,7 @@ function buildSpecialDropTable(prime) {
                   <td>${row.gameMode ? (t(`gameMode.${row.gameMode}`) !== `gameMode.${row.gameMode}` ? t(`gameMode.${row.gameMode}`) : row.gameMode) : ''}</td>
                   <td>${row.rotation}</td>
                   <td class="rarity rarity-${row.rarity.toLowerCase()}">${tRarity(row.rarity)}</td>
-                  <td class="relic-location-chance">${(row.chance * 100).toFixed(2)}%</td>
+                  <td class="relic-location-chance">${(row.chance).toFixed(2)}%</td>
                 </tr>
               `).join('')}
             </tbody>

@@ -355,7 +355,7 @@ function buildMasteryDropTables(item) {
                 <td>${r.location}</td>
                 <td class="mastery-drop-rotation">${r.rotation}</td>
                 <td class="rarity rarity-${r.rarity.toLowerCase()}">${tRarity(r.rarity)}</td>
-                <td class="relic-location-chance">${(r.chance * 100).toFixed(2)}%</td>
+                <td class="relic-location-chance">${(r.chance).toFixed(2)}%</td>
               </tr>
             `).join('')}
           </tbody>

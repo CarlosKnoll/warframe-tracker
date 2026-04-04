@@ -436,7 +436,7 @@ function getDropLocations(arcane) {
   return arcane.drops
     .map(d => ({ translated: tLocation(d.location), chance: d.chance }))
     .sort((a, b) => a.translated.localeCompare(b.translated, localeMap[getLanguage()] ?? getLanguage()))
-    .map(d => `${d.translated} (${(d.chance * 100).toFixed(2)}%)`)
+    .map(d => `${d.translated} (${(d.chance).toFixed(2)}%)`)
     .join('\n');
 }
 
