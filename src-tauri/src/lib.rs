@@ -45,6 +45,7 @@ pub fn run() {
             commands::data::save_owned,
             commands::data::load_custom_drops,
             commands::data::fetch_image_base64,
+            commands::data::fetch_json,
             commands::data::get_data_path,
             commands::data::load_primes_image_cache,
             commands::data::save_primes_image_cache,
@@ -52,6 +53,8 @@ pub fn run() {
             commands::data::save_mastery_image_cache,
             commands::data::load_mastery_data_cache,
             commands::data::save_mastery_data_cache,
+            commands::data::load_wm_map_cache,
+            commands::data::save_wm_map_cache,
             commands::updater::check_for_updates,
             utils::js_log,
         ])

@@ -69,6 +69,36 @@ pub async fn fetch_image_base64(url: String) -> Result<String, String> {
     Ok(base64::encode(&bytes))
 }
 
+/// Proxy an external JSON GET request through Rust to avoid CORS restrictions
+/// in the Tauri webview. Optionally accepts request headers as key-value pairs.
+/// Returns the raw JSON body as a serde_json::Value.
+#[tauri::command]
+pub async fn fetch_json(
+    url: String,
+    headers: Option<HashMap<String, String>>,
+) -> Result<Value, String> {
+    let client = reqwest::Client::new();
+    let mut req = client.get(&url);
+
+    if let Some(hdrs) = headers {
+        for (key, val) in hdrs {
+            req = req.header(key, val);
+        }
+    }
+
+    let response = req.send().await.map_err(|e| e.to_string())?;
+    let status = response.status();
+    let headers = response.headers().clone();
+    let body = response.text().await.map_err(|e| e.to_string())?;
+    eprintln!("fetch_json status: {status}");
+    eprintln!("fetch_json content-type: {:?}", headers.get("content-type"));
+    eprintln!("fetch_json body (first 500): {}", &body[..body.len().min(500)]);
+    serde_json::from_str(&body).map_err(|e| {
+        eprintln!("fetch_json parse error for {url}: {e}\nBody was: {body}");
+        e.to_string()
+    })
+}
+
 /// Get the data directory path for display to users
 #[tauri::command]
 pub fn get_data_path(_app: AppHandle) -> String {
@@ -132,4 +162,25 @@ pub fn save_mastery_data_cache(data: Value) -> Result<(), String> {
     let path = get_data_dir().join("mastery_data_cache.json");
     let content = serde_json::to_string_pretty(&data).map_err(|e| e.to_string())?;
     fs::write(path, content).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn load_wm_map_cache() -> Result<Value, String> {
+    let path = get_data_dir().join("wm_map_cache.json");
+    if !path.exists() {
+        return Ok(Value::Null);
+    }
+    let content = fs::read_to_string(path).map_err(|e| e.to_string())?;
+    serde_json::from_str(&content).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn save_wm_map_cache(data: Value) -> Result<(), String> {
+    let path = get_data_dir().join("wm_map_cache.json");
+    eprintln!("save_wm_map_cache writing to: {:?}", path);
+    let content = serde_json::to_string_pretty(&data).map_err(|e| e.to_string())?;
+    fs::write(&path, content).map_err(|e| {
+        eprintln!("save_wm_map_cache write error: {e}");
+        e.to_string()
+    })
 }

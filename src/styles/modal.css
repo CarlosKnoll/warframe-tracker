@@ -97,6 +97,7 @@
 /* Wider box for arcane and prime detail modals */
 .modal-box[data-type="arcane"],
 .modal-box[data-type="prime"],
+.modal-box[data-type="mod"],
 .modal-box[data-type="mastery"] {
   min-width: 640px;
   max-width: 860px;

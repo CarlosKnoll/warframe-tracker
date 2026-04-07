@@ -1,0 +1,396 @@
+/* ════════════════════════════════════════════════════════════════════════════
+   mods.css
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* ─── Filter rows ─────────────────────────────────────────────────────────── */
+
+#modCategoryFilters,
+#modPolarityFilters {
+  margin-bottom: 12px;
+}
+
+/* ─── Filter buttons — verbatim copy of filters.css tokens ───────────────── */
+
+#modCategoryFilters button,
+#modPolarityFilters button {
+  padding: 4px 12px;
+  background: transparent;
+  border: 1px solid #2b3248;
+  color: rgba(255, 255, 255, 0.45);
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  margin: 2px;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+#modCategoryFilters button:hover,
+#modPolarityFilters button:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.8);
+}
+
+#modCategoryFilters button.active,
+#modPolarityFilters button.active {
+  background: rgba(201, 168, 76, 0.12);
+  border-color: #c9a84c;
+  color: #c9a84c;
+  font-weight: 600;
+}
+
+#modPolarityFilters {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+#modPolarityFilters > .mod-filter-label {
+  font-size: 0.8rem;
+  opacity: 0.6;
+  font-weight: 500;
+  margin-right: 4px;
+}
+
+/* ─── Mod list grid ───────────────────────────────────────────────────────── */
+
+#modList {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
+  gap: 10px;
+  width: 100%;
+}
+
+.mod-empty {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 60px 20px;
+  opacity: 0.5;
+  font-size: 0.9rem;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   MOD CARD — Warframe Market full card variant
+   When data-wm-card="1": the WM image IS the card. It already contains the
+   polarity icon, rarity frame, and mod artwork — no additional overlays needed.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.mod-card {
+  cursor: pointer;
+  transition: transform 0.12s;
+  user-select: none;
+  border-radius: 4px;
+  /* Extended aspect ratio: WM mod cards are ~174×280px (roughly 5:8) */
+  aspect-ratio: 174 / 280;
+}
+
+.mod-card:hover {
+  transform: translateY(-3px) scale(1.03);
+  z-index: 2;
+  position: relative;
+}
+
+/* ── WM full card ─────────────────────────────────────────────────────────── */
+
+.mc-wm-card {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.mc-wm-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;       /* WM images fill the card exactly */
+  display: block;
+  border-radius: 4px;
+  transition: filter 0.12s;
+}
+
+.mod-card[data-wm-card="1"]:hover .mc-wm-img {
+  filter: brightness(1.08);
+}
+
+/* Name overlay at bottom — only shown for WM cards where the image is the card */
+.mc-wm-name {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  padding: 14px 5px 4px;
+  background: linear-gradient(to top, rgba(0,0,0,0.82) 0%, transparent 100%);
+  font-size: 0.58rem;
+  font-weight: 700;
+  color: #e5e9f0;
+  text-align: center;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.95);
+  line-height: 1.2;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Blank placeholder hidden until image loads */
+.mc-wm-img[src$="R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"],
+.mc-img[src$="R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7"] {
+  opacity: 0;
+}
+
+/* ════════════════════════════════════════════════════════════════════════════
+   MOD CARD — fallback layered card (WFCD thumbnail)
+   Used when WM image is unavailable.
+   ════════════════════════════════════════════════════════════════════════════ */
+
+.mc-mod {
+  border-radius: 4px;
+  overflow: hidden;
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(180deg, #161a22 0%, #0f1218 100%);
+  border: 1px solid #2b3248;
+}
+
+.mod-card[data-rarity="Common"]    .mc-mod {
+  background: radial-gradient(ellipse at 50% 38%, rgba(160,100,60,0.38) 0%, transparent 60%), linear-gradient(180deg,#1e1510 0%,#150f0a 100%);
+  border: 1px solid #6b4a30;
+  box-shadow: 0 0 8px rgba(150,90,50,0.30);
+}
+.mod-card[data-rarity="Uncommon"]  .mc-mod {
+  background: radial-gradient(ellipse at 50% 38%, rgba(140,155,170,0.32) 0%, transparent 60%), linear-gradient(180deg,#161b20 0%,#0f1318 100%);
+  border: 1px solid #4a5a6a;
+  box-shadow: 0 0 8px rgba(120,140,160,0.25);
+}
+.mod-card[data-rarity="Rare"]      .mc-mod {
+  background: radial-gradient(ellipse at 50% 38%, rgba(200,160,40,0.42) 0%, transparent 60%), linear-gradient(180deg,#1e1a08 0%,#141208 100%);
+  border: 1px solid #7a6010;
+  box-shadow: 0 0 10px rgba(200,160,40,0.40);
+}
+.mod-card[data-rarity="Legendary"] .mc-mod {
+  background: radial-gradient(ellipse at 50% 38%, rgba(200,210,230,0.32) 0%, transparent 60%), linear-gradient(180deg,#1a1e26 0%,#111520 100%);
+  border: 1px solid #808898;
+  box-shadow: 0 0 12px rgba(200,210,230,0.35);
+}
+.mod-card[data-mod-class="galvanized"] .mc-mod {
+  background: radial-gradient(ellipse at 50% 38%, rgba(160,170,190,0.35) 0%, transparent 60%), linear-gradient(180deg,#161920 0%,#0e1118 100%);
+  border: 1px solid #5a6070;
+  box-shadow: 0 0 6px rgba(160,170,200,0.40), inset 0 0 8px rgba(140,150,180,0.08);
+}
+.mod-card[data-mod-class="archon"]     .mc-mod {
+  background: radial-gradient(ellipse at 50% 38%, rgba(160,20,20,0.50) 0%, transparent 58%), radial-gradient(ellipse at 50% 80%, rgba(80,0,0,0.30) 0%, transparent 70%), linear-gradient(180deg,#180808 0%,#0e0404 100%);
+  border: 1px solid #6a1010;
+  box-shadow: 0 0 10px rgba(180,20,20,0.50), inset 0 0 10px rgba(140,10,10,0.12);
+}
+
+.mc-content {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+}
+
+.mc-border {
+  position: absolute;
+  inset: 0;
+  border-radius: 4px;
+  pointer-events: none;
+  z-index: 4;
+}
+.mod-card[data-rarity="Common"]    .mc-border { border: 1px solid rgba(199,153,137,0.45); }
+.mod-card[data-rarity="Uncommon"]  .mc-border { border: 1px solid rgba(190,192,194,0.50); }
+.mod-card[data-rarity="Rare"]      .mc-border { border: 1px solid rgba(232,200,76,0.60); }
+.mod-card[data-rarity="Legendary"] .mc-border { border: 1px solid rgba(232,232,232,0.55); }
+.mod-card[data-mod-class="galvanized"] .mc-border { border: 1px solid rgba(180,190,210,0.55) !important; }
+.mod-card[data-mod-class="archon"]     .mc-border { border: 1px solid rgba(220,80,80,0.60) !important; }
+
+.mc-drain {
+  position: absolute;
+  top: 0; right: 0;
+  z-index: 3;
+  padding: 2px 5px 3px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  line-height: 1;
+  background: rgba(0,0,0,0.62);
+  border-bottom-left-radius: 4px;
+}
+.mod-card[data-rarity="Common"]    .mc-drain { color: #c09070; }
+.mod-card[data-rarity="Uncommon"]  .mc-drain { color: #bec0c2; }
+.mod-card[data-rarity="Rare"]      .mc-drain { color: #e8c84c; }
+.mod-card[data-rarity="Legendary"] .mc-drain { color: #e8e8e8; }
+.mod-card[data-mod-class="galvanized"] .mc-drain { color: #b0b8cc !important; }
+.mod-card[data-mod-class="archon"]     .mc-drain { color: #cc3030 !important; }
+
+
+.mc-figure {
+  width: 100%;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 8px 6px 4px;
+  min-height: 0;
+  overflow: hidden;
+}
+
+.mc-img {
+  width: 82%;
+  height: 100%;
+  object-fit: contain;
+  display: block;
+  filter: drop-shadow(0 2px 8px rgba(0,0,0,0.9));
+}
+
+
+
+.mc-description {
+  width: 100%;
+  padding: 4px 5px 0;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.mc-name {
+  margin: 0;
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: #e5e9f0;
+  line-height: 1.2;
+  text-align: center;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-shadow: 0 1px 3px rgba(0,0,0,0.95);
+}
+
+.mc-desc {
+  margin: 2px 0 0;
+  font-size: 0.55rem;
+  font-weight: 400;
+  line-height: 1.25;
+  text-align: center;
+  padding: 0 3px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.9);
+}
+.mod-card[data-rarity="Common"]        .mc-desc { color: rgba(192,144,112,0.80); }
+.mod-card[data-rarity="Uncommon"]      .mc-desc { color: rgba(190,192,194,0.75); }
+.mod-card[data-rarity="Rare"]          .mc-desc { color: rgba(232,200,76,0.75);  }
+.mod-card[data-rarity="Legendary"]     .mc-desc { color: rgba(232,232,232,0.70); }
+.mod-card[data-mod-class="galvanized"] .mc-desc { color: rgba(176,184,204,0.75); }
+.mod-card[data-mod-class="archon"]     .mc-desc { color: rgba(220,80,80,0.80);   }
+
+.mc-compat {
+  width: 100%;
+  text-align: center;
+  padding: 1px 4px 1px;
+  flex-shrink: 0;
+}
+
+.mc-compat p {
+  margin: 0;
+  font-size: 0.50rem;
+  letter-spacing: 0.06em;
+  font-weight: 600;
+}
+
+.mc-fusion {
+  width: 100%;
+  display: flex;
+  justify-content: center;
+  gap: 2px;
+  padding: 2px 4px 4px;
+  background: rgba(0,0,0,0.40);
+  flex-shrink: 0;
+}
+
+.mc-fusion i {
+  font-style: normal;
+  font-size: 0.44rem;
+  line-height: 1;
+}
+.mod-card[data-rarity="Common"]    .mc-fusion i { color: rgba(192,144,112,0.35); }
+.mod-card[data-rarity="Uncommon"]  .mc-fusion i { color: rgba(190,192,194,0.30); }
+.mod-card[data-rarity="Rare"]      .mc-fusion i { color: rgba(232,200,76,0.30); }
+.mod-card[data-rarity="Legendary"] .mc-fusion i { color: rgba(232,232,232,0.28); }
+.mod-card[data-rarity="Common"]    .mc-fusion-max i { color: #c09070; text-shadow: 0 0 4px rgba(192,144,112,0.7); }
+.mod-card[data-rarity="Uncommon"]  .mc-fusion-max i { color: #bec0c2; text-shadow: 0 0 4px rgba(190,192,194,0.7); }
+.mod-card[data-rarity="Rare"]      .mc-fusion-max i { color: #e8c84c; text-shadow: 0 0 5px rgba(232,200,76,0.8); }
+.mod-card[data-rarity="Legendary"] .mc-fusion-max i { color: #e8e8e8; text-shadow: 0 0 5px rgba(232,232,232,0.8); }
+
+/* ════════════════════════════════════════════════════════════════════════════
+   MODAL
+   ════════════════════════════════════════════════════════════════════════════ */
+
+/* WM full card image in modal — larger, shows full card art */
+.mod-modal-img-wm {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mod-modal-img-wm img {
+  max-width: 160px;
+  max-height: 260px;
+  object-fit: contain;
+  border-radius: 4px;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.6);
+}
+
+/* WFCD thumb in modal */
+.mod-modal-img-thumb img {
+  max-width: 120px;
+  max-height: 120px;
+  object-fit: contain;
+}
+
+.mod-modal-polarity {
+  font-size: 0.78rem;
+  color: rgba(255,255,255,0.55);
+  text-align: center;
+  margin: 4px 0 2px;
+}
+
+.mod-modal-drain {
+  font-size: 0.72rem;
+  color: rgba(255,255,255,0.50);
+  text-align: center;
+  margin: 2px 0;
+}
+
+/* Rarity tags */
+.mod-rarity-tag { display: inline-block; }
+.mod-rarity-tag--common    { background: rgba(192,144,112,0.15); color: #c09070; border-color: #8a6040; }
+.mod-rarity-tag--uncommon  { background: rgba(190,192,194,0.15); color: #bec0c2; border-color: #7a8090; }
+.mod-rarity-tag--rare      { background: rgba(232,200,76,0.15);  color: #e8c84c; border-color: #a08820; }
+.mod-rarity-tag--legendary { background: rgba(232,232,232,0.12); color: #e8e8e8; border-color: #909090; }
+
+/* Class badges */
+.mod-class-badge { display: inline-block; }
+.mod-class-badge--galvanized { background: rgba(176,184,204,0.14); color: #b0b8cc; border-color: #5a6070; }
+.mod-class-badge--archon     { background: rgba(200,40,40,0.15);   color: #cc3030; border-color: #901818; }
+
+.mod-modal-desc {
+  font-size: 0.78rem;
+  line-height: 1.5;
+  color: rgba(255,255,255,0.6);
+  text-align: center;
+  margin: 6px 0 4px;
+}
+.mod-modal-compat {
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  color: rgba(255,255,255,0.35);
+  text-align: center;
+  margin: 2px 0 0;
+}
+
+.mod-drop-location { max-width: 260px; word-break: break-word; }
+.mod-drop-type     { font-size: 0.75rem; color: rgba(255,255,255,0.45); white-space: nowrap; }

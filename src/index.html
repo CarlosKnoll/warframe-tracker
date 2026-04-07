@@ -12,6 +12,7 @@
   <link rel="stylesheet" href="styles/primes.css" />
   <link rel="stylesheet" href="styles/sidebar.css" />
   <link rel="stylesheet" href="styles/mastery.css" />
+  <link rel="stylesheet" href="styles/mods.css" />
   <link rel="stylesheet" href="styles/misc-tracker.css" />
 </head>
 <body>
@@ -50,6 +51,9 @@
 
         <!-- Primes — direct nav button -->
         <button class="nav-btn" data-section="primes" data-i18n="mode.primes">Primes</button>
+        
+        <!-- Mods — direct nav button -->
+        <button class="nav-btn" data-section="mods" data-i18n="mode.mods">Mods</button>
 
         <!-- Arcanes — direct nav button, active on load -->
         <button class="nav-btn active" data-section="arcanes" data-i18n="mode.arcanes">Arcanes</button>
@@ -147,6 +151,58 @@
         </div>
         <div class="section-list">
           <div id="primeList"></div>
+        </div>
+      </div>
+
+      <div id="modsSection" class="tracker-section">
+        <div class="section-toolbar">
+      
+          <!-- Search -->
+          <div class="search-container">
+            <input
+              id="modSearch"
+              type="text"
+              data-i18n-placeholder="search.mods.placeholder"
+              placeholder="Search mods..."
+            />
+            <button id="clearModSearch" class="clear-search-btn"
+              data-i18n-title="search.clear.title" title="Clear search">✕</button>
+          </div>
+      
+          <!-- Category filter -->
+          <div id="modCategoryFilters">
+            <button data-cat="All"        class="active" data-i18n="filter.all">All</button>
+            <button data-cat="Warframe"   data-i18n="category.warframe">Warframe</button>
+            <button data-cat="Primary"    data-i18n="category.primary">Primary</button>
+            <button data-cat="Secondary"  data-i18n="category.secondary">Secondary</button>
+            <button data-cat="Melee"      data-i18n="category.melee">Melee</button>
+            <button data-cat="Companion"  data-i18n="mod.category.companion">Companion</button>
+            <button data-cat="Archwing"   data-i18n="category.archwing">Archwing</button>
+            <button data-cat="Arch-Gun"   data-i18n="category.arch_gun">Arch-Gun</button>
+            <button data-cat="Arch-Melee" data-i18n="category.arch_melee">Arch-Melee</button>
+            <button data-cat="Aura"       data-i18n="mod.category.aura">Aura</button>
+            <button data-cat="Stance"     data-i18n="mod.category.stance">Stance</button>
+            <button data-cat="Parazon"    data-i18n="mod.category.parazon">Parazon</button>
+            <button data-cat="Misc"       data-i18n="mod.category.misc">Misc</button>
+          </div>
+      
+          <!-- Polarity filter -->
+          <div id="modPolarityFilters">
+            <span class="mod-filter-label" data-i18n="mod.filter.polarity">Polarity:</span>
+            <button data-polarity="All"     class="active" data-i18n="filter.all">All</button>
+            <button data-polarity="Madurai" data-i18n="mod.polarity.madurai">Madurai</button>
+            <button data-polarity="Vazarin" data-i18n="mod.polarity.vazarin">Vazarin</button>
+            <button data-polarity="Naramon" data-i18n="mod.polarity.naramon">Naramon</button>
+            <button data-polarity="Zenurik" data-i18n="mod.polarity.zenurik">Zenurik</button>
+            <button data-polarity="Unairu"  data-i18n="mod.polarity.unairu">Unairu</button>
+            <button data-polarity="Penjaga" data-i18n="mod.polarity.penjaga">Penjaga</button>
+            <button data-polarity="Umbra"   data-i18n="mod.polarity.umbra">Umbra</button>
+          </div>
+      
+        </div>
+      
+        <div class="section-list">
+          <div id="modList"></div>
         </div>
       </div>
 

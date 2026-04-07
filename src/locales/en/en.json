@@ -168,5 +168,29 @@
   "gameMode.The Circuit": "The Circuit",
   "gameMode.Volatile": "Volatile",
 
-  "loc.WF1999 Bounty": "Höllvania Bounty"
+  "loc.WF1999 Bounty": "Höllvania Bounty",
+
+  "mode.mods":                "Mods",
+  "loading.mods":             "Loading mod data...",
+  "search.mods.placeholder":  "Search mods...",
+ 
+  "mod.noResults":            "No mods match the current filters.",
+  "mod.dropSources":          "Drop Sources",
+  "mod.drop.type":            "Type",
+  "mod.label.capacity":       "Capacity",
+ 
+  "mod.filter.polarity":      "Polarity:",
+  "mod.category.companion":   "Companion",
+  "mod.category.aura":        "Aura",
+  "mod.category.stance":      "Stance",
+  "mod.category.parazon":     "Parazon",
+  "mod.category.misc":        "Misc",
+ 
+  "mod.polarity.madurai":     "Madurai",
+  "mod.polarity.vazarin":     "Vazarin",
+  "mod.polarity.naramon":     "Naramon",
+  "mod.polarity.zenurik":     "Zenurik",
+  "mod.polarity.unairu":      "Unairu",
+  "mod.polarity.penjaga":     "Penjaga",
+  "mod.polarity.umbra":       "Umbra"
 }

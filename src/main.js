@@ -11,6 +11,8 @@ let masteryMastered = {};
 let arcanesModule = null;
 let primesModule = null;
 let masteryModule = null;
+let modsModule = null;
+let modsInitialized = false;
 let arcanesInitialized = false;
 let primesInitialized = false;
 let masteryInitialized = false;
@@ -60,6 +62,8 @@ window.addEventListener('langchange', async () => {
     primesModule.renderPrimes();
   } else if (activeMode.startsWith('mastery-') && masteryInitialized) {
     masteryModule.renderMastery();
+  } else if (activeMode === 'mods' && modsInitialized) {
+    modsModule.renderMods();
   }
 });
 
@@ -103,6 +107,15 @@ document.querySelectorAll("#sidebar button[data-section]").forEach(btn => {
       masteryModule.renderMastery();
       } else {
         masteryModule.setMasterySection(section);
+      }
+    } else if (section === 'mods') {
+      document.getElementById('modsSection').classList.add('active');
+      if (!modsInitialized) {
+        modsModule = await import('./mods/index.js');
+        await modsModule.initMods();
+        modsInitialized = true;
+      } else {
+        modsModule.renderMods();
       }
     }
   };

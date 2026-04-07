@@ -791,6 +791,19 @@
   "arcane.Exodia Hunt": "Caça De Exódia",
   "arcane.Exodia Might": "Poder De Exódia",
   "arcane.Exodia Triumph": "Triunfo De Exódia",
-  "arcane.Exodia Valor": "Valor De Exódia"
+  "arcane.Exodia Valor": "Valor De Exódia",
+
+  "loading.mods":             "Carregando dados de mods...",
+  "search.mods.placeholder":  "Buscar mods...",
+ 
+  "mod.noResults":            "Nenhum mod corresponde aos filtros.",
+  "mod.dropSources":          "Fontes de Drop",
+  "mod.drop.type":            "Tipo",
+  "mod.label.capacity":       "Custo",
+ 
+  "mod.filter.polarity":      "Polaridade:",
+  "mod.category.companion":   "Companheiro",
+  "mod.category.stance":      "Estilo",
+  "mod.category.misc":        "Outros"
 
 }
