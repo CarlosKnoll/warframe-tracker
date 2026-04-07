@@ -210,11 +210,11 @@ async function loadFromDiskCache() {
 
     const age = Date.now() - new Date(cached.cachedAt).getTime();
     if (age > CACHE_TTL_MS || (cached.version ?? 1) < CACHE_VERSION) {
-      console.log('[mastery/loader] Cache expired or outdated, will re-fetch.');
+      console.warn('[mastery/loader] Cache expired or outdated, will re-fetch.');
       return null;
     }
 
-    console.log('[mastery/loader] Using cached item data.');
+    console.warn('[mastery/loader] Using cached item data.');
     return cached.items;
   } catch (err) {
     console.error('[mastery/loader] Failed to read cache:', err);
@@ -251,7 +251,7 @@ export async function loadMasteryItems({ forceRefresh = false } = {}) {
     }
   }
 
-  console.log('[mastery/loader] Fetching fresh mastery item data…');
+  console.warn('[mastery/loader] Fetching fresh mastery item data…');
   const items = await fetchAllItems();
 
   const seen = new Set();
@@ -266,5 +266,5 @@ export async function loadMasteryItems({ forceRefresh = false } = {}) {
   saveToDiskCache(masteryState.items).catch(err =>
     console.error('[mastery/loader] Background cache save failed:', err)
   );
-  console.log(`[mastery/loader] Loaded ${masteryState.items.length} mastery items.`);
+  console.warn(`[mastery/loader] Loaded ${masteryState.items.length} mastery items.`);
 }

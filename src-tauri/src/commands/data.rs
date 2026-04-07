@@ -90,9 +90,6 @@ pub async fn fetch_json(
     let status = response.status();
     let headers = response.headers().clone();
     let body = response.text().await.map_err(|e| e.to_string())?;
-    eprintln!("fetch_json status: {status}");
-    eprintln!("fetch_json content-type: {:?}", headers.get("content-type"));
-    eprintln!("fetch_json body (first 500): {}", &body[..body.len().min(500)]);
     serde_json::from_str(&body).map_err(|e| {
         eprintln!("fetch_json parse error for {url}: {e}\nBody was: {body}");
         e.to_string()

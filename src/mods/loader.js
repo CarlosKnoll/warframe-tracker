@@ -262,7 +262,6 @@ async function buildWmImageMap() {
       _wmMap[urlName] = `${WM_STATIC_BASE}${icon}`;
     }
 
-    console.log('WM map built, size:', Object.keys(_wmMap).length);
     // ── Persist to disk cache ───────────────────────────────────────────────
     try {
       await invoke('save_wm_map_cache', {
@@ -305,10 +304,6 @@ export async function loadMods() {
       const rawType = item.type || '';
       if (!rawType.includes('Mod')) continue;
       if (shouldSkip(item)) continue;
-
-      if (item.name === 'Aegis Gale') {
-        console.log('raw item:', JSON.stringify(item));
-      }
 
       const category     = resolveCategory(item);
       const polarity     = normalisePolarity(item.polarity);
