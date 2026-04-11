@@ -20,7 +20,9 @@
       "icons/icon.ico"
     ],
     "windows": {
-      "upgradeCode": "49d0cb85-55db-4e7c-8379-95b444f35f65"
+      "wix:":{
+        "upgradeCode": "49d0cb85-55db-4e7c-8379-95b444f35f65"
+      }
     }
   },
   "plugins": {
