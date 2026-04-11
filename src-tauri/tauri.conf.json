@@ -20,7 +20,6 @@
       "icons/icon.ico"
     ],
     "windows": {
-      "installMode": "currentUser",
       "upgradeCode": "49d0cb85-55db-4e7c-8379-95b444f35f65"
     }
   },
