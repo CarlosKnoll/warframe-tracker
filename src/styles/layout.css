@@ -102,9 +102,66 @@ input[type="text"]:focus {
 
 /* ─── Grid containers ───────────────────────────────────────────────────────── */
 
-#list, #primeList, #masteryList {
+:root {
+  --grid-cols: 8; /* default; slider overrides this */
+}
+
+#list, #primeList, #masteryList, #modList {
   display: grid;
-  grid-template-columns: repeat(8, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--grid-cols), minmax(0, 1fr));
   gap: 10px;
   width: 100%;
+}
+
+/* ─── Container query setup ─────────────────────────────────────────────────── */
+
+.arcane-card,
+.prime-card,
+.mastery-card,
+.mod-card {
+  container-type: inline-size;
+  container-name: card;
+}
+
+/* Stage 1 — narrow: hide secondary text, keep name visible */
+@container card (max-width: 110px) {
+  /* Arcanes */
+  .arcane-counter-need    { display: none !important; }
+
+  /* Primes */
+  .prime-status-tag       { display: none !important; }
+
+  /* Mods (fallback card) */
+  .mc-desc                { display: none !important; }
+  .mc-compat              { display: none !important; }
+}
+
+@container card (max-width: 90px) {
+  /* Mastery */
+  .mastery-card-xp       { display: none !important; }
+  .mastery-badge         { display: none !important; }
+  .mastery-card-controls { display: none !important; }
+  .prime-ignore-btn      { display: none !important; }
+}
+
+
+/* Stage 2 — very narrow: hide names too, icon-only */
+@container card (max-width: 70px) {
+  /* Arcanes */
+  .arcane-card-name       { display: none !important; }
+  .arcane-card-input      { display: none !important; }
+
+  /* Primes */
+  .prime-card-name        { display: none !important; }
+  .prime-card-footer      { display: none !important; }
+  .prime-card-dots        { display: none !important; }
+  .prime-ignore-btn       { display: none !important; }
+
+  /* Mastery */
+  .mastery-card-body     { display: none !important; }
+
+  /* Mods (fallback card) */
+  .mc-description         { display: none !important; }
+  .mc-fusion              { display: none !important; }
+  .mc-drain               { display: none !important; }
 }

@@ -51,15 +51,6 @@
   margin-right: 4px;
 }
 
-/* ─── Mod list grid ───────────────────────────────────────────────────────── */
-
-#modList {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(120px, 1fr));
-  gap: 10px;
-  width: 100%;
-}
-
 .mod-empty {
   grid-column: 1 / -1;
   text-align: center;

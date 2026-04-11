@@ -162,6 +162,49 @@ async function init() {
   }
 }
 
+// ─── Grid size slider ──────────────────────────────────────────────────────────
+
+const gridSlider = document.getElementById('gridSizeSlider');
+
+const GRID_COLS_KEY = 'gridCols';
+const savedCols = localStorage.getItem(GRID_COLS_KEY);
+if (savedCols) {
+  gridSlider.value = savedCols;
+  document.documentElement.style.setProperty('--grid-cols', savedCols);
+}
+
+gridSlider.addEventListener('input', () => {
+  const val = gridSlider.value;
+  document.documentElement.style.setProperty('--grid-cols', val);
+  localStorage.setItem(GRID_COLS_KEY, val);
+});
+
 export { owned, ignoredPrimes, masteryMastered, save };
 
 init();
+
+// ─── Responsive slider range ───────────────────────────────────────────────────
+
+function updateSliderRange() {
+  const contentWidth = document.getElementById('contentArea').offsetWidth;
+
+  // Clamp so cards never get smaller than ~60px or larger than ~300px
+  const minCols = 8
+  const maxCols = Math.floor(contentWidth / 95);
+
+  gridSlider.min = minCols;
+  gridSlider.max = maxCols;
+
+  // Clamp current value into the new range
+  const current = parseInt(gridSlider.value);
+  if (current < minCols) gridSlider.value = minCols;
+  if (current > maxCols) gridSlider.value = maxCols;
+
+  // Re-apply in case value was clamped
+  const val = gridSlider.value;
+  document.documentElement.style.setProperty('--grid-cols', val);
+  localStorage.setItem(GRID_COLS_KEY, val);
+}
+
+window.addEventListener('resize', updateSliderRange);
+updateSliderRange(); // run once on init

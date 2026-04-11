@@ -139,6 +139,7 @@
   "drops.more": "... and {{count}} more",
 
   "unknown": "Unknown",
+  "ui.gridSize": "Grid Size",
 
   "gameMode.Survival": "Survival",
   "gameMode.Interception": "Interception",

@@ -188,3 +188,30 @@
   overflow-x: hidden;
   min-width: 0; /* prevents flex child overflow */
 }
+
+/* ─── Grid size slider ──────────────────────────────────────────────────────── */
+
+#gridSizeControl {
+  padding: 0.6rem 1rem 0.5rem;
+  border-top: 1px solid var(--border, rgba(255,255,255,0.08));
+}
+
+#gridSizeControl label {
+  display: block;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  opacity: 0.4;
+  margin-bottom: 0.4rem;
+}
+
+#gridSizeSlider {
+  width: 100%;
+  accent-color: var(--accent, #c9a84c);
+  cursor: pointer;
+}
+
+#gridSizeControl {
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}

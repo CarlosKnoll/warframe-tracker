@@ -1,6 +1,6 @@
 [package]
 name = "warframe-tracker"
-version = "2.1.0"
+version = "2.2.0"
 description = "Warframe Arcane Collection Tracker"
 authors = ["you"]
 edition = "2021"
