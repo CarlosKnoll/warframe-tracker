@@ -2,7 +2,7 @@ import { initI18n, setLanguage } from './i18n.js';
 
 const invoke = window.__TAURI_INTERNALS__.invoke;
 
-let activeMode = "arcanes";
+let activeMode = "tasks";
 let owned = {};
 let ignoredPrimes = new Set();
 let ignoredMasteryItems = new Set();
@@ -16,6 +16,9 @@ let modsInitialized = false;
 let arcanesInitialized = false;
 let primesInitialized = false;
 let masteryInitialized = false;
+
+let tasksModule = null;
+let tasksInitialized = false;
 
 // ─── Mastery nav group toggle ──────────────────────────────────────────────────
 
@@ -64,6 +67,8 @@ window.addEventListener('langchange', async () => {
     masteryModule.renderMastery();
   } else if (activeMode === 'mods' && modsInitialized) {
     modsModule.renderMods();
+  } else if (activeMode === 'tasks' && tasksInitialized) {
+    tasksModule.renderTasks();
   }
 });
 
@@ -117,6 +122,15 @@ document.querySelectorAll("#sidebar button[data-section]").forEach(btn => {
       } else {
         modsModule.renderMods();
       }
+    } else if (section === "tasks") {
+      document.getElementById("tasksSection").classList.add("active");
+      if (!tasksInitialized) {
+        tasksModule = await import('./tasks/index.js');
+        await tasksModule.initTasks();
+        tasksInitialized = true;
+      } else {
+        tasksModule.renderTasks();
+      }
     }
   };
 });
@@ -154,9 +168,10 @@ async function init() {
     ignoredMasteryItems  = new Set(stored.ignoredMasteryItems  || []);
     masteryMastered      = stored.masteryMastered      || {};
 
-    arcanesModule = await import('./arcanes.js');
-    await arcanesModule.initArcanes(owned, save);
-    arcanesInitialized = true;
+    // Tasks is the new default tab
+    tasksModule = await import('./tasks/index.js');
+    await tasksModule.initTasks();
+    tasksInitialized = true;
   } catch (err) {
     console.error("Initialization error:", err);
   }

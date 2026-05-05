@@ -55,6 +55,8 @@ pub fn run() {
             commands::data::save_mastery_data_cache,
             commands::data::load_wm_map_cache,
             commands::data::save_wm_map_cache,
+            commands::tasks::load_tasks_cache,
+            commands::tasks::save_tasks_cache,
             commands::updater::check_for_updates,
             utils::js_log,
         ])

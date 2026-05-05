@@ -1,0 +1,434 @@
+/* ─── tasks.css — Task checklist section styles ─────────────────────────────── */
+
+/* ─── Section root ───────────────────────────────────────────────────────────── */
+
+#tasksSection .tasks-content {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+  padding: 20px 24px 32px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+/* ─── Tier block ─────────────────────────────────────────────────────────────── */
+
+.tasks-tier {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.tasks-tier-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 10px;
+}
+
+.tasks-tier-title {
+  font-size: 0.95rem;
+  font-weight: 700;
+  letter-spacing: 0.6px;
+  text-transform: uppercase;
+  color: #c9a84c;
+  margin: 0;
+}
+
+.tasks-tier-reset {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.3);
+  white-space: nowrap;
+}
+
+.tasks-tier-countdown {
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+/* ─── Tier body — daily (flat list) ─────────────────────────────────────────── */
+
+.tasks-tier-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ─── Weekly group block ─────────────────────────────────────────────────────── */
+
+.tasks-group {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 12px;
+}
+
+.tasks-group:last-child {
+  margin-bottom: 0;
+}
+
+.tasks-group-header {
+  font-size: 0.70rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.3);
+  padding: 4px 0 6px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 4px;
+}
+
+.tasks-group-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ─── Subgroup header (Search Pulses) ────────────────────────────────────────── */
+
+.tasks-subgroup-header {
+  font-size: 0.65rem;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: rgba(180, 142, 173, 0.65);   /* b48ead — purple accent, muted */
+  padding: 8px 0 4px 2px;
+}
+
+/* ─── Task item ──────────────────────────────────────────────────────────────── */
+
+.tasks-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 6px;
+  border: 1px solid transparent;
+  background: rgba(255, 255, 255, 0.03);
+  transition: background 0.15s, border-color 0.15s, opacity 0.2s;
+}
+
+.tasks-item:hover {
+  background: rgba(255, 255, 255, 0.06);
+  border-color: #2b3248;
+}
+
+.tasks-item.is-done {
+  opacity: 0.38;
+  background: rgba(255, 255, 255, 0.015);
+}
+
+.tasks-item.is-done:hover {
+  opacity: 0.55;
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* ─── Checkbox button ────────────────────────────────────────────────────────── */
+
+.tasks-checkbox {
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  border-radius: 4px;
+  border: 1.5px solid #2b3248;
+  background: rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0;
+  margin-top: 1px;         /* optical alignment with label baseline */
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.tasks-checkbox:hover {
+  border-color: rgba(201, 168, 76, 0.6);
+  background: rgba(201, 168, 76, 0.06);
+}
+
+.tasks-item.is-done .tasks-checkbox {
+  background: rgba(163, 190, 140, 0.2);
+  border-color: #a3be8c;
+}
+
+/* Checkmark — hidden unless done */
+.tasks-checkmark {
+  display: none;
+  width: 5px;
+  height: 9px;
+  border: 2px solid #a3be8c;
+  border-top: none;
+  border-left: none;
+  transform: rotate(45deg) translate(-1px, -1px);
+}
+
+.tasks-item.is-done .tasks-checkmark {
+  display: block;
+}
+
+/* ─── Text column ────────────────────────────────────────────────────────────── */
+
+.tasks-item-text {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  flex: 1;
+  min-width: 0;
+}
+
+.tasks-item-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: #e5e9f0;
+  line-height: 1.4;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.tasks-item.is-done .tasks-item-label {
+  text-decoration: line-through;
+  text-decoration-color: rgba(255, 255, 255, 0.25);
+}
+
+.tasks-item-desc {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.35);
+  line-height: 1.4;
+}
+
+/* ─── Pulse cost badge ───────────────────────────────────────────────────────── */
+
+.tasks-pulse-cost {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+  background: rgba(180, 142, 173, 0.12);
+  color: #b48ead;
+  border: 1px solid rgba(180, 142, 173, 0.35);
+  flex-shrink: 0;
+}
+
+/* ─── Live enrichment lines ──────────────────────────────────────────────────── */
+
+.tasks-item-live {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  margin-top: 2px;
+}
+
+.tasks-item-live-line {
+  font-size: 0.72rem;
+  color: rgba(201, 168, 76, 0.65);   /* gold accent, muted */
+  line-height: 1.4;
+}
+
+/* ─── Delete button on custom tasks ─────────────────────────────────────────── */
+
+.tasks-item-remove {
+  flex-shrink: 0;
+  margin-left: auto;
+  padding: 0 0.4rem;
+  font-size: 0.8rem;
+  opacity: 0;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: #bf616a;
+  transition: opacity 0.15s;
+  align-self: center;
+}
+
+.tasks-item:hover .tasks-item-remove {
+  opacity: 0.5;
+}
+
+.tasks-item-remove:hover {
+  opacity: 1 !important;
+}
+
+/* ─── Add-task row ───────────────────────────────────────────────────────────── */
+
+.tasks-add-row {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin-top: 6px;
+  padding-top: 6px;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.tasks-add-row input[type="text"] {
+  flex: 1;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid #2b3248;
+  border-radius: 4px;
+  padding: 0.3rem 0.6rem;
+  color: #e5e9f0;
+  font-size: 0.8rem;
+  /* Override the global input[type="text"] width:100% from layout.css */
+  width: auto;
+  max-width: none;
+  box-sizing: border-box;
+}
+
+.tasks-add-row input[type="text"]:focus {
+  outline: none;
+  border-color: #c9a84c;
+}
+
+.tasks-add-row select {
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid #2b3248;
+  border-radius: 4px;
+  padding: 0.3rem 0.5rem;
+  color: #e5e9f0;
+  font-size: 0.8rem;
+}
+
+.tasks-add-row select:focus {
+  outline: none;
+  border-color: #c9a84c;
+}
+
+.tasks-add-btn {
+  flex-shrink: 0;
+  padding: 0.3rem 0.75rem;
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid rgba(201, 168, 76, 0.35);
+  border-radius: 4px;
+  color: #c9a84c;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.tasks-add-btn:hover {
+  background: rgba(201, 168, 76, 0.2);
+  border-color: #c9a84c;
+}
+
+.tasks-archimedea-risk {
+  padding-left: 1rem;
+  opacity: 0.8;
+  font-size: 0.85em;
+}
+
+.tasks-archimedea-risk--hard {
+  color: var(--color-warning, #f0a500); /* use existing token if available */
+  opacity: 1;
+}
+
+.tasks-archimedea-modifier {
+  padding-left: 1rem;
+  font-size: 0.85em;
+  opacity: 0.75;
+}
+
+/* ─── Baro Ki'teer section ───────────────────────────────────────────────────── */
+
+.tasks-baro {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.tasks-baro-header {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-bottom: 2px;
+}
+
+/* Reuses .tasks-tier-title for the gold uppercase treatment */
+.tasks-baro-title {
+  flex-shrink: 0;
+}
+
+.tasks-baro-location {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: rgba(201, 168, 76, 0.55);
+  letter-spacing: 0.3px;
+}
+
+.tasks-baro-status {
+  font-size: 0.72rem;
+  color: rgba(255, 255, 255, 0.3);
+  white-space: nowrap;
+  margin-left: auto;     /* push to right edge of header row */
+}
+
+/* .tasks-baro-countdown reuses .tasks-tier-countdown — no extra rules needed */
+
+.tasks-baro-unavailable {
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.2);
+  padding: 4px 0;
+}
+
+/* ── Inventory table ── */
+
+.tasks-baro-table-wrap {
+  overflow-x: auto;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.tasks-baro-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8rem;
+  min-width: 320px;        /* prevents cramping before horizontal scroll kicks in */
+}
+
+.tasks-baro-table thead {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.tasks-baro-table th {
+  padding: 7px 12px;
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.3);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.tasks-baro-table td {
+  padding: 6px 12px;
+  color: #e5e9f0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  vertical-align: middle;
+}
+
+.tasks-baro-table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.tasks-baro-table tbody tr:hover td {
+  background: rgba(255, 255, 255, 0.03);
+}
+
+/* Numeric columns — ducat and credit values */
+.tasks-baro-col-num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+  color: rgba(201, 168, 76, 0.75);
+  white-space: nowrap;
+}
+
+.tasks-baro-table th.tasks-baro-col-num {
+  text-align: right;
+  color: rgba(255, 255, 255, 0.3);   /* keep header colour consistent */
+}

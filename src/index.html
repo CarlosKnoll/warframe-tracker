@@ -8,12 +8,13 @@
   <link rel="stylesheet" href="styles/drop-table.css" />
   <link rel="stylesheet" href="styles/filters.css" />
   <link rel="stylesheet" href="styles/layout.css" />
+  <link rel="stylesheet" href="styles/mastery.css" />
+  <link rel="stylesheet" href="styles/misc-tracker.css" />
   <link rel="stylesheet" href="styles/modal.css" />
+  <link rel="stylesheet" href="styles/mods.css" />
   <link rel="stylesheet" href="styles/primes.css" />
   <link rel="stylesheet" href="styles/sidebar.css" />
-  <link rel="stylesheet" href="styles/mastery.css" />
-  <link rel="stylesheet" href="styles/mods.css" />
-  <link rel="stylesheet" href="styles/misc-tracker.css" />
+  <link rel="stylesheet" href="styles/tasks.css" />
 </head>
 <body>
 
@@ -28,7 +29,11 @@
       </div>
 
       <div id="sidebarNav">
+        
+        <!-- Tasks — direct nav button -->
+        <button class="nav-btn active" data-section="tasks" data-i18n="mode.tasks">Tasks</button>
 
+        <!-- Mastery — direct nav button and sub-menus -->
         <div class="nav-group" id="masteryNav">
           <button class="nav-group-toggle" id="masteryToggle" aria-expanded="false">
             <span data-i18n="mode.mastery">Mastery</span>
@@ -56,7 +61,7 @@
         <button class="nav-btn" data-section="mods" data-i18n="mode.mods">Mods</button>
 
         <!-- Arcanes — direct nav button, active on load -->
-        <button class="nav-btn active" data-section="arcanes" data-i18n="mode.arcanes">Arcanes</button>
+        <button class="nav-btn" data-section="arcanes" data-i18n="mode.arcanes">Arcanes</button>
 
       </div>
 
@@ -88,7 +93,13 @@
     <!-- ─── Content area ─────────────────────────────────────────────── -->
     <main id="contentArea">
 
-      <div id="arcanesSection" class="tracker-section active">
+      <div id="tasksSection" class="tracker-section active">
+        <div class="tasks-content">
+          <!-- Populated entirely by renderer.js — no static HTML needed here -->
+        </div>
+      </div>
+
+      <div id="arcanesSection" class="tracker-section">
         <div class="section-toolbar">
           <div class="search-container">
             <input
