@@ -13,6 +13,8 @@ export const state = {
   showFounderItems: true,
   showSpecialItems: true,
   relicLocationMap: new Map(), // relicName (lowercase) → [{location, rotation, chance}]
+  resurgenceRelics: new Set(), // lowercase relic names currently in Varzia's shop
+  relicUniqueNameMap: new Map(), // uniqueName → "lith a11 relic" (display key)
 };
 
 export const FOUNDER_ITEMS = ["Excalibur Prime", "Lato Prime", "Skana Prime"];
@@ -30,3 +32,5 @@ export const PRIME_URLS = {
   Archwing: "https://raw.githubusercontent.com/WFCD/warframe-items/master/data/json/Archwing.json",
 };
 export const PRIME_IMAGE_BASE = "https://cdn.warframestat.us/img/";
+export const VAULT_TRADER_URL = "https://api.warframestat.us/pc/vaultTrader/";
+export const RELICS_ITEMS_URL = "https://raw.githubusercontent.com/WFCD/warframe-items/master/data/json/Relics.json";

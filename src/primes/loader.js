@@ -1,6 +1,6 @@
 // primes/loader.js - All data fetching and processing logic
 
-import { state, RELICS_DROP_URL, MISSION_REWARDS_URL, PRIME_URLS } from './state.js';
+import { state, RELICS_DROP_URL, MISSION_REWARDS_URL, PRIME_URLS, VAULT_TRADER_URL, RELICS_ITEMS_URL } from './state.js';
 import { PART_ORDER } from './renderer.js';
 
 
@@ -16,6 +16,27 @@ export async function loadPrimes() {
       fetch(RELICS_DROP_URL).then(r => r.json()),
       ...categoryEntries.map(([, url]) => fetch(url).then(r => r.json())),
     ]);
+
+    const relicsItemsResult = await fetch(RELICS_ITEMS_URL)
+      .then(r => {
+        if (!r.ok) throw new Error(`HTTP ${r.status}`);
+        return r.json();
+      })
+      .catch(e => { console.error('Relics.json fetch failed:', e); return null; });
+
+    if (relicsItemsResult) {
+      for (const relic of relicsItemsResult) {
+        if (!relic.uniqueName || !relic.name) continue;
+        // "Lith A11 Intact" → "lith a11 relic"
+        const displayKey = relic.name
+          .replace(/\s*(Intact|Exceptional|Flawless|Radiant)\s*$/i, '')
+          .trim()
+          .toLowerCase()
+          + ' relic';
+        state.relicUniqueNameMap.set(relic.uniqueName, displayKey);
+      }
+      console.log('[Relics] relicUniqueNameMap size:', state.relicUniqueNameMap.size);
+    } 
 
     // ── Process mission rewards → farmableRelics + relicLocationMap ──────────
     state.farmableRelics = new Set();
@@ -69,11 +90,20 @@ export async function loadPrimes() {
             return { itemName: reward.itemName, rarity, chance: reward.chance };
           });
           state.relicRewardsMap.set(normalizedName, rewardsWithRarity);
+          if (relic.uniqueName) {
+            state.relicUniqueNameMap.set(relic.uniqueName, normalizedName);
+          }
         }
       });
+      console.log('[Relics] relicUniqueNameMap size:', state.relicUniqueNameMap.size);
+      console.log('[Relics] sample uniqueName entry:', [...state.relicUniqueNameMap.entries()][0]);
+      console.log('[Relics] intactRelics count:', intactRelics.length);
+      console.log('[Relics] sample relic:', intactRelics[0]);
     } else {
       console.error("Error loading relics data:", relicsResult.reason);
     }
+
+    await loadResurgenceRelics();
 
     // ── Process category items → allPrimes ───────────────────────────────────
     // farmableRelics is now fully populated, so checkPrimeVaultStatus and
@@ -95,12 +125,11 @@ export async function loadPrimes() {
             imageName: item.imageName || null,
             category,
             vaulted: vaultStatus.vaulted,
-            resurgence: false,
+            resurgence: vaultStatus.resurgence,
             components: extractPrimeComponents(item, vaultStatus, state.farmableRelics),
           });
         });
     });
-
     state.allPrimes = primeData;
   } catch (err) {
     console.error("Error loading primes:", err);
@@ -112,6 +141,7 @@ function checkPrimeVaultStatus(item, farmableRelics) {
     let hasFarmableRelic = false;
     let hasAnyRelic = false;
     let allRelicsFromBuiltPrimes = true;
+    let hasResurgenceRelic = false;
 
     for (const comp of item.components) {
       const isBuiltPrime = comp.name && comp.name.includes("Prime") && comp.drops && comp.drops.some(d => d.location && d.location.toLowerCase().includes('relic'));
@@ -132,6 +162,8 @@ function checkPrimeVaultStatus(item, farmableRelics) {
             if (isRelicActive(relicLower, farmableRelics)) {
               hasFarmableRelic = true;
               break;
+            } else if (state.resurgenceRelics.has(relicLower)) { // ← add this
+              hasResurgenceRelic = true;
             }
           }
         }
@@ -148,9 +180,11 @@ function checkPrimeVaultStatus(item, farmableRelics) {
             const normalizedRelic = normalizeRelicName(drop.location);
             if (!normalizedRelic) continue;
             hasAnyRelic = true;
+            const relicLower = normalizedRelic.toLowerCase();
             if (isRelicActive(normalizedRelic.toLowerCase(), farmableRelics)) {
               hasFarmableRelic = true;
-              break;
+            } else if (state.resurgenceRelics.has(relicLower)) {
+              hasResurgenceRelic = true;
             }
           }
         }
@@ -158,7 +192,9 @@ function checkPrimeVaultStatus(item, farmableRelics) {
       }
     }
 
-    return { vaulted: !hasFarmableRelic && hasAnyRelic };
+    return { 
+      vaulted: !hasFarmableRelic && hasAnyRelic,
+      resurgence: !hasFarmableRelic && hasResurgenceRelic };
   }
 
   return { vaulted: true };
@@ -290,4 +326,89 @@ export function normalizeRelicName(location) {
   }
 
   return normalized;
+}
+
+export async function loadResurgenceRelics() {
+  const invoke = window.__TAURI_INTERNALS__.invoke;
+
+  // 1. Check disk cache
+  try {
+    const cached = await invoke("load_resurgence_cache");
+    if (cached && cached.expiry && new Date(cached.expiry) > new Date()) {
+      // Cache is still valid — hydrate state and return
+      state.resurgenceRelics = new Set(cached.relicNames);
+      return;
+    }
+  } catch (e) {
+    console.warn("Could not read resurgence cache:", e);
+  }
+
+  // 2. Fetch from warframe API via existing fetch_json Rust proxy
+  let apiData;
+  try {
+    apiData = await invoke("fetch_json", { url: VAULT_TRADER_URL });
+  } catch (e) {
+    console.error("Failed to fetch vaultTrader:", e);
+    return;
+  }
+
+  const expiry = apiData?.expiry;
+  const inventory = apiData?.inventory;
+  if (!expiry || !Array.isArray(inventory)) return;
+
+  // 3. Extract relic entries and normalize uniqueName
+  // Strip "/Lotus/StoreItems/" → "/Lotus/" prefix pattern
+  // Relic entries are identified by having null ducats (credits-only)
+  // and a uniqueName path under Types/Game/Projections/
+  const resurgenceNames = [];
+
+  for (const entry of inventory) {
+    const un = entry.uniqueName;
+    if (!un || !un.includes("/Game/Projections/")) continue;
+
+    // Normalize: remove the extra "StoreItems/" segment
+    // "/Lotus/StoreItems/Types/Game/Projections/..."
+    // → "/Lotus/Types/Game/Projections/..."
+    const normalized = un.replace("/Lotus/StoreItems/", "/Lotus/");
+
+    // Look up by uniqueName in relicRewardsMap to confirm it exists in WFCD
+    // relicRewardsMap is keyed by display name ("lith a11 relic"), not uniqueName,
+    // so we need to scan. Build a reverse lookup once.
+    // (see Step 4 for the reverse map — kept separate to avoid bloating loadPrimes)
+    resurgenceNames.push(normalized);
+  }
+
+  // 4. Resolve uniqueNames → display names via reverse map
+  const matched = resolveResurgenceUniqueNames(resurgenceNames);
+  console.log('[Resurgence] raw normalized uniqueNames from API:', resurgenceNames);
+  console.log('[Resurgence] relicUniqueNameMap size:', state.relicUniqueNameMap.size);
+  // Sample a few entries from the map to confirm it populated
+  const sample = [...state.relicUniqueNameMap.entries()].slice(0, 5);
+  console.log('[Resurgence] relicUniqueNameMap sample:', sample);
+  
+
+  // 5. Hydrate state
+  state.resurgenceRelics = new Set(matched);
+
+  // 6. Persist to disk
+  try {
+    await invoke("save_resurgence_cache", {
+      data: { expiry, relicNames: matched }
+    });
+  } catch (e) {
+    console.error("Failed to save resurgence cache:", e);
+  }
+}
+
+function resolveResurgenceUniqueNames(uniqueNames) {
+  const matched = [];
+  for (const un of uniqueNames) {
+    const displayName = state.relicUniqueNameMap.get(un);
+    if (displayName) matched.push(displayName);
+    // else: uniqueName not found in WFCD data — silently skip
+  }
+
+  console.log('[Resurgence] relics resolved:', state.resurgenceRelics.size, [...state.resurgenceRelics]);
+
+  return matched;
 }

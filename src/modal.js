@@ -66,7 +66,7 @@ export function closeModal() {
 
 // ─── Relic Modal ───────────────────────────────────────────────────────────────
 
-export function openRelicModal(relicName, rewards, pushCurrent = false) {
+export function openRelicModal(relicName, rewards, pushCurrent = false, isResurgence = false) {
   // Left side — prime parts table
   let leftContent;
   if (!rewards || rewards.length === 0) {
@@ -99,26 +99,30 @@ export function openRelicModal(relicName, rewards, pushCurrent = false) {
   const rawKey = relicName.trim().toLowerCase().replace(/\s*(intact|exceptional|flawless|radiant)\s*/gi, '').trim();
   const locations = state.relicLocationMap.get(rawKey) || [];
   let rightContent;
-  if (locations.length === 0) {
-    rightContent = `<p class="no-drops">${t('modal.noLocations')}</p>`;
+  if (isResurgence) {
+    rightContent = `<p class="resurgence-location-note">${t('modal.resurgenceSource')}</p>`;
   } else {
-    rightContent = `
-      <table class="modal-table" id="relicLocationTable">
-        <thead>
-          <tr>
-            <th>${t('modal.colLocation')}</th>
-            <th>${t('modal.colMode')}</th>
-            <th>${t('modal.colRotation')}</th>
-            <th class="sortable-chance" style="cursor:pointer; user-select:none;">
-              ${t('modal.colChance')} <span class="sort-arrow">↕</span>
-            </th>
-          </tr>
-        </thead>
-        <tbody id="relicLocationBody">
-          ${renderLocationRows(locations, 'desc')}
-        </tbody>
-      </table>
-    `;
+    if (locations.length === 0) {
+      rightContent = `<p class="no-drops">${t('modal.noLocations')}</p>`;
+    } else {
+      rightContent = `
+        <table class="modal-table" id="relicLocationTable">
+          <thead>
+            <tr>
+              <th>${t('modal.colLocation')}</th>
+              <th>${t('modal.colMode')}</th>
+              <th>${t('modal.colRotation')}</th>
+              <th class="sortable-chance" style="cursor:pointer; user-select:none;">
+                ${t('modal.colChance')} <span class="sort-arrow">↕</span>
+              </th>
+            </tr>
+          </thead>
+          <tbody id="relicLocationBody">
+            ${renderLocationRows(locations, 'desc')}
+          </tbody>
+        </table>
+      `;
+    }
   }
 
   const body = `
@@ -439,8 +443,9 @@ export function openPrimeCardModal(prime, imageUrl, getDropTableHTML, onComponen
     modalBody.querySelectorAll('.relic-btn').forEach(btn => {
       btn.onclick = () => {
         const relicName = btn.dataset.relic;
+        const isResurgence = btn.dataset.resurgence === 'true';
         const rewards = state.relicRewardsMap.get(relicName.toLowerCase());
-        openRelicModal(relicName, rewards, true);
+        openRelicModal(relicName, rewards, true, isResurgence);
       };
     });
   };

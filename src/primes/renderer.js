@@ -7,6 +7,7 @@ import { t, tRarity, tComponent, tRelicName, tPrimeName, tOrRaw, tMission, parse
 
 const invoke = window.__TAURI_INTERNALS__.invoke;
 
+
 // ─── Image cache ───────────────────────────────────────────────────────────────
 // In-memory map of uniqueName → base64 data URI.
 // Loaded from disk once at init, written back when new images are fetched.
@@ -181,8 +182,8 @@ export function renderPrimes() {
     const catMatch = state.category === "All" || p.category === state.category;
 
     let vaultMatch = true;
-    if (state.vaultStatus === "Available") vaultMatch = !p.vaulted;
-    else if (state.vaultStatus === "Vaulted") vaultMatch = p.vaulted === true;
+    if (state.vaultStatus === "Available") vaultMatch = !p.vaulted || p.resurgence;
+    else if (state.vaultStatus === "Vaulted") vaultMatch = p.vaulted && !p.resurgence;
 
     return nameMatch && catMatch && vaultMatch;
   });
@@ -206,7 +207,11 @@ export function renderPrimes() {
     }
   });
 
-  const vaultSort = (a, b) => (a.vaulted ? 1 : 0) - (b.vaulted ? 1 : 0);
+  const vaultSort = (a, b) => {
+    const aVaulted = a.vaulted && !a.resurgence ? 1 : 0;
+    const bVaulted = b.vaulted && !b.resurgence ? 1 : 0;
+    return aVaulted - bVaulted;
+  };
   incomplete.sort(vaultSort);
   completeTradeable.sort(vaultSort);
   completeNonTradeable.sort(vaultSort);
@@ -239,7 +244,12 @@ export function renderPrimes() {
     else                  statusTag = `<span class="prime-status-tag farming">${t('badge.farming')}</span>`;
 
     // Letter badges
-    const vaultDot   = (p.vaulted && !isFounder && !isSpecial) ? `<span class="prime-dot vaulted" title="${t('badge.vaulted')}">V</span>` : '';
+    const isResurgence = p.resurgence && p.vaulted;
+    const vaultDot = (p.vaulted && !isFounder && !isSpecial)
+      ? isResurgence
+        ? `<span class="prime-dot resurgence" title="${t('badge.resurgence')}">R</span>`
+        : `<span class="prime-dot vaulted" title="${t('badge.vaulted')}">V</span>`
+      : '';
     const founderDot = isFounder ? `<span class="prime-dot founder" title="${t('badge.founder')}">F</span>` : '';
     const specialDot = isSpecial ? `<span class="prime-dot special" title="${t('badge.special')}">S</span>` : '';
     const ignoredDot = isIgnored ? `<span class="prime-dot ignored-dot" title="${t('badge.ignored')}">I</span>` : '';
@@ -367,6 +377,7 @@ function buildDropTable(prime, isSpecial = false) {
       if (!relicData.has(relicName)) {
         const relicLower = relicName.toLowerCase();
         const isFarmable = state.farmableRelics.has(relicLower);
+        const isResurgence = !isFarmable && state.resurgenceRelics.has(relicLower);
 
         let rarity = 'Unknown';
         const relicRewards = state.relicRewardsMap.get(relicLower);
@@ -386,7 +397,7 @@ function buildDropTable(prime, isSpecial = false) {
         relicData.set(relicName, {
           name: relicName,
           rarity,
-          status: isFarmable ? 'farmable' : 'vaulted'
+          status: isFarmable ? 'farmable' : isResurgence ? 'resurgence' : 'vaulted'
         });
       }
     });
@@ -395,9 +406,17 @@ function buildDropTable(prime, isSpecial = false) {
       const compDisplayName = comp.isMainItem ? t('label.owned') : tComponent(comp.name);
       const allCopies = prime.components.filter(c => c.name === comp.name);
       const isOwned = allCopies.every(c => (state.owned[c.uniqueName] ?? 0) > 0);
-      const row = { partName: compDisplayName, rawName: comp.name, relicName: relic.name, rarity: relic.rarity, isOwned };
-      if (relic.status === 'farmable') farmableRows.push(row);
-      else vaultedRows.push(row);
+      const row = {
+        partName: compDisplayName,
+        rawName: comp.name,
+        relicName: relic.name,
+        rarity: relic.rarity,
+        isOwned,
+        isResurgence: relic.status === 'resurgence',
+      };
+
+      if (relic.status === 'vaulted') vaultedRows.push(row);
+      else farmableRows.push(row);
     });
   });
 
@@ -418,7 +437,7 @@ function buildDropTable(prime, isSpecial = false) {
   farmableRows.sort(sortRows);
   vaultedRows.sort(sortRows);
 
-  const buildTable = (rows, wrapperClass, title, btnClass = '') => `
+  const buildTable = (rows, wrapperClass, title) => `
     <div class="drop-table-wrapper ${wrapperClass}">
       <h4>${title} (${rows.length})</h4>
       <div class="drop-table-scroll">
@@ -428,7 +447,7 @@ function buildDropTable(prime, isSpecial = false) {
             ${rows.map(row => `
               <tr class="${row.isOwned ? 'part-owned' : ''}">
                 <td class="part-name">${row.partName}</td>
-                <td><button class="relic-btn ${btnClass}" data-relic="${row.relicName}">${tRelicName(row.relicName)}</button></td>
+                <td><button class="relic-btn ${row.isResurgence ? 'resurgence-relic' : ''}" data-relic="${row.relicName}" data-resurgence="${row.isResurgence}"> ${tRelicName(row.relicName)} </button></td>
                 <td class="rarity rarity-${row.rarity.toLowerCase()}">${tRarity(row.rarity)}</td>
               </tr>
             `).join('')}

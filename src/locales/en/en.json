@@ -268,5 +268,9 @@
   "tasks.calendar.prizes.label": "Season prizes:",
   "tasks.calendar.todos.label": "Challenges:",
 
-  "tasks.archimedea.modifiers.label": "Personal Modifiers:"
+  "tasks.archimedea.modifiers.label": "Personal Modifiers:",
+
+  "table.resurgenceRelics": "Resurgence Relics (Varzia)",
+  "badge.resurgence": "Resurgence",
+  "modal.resurgenceSource": "Obtained by trading 1:1 Aya with the Varzia merchant (Resurgence Prime)"
 }

@@ -182,3 +182,23 @@
   background: #bf616a;
   color: #fff;
 }
+
+.prime-dot.resurgence {
+  background: #d08a3a;
+  color: #fff;
+}
+
+.drop-table-wrapper.resurgence h4 {
+  color: #d08a3a;
+}
+
+.relic-btn.resurgence-relic {
+  background: rgba(208, 138, 58, 0.12);
+  color: #d08a3a;
+  border-color: rgba(208, 138, 58, 0.4);
+}
+
+.relic-btn.resurgence-relic:hover {
+  background: rgba(208, 138, 58, 0.22);
+  border-color: #d08a3a;
+}

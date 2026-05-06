@@ -1109,5 +1109,9 @@
   "tasks.baro.unavailable": "Indisponível",
   "tasks.baro.inventory.item": "Itens",
   "tasks.baro.inventory.ducats": "Ducatas",
-  "tasks.baro.inventory.credits": "Créditos"
+  "tasks.baro.inventory.credits": "Créditos",
+
+  "table.resurgenceRelics": "Ressurgência Prime (Varzia)",
+  "badge.resurgence": "Ressurgência",
+  "modal.resurgenceSource": "Obtido ao trocar 1:1 Aya com a mercadora Varzia (Ressurgência Prime)"
 }
