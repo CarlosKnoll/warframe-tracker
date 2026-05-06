@@ -270,6 +270,15 @@
 
   "tasks.archimedea.modifiers.label": "Personal Modifiers:",
 
+  "tasks.baro.title": "Baro Ki'Teer",
+  "tasks.baro.arrives": "Arrives in:",
+  "tasks.baro.leaves": "Departs in:",
+  "tasks.baro.departed": "Departed",
+  "tasks.baro.unavailable": "Unavailable",
+  "tasks.baro.inventory.item": "Items",
+  "tasks.baro.inventory.ducats": "Ducats",
+  "tasks.baro.inventory.credits": "Credits",
+
   "table.resurgenceRelics": "Resurgence Relics (Varzia)",
   "badge.resurgence": "Resurgence",
   "modal.resurgenceSource": "Obtained by trading 1:1 Aya with the Varzia merchant (Resurgence Prime)"
