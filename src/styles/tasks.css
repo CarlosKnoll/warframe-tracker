@@ -432,3 +432,68 @@
   text-align: right;
   color: rgba(255, 255, 255, 0.3);   /* keep header colour consistent */
 }
+
+/* ─── Duviri Circuit incarnon weapon chips ───────────────────────────────────── */
+
+.tasks-circuit-weapons {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px;
+}
+
+.tasks-circuit-sep {
+  color: rgba(201, 168, 76, 0.3);
+  font-size: 0.72rem;
+  user-select: none;
+  line-height: 1;
+}
+
+.tasks-circuit-weapon {
+  /* Reset button defaults */
+  appearance: none;
+  border: none;
+  margin: 0;
+  font-family: inherit;
+
+  /* Layout */
+  display: inline-flex;
+  align-items: center;
+  padding: 1px 6px 2px;
+  border-radius: 3px;
+  line-height: 1.4;
+
+  /* Typography — match the surrounding live line style */
+  font-size: 0.72rem;
+  font-weight: 700;
+
+  /* Colours — default (not obtained) */
+  color: rgba(201, 168, 76, 0.85);
+  background: rgba(201, 168, 76, 0.08);
+  border: 1px solid rgba(201, 168, 76, 0.2);
+
+  cursor: pointer;
+  transition: color 0.15s, background 0.15s, border-color 0.15s, opacity 0.15s, text-decoration-color 0.15s;
+}
+
+.tasks-circuit-weapon:hover {
+  background: rgba(201, 168, 76, 0.15);
+  border-color: rgba(201, 168, 76, 0.45);
+  color: rgba(201, 168, 76, 1);
+}
+
+/* Obtained state — struck through and visually retired */
+.tasks-circuit-weapon.is-obtained {
+  text-decoration: line-through;
+  text-decoration-color: rgba(163, 190, 140, 0.5);  /* green, matching checkmark colour */
+  color: rgba(255, 255, 255, 0.25);
+  background: rgba(255, 255, 255, 0.03);
+  border-color: rgba(255, 255, 255, 0.08);
+}
+
+.tasks-circuit-weapon.is-obtained:hover {
+  color: rgba(255, 255, 255, 0.45);
+  background: rgba(255, 255, 255, 0.06);
+  border-color: rgba(255, 255, 255, 0.15);
+  text-decoration-color: rgba(163, 190, 140, 0.7);
+}

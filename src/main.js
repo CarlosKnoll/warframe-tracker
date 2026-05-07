@@ -79,6 +79,11 @@ document.querySelectorAll("#sidebar button[data-section]").forEach(btn => {
     const section = btn.dataset.section;
     activeMode = section;
 
+    // Stop any pending worldstate retry when leaving the tasks tab
+    if (section !== 'tasks' && tasksModule) {
+      tasksModule.stopWorldstateRetry();
+    }
+
     setActiveNavButton(section);
     document.querySelectorAll(".tracker-section").forEach(s => s.classList.remove("active"));
 
@@ -129,7 +134,7 @@ document.querySelectorAll("#sidebar button[data-section]").forEach(btn => {
         await tasksModule.initTasks();
         tasksInitialized = true;
       } else {
-        tasksModule.renderTasks();
+        await tasksModule.refreshTasks();
       }
     }
   };

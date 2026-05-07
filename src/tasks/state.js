@@ -31,4 +31,5 @@ export const state = {
   calendarData: null,
   archimedeasData: null,
   baroData: null,
+  circuitObtained: [],
 };

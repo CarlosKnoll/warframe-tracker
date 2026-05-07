@@ -1,6 +1,6 @@
 import { t, tOrRaw  } from '../i18n.js';
 import { state } from './state.js';
-import { toggleTask, addCustomTask, removeCustomTask } from './loader.js';
+import { toggleTask, addCustomTask, removeCustomTask, toggleCircuitWeapon } from './loader.js';
 
 // ─── Countdown timer ───────────────────────────────────────────────────────────
 
@@ -288,19 +288,35 @@ function buildDuviriCircuitDesc(duviriData) {
   const hard = duviriData.choices.find(c => c.category === 'hard');
   if (!hard || !Array.isArray(hard.choices) || hard.choices.length === 0) return null;
 
-  const span = document.createElement('span');
+  const wrapper = document.createElement('span');
+  wrapper.className = 'tasks-circuit-weapons';
 
-  hard.choices.forEach((choice, i) => {
-    const strong = document.createElement('strong');
-    strong.textContent = choice;
-    span.appendChild(strong);
+  hard.choices.forEach((weaponName, i) => {
+    const isObtained = state.circuitObtained.includes(weaponName);
+
+    const chip = document.createElement('button');
+    chip.className = 'tasks-circuit-weapon' + (isObtained ? ' is-obtained' : '');
+    chip.textContent = weaponName;
+    chip.title = isObtained ? t('tasks.circuit.weapon.mark_not_obtained') : t('tasks.circuit.weapon.mark_obtained');
+
+    chip.onclick = async () => {
+      await toggleCircuitWeapon(weaponName);
+      const nowObtained = state.circuitObtained.includes(weaponName);
+      chip.classList.toggle('is-obtained', nowObtained);
+      chip.title = nowObtained ? t('tasks.circuit.weapon.mark_not_obtained') : t('tasks.circuit.weapon.mark_obtained');
+    };
+
+    wrapper.appendChild(chip);
 
     if (i < hard.choices.length - 1) {
-      span.appendChild(document.createTextNode(' · '));
+      const sep = document.createElement('span');
+      sep.className = 'tasks-circuit-sep';
+      sep.textContent = '·';
+      wrapper.appendChild(sep);
     }
   });
 
-  return [span];
+  return [wrapper];
 }
 
 function translateCalendarReward(name) {

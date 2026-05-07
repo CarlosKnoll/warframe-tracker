@@ -26,6 +26,7 @@ export async function loadTasksCache() {
     state.tasks = DEFAULT_TASKS.map(t => ({ ...t, checked: false }));
     state.lastDailyReset = currentDailyReset;
     state.lastWeeklyReset = currentWeeklyReset;
+    state.circuitObtained = [];
     await saveTasksCache();
     return;
   }
@@ -66,6 +67,10 @@ export async function loadTasksCache() {
   state.lastDailyReset = currentDailyReset;
   state.lastWeeklyReset = currentWeeklyReset;
 
+  // circuitObtained is permanent — never reset, just carry forward as-is.
+  // Guard against missing key in older cache files.
+  state.circuitObtained = Array.isArray(raw.circuitObtained) ? raw.circuitObtained : [];
+
   // Always write back — timestamps may have updated, or merge may have added tasks
   await saveTasksCache();
 }
@@ -74,14 +79,19 @@ export async function fetchWorldstate() {
   const BASE = 'https://api.warframestat.us';
   const lang = getLanguage();
 
+  const fetchJson = url => fetch(url).then(r => {
+    if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
+    return r.json();
+  });
+
   const [sortieResult, archonResult, steelResult, duviriResult, calendarResult, archimedeasResult, baroResult] = await Promise.allSettled([
-    fetch(`${BASE}/pc/${lang}/sortie`).then(r => r.json()),
-    fetch(`${BASE}/pc/${lang}/archonHunt`).then(r => r.json()),
-    fetch(`${BASE}/pc/${lang}/steelPath`).then(r => r.json()),
-    fetch(`${BASE}/pc/${lang}/duviriCycle`).then(r => r.json()),
-    fetch(`${BASE}/pc/${lang}/calendar`).then(r => r.json()),
-    fetch(`${BASE}/pc/${lang}/archimedeas/`).then(r => r.json()),
-    fetch(`${BASE}/pc/voidTrader`).then(r => r.json()),
+    fetchJson(`${BASE}/pc/${lang}/sortie`),
+    fetchJson(`${BASE}/pc/${lang}/archonHunt`),
+    fetchJson(`${BASE}/pc/${lang}/steelPath`),
+    fetchJson(`${BASE}/pc/${lang}/duviriCycle`),
+    fetchJson(`${BASE}/pc/${lang}/calendar`),
+    fetchJson(`${BASE}/pc/${lang}/archimedeas/`),
+    fetchJson(`${BASE}/pc/voidTrader`),
   ]);
 
   state.sortieData    = sortieResult.status  === 'fulfilled' ? sortieResult.value  : null;
@@ -98,6 +108,7 @@ export async function saveTasksCache() {
     lastDailyReset: state.lastDailyReset,
     lastWeeklyReset: state.lastWeeklyReset,
     tasks: state.tasks,
+    circuitObtained: state.circuitObtained,
   };
   await invoke('save_tasks_cache', { data: payload });
 }
@@ -130,5 +141,15 @@ export async function toggleTask(taskId) {
   const task = state.tasks.find(t => t.id === taskId);
   if (!task) return;
   task.checked = !task.checked;
+  await saveTasksCache();
+}
+
+export async function toggleCircuitWeapon(weaponName) {
+  const idx = state.circuitObtained.indexOf(weaponName);
+  if (idx === -1) {
+    state.circuitObtained.push(weaponName);
+  } else {
+    state.circuitObtained.splice(idx, 1);
+  }
   await saveTasksCache();
 }

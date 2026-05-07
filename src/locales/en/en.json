@@ -281,5 +281,9 @@
 
   "table.resurgenceRelics": "Resurgence Relics (Varzia)",
   "badge.resurgence": "Resurgence",
-  "modal.resurgenceSource": "Obtained by trading 1:1 Aya with the Varzia merchant (Resurgence Prime)"
+  "modal.resurgenceSource": "Obtained by trading 1:1 Aya with the Varzia merchant (Resurgence Prime)",
+
+  "tasks.circuit.weapon.mark_obtained":     "Mark as obtained",
+  "tasks.circuit.weapon.mark_not_obtained": "Mark as not obtained"
+
 }
