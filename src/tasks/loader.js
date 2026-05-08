@@ -117,11 +117,16 @@ export async function fetchWorldstate() {
 
   // sortie — daily
   if (isFresh('sortie')) {
+    console.log('Using cached sortie data');
     state.sortieData = state.worldstateCache[getCacheKey('sortie')].data;
   } else {
+    console.log('Fetching new sortie data');
     try {
       const data = await fetchJson(`${BASE}/pc/${lang}/sortie`);
+      if (data?.activation) data.activation = data.activation.replace(/T\d{2}(?=:\d{2}:\d{2}\.\d{3}Z$)/, 'T00');
+      if (data?.expiry)     data.expiry     = data.expiry.replace(/T\d{2}(?=:\d{2}:\d{2}\.\d{3}Z$)/, 'T00');
       state.sortieData = data;
+      console.log('Fetched sortie data:', data);
       store('sortie', data, dailyExpiry);
     } catch { state.sortieData = null; }
   }
