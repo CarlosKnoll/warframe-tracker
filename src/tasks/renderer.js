@@ -1,4 +1,4 @@
-import { t, tOrRaw  } from '../i18n.js';
+import { t, tOrRaw, tGameMode } from '../i18n.js';
 import { state } from './state.js';
 import { toggleTask, addCustomTask, removeCustomTask, toggleCircuitWeapon } from './loader.js';
 
@@ -195,7 +195,7 @@ function buildSortieDesc(sortieData) {
   if (Array.isArray(sortieData.variants)) {
     sortieData.variants.forEach(v => {
       const node     = v.node || '';
-      const type     = v.missionType || '';
+      const type     = tGameMode(v.missionType || '');
       const modifier = v.modifier || '';
 
       if (node || type) {
@@ -226,7 +226,7 @@ function buildArchonDesc(archonData) {
   if (Array.isArray(archonData.missions)) {
     archonData.missions.forEach(m => {
       const node = m.node || '';
-      const type = m.type || '';
+      const type = tGameMode(m.type || '');
       if (node || type) {
         const span = document.createElement('span');
 
@@ -365,7 +365,7 @@ function buildArchimedeasDesc(archimedeasData, typeKey) {
     entry.missions.forEach(m => {
       const missionSpan = document.createElement('span');
       const strong = document.createElement('strong');
-      strong.textContent = m.missionType;
+      strong.textContent = tGameMode(m.missionType);
       missionSpan.appendChild(strong);
 
       if (m.deviation?.key) {

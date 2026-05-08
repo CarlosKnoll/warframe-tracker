@@ -32,4 +32,5 @@ export const state = {
   archimedeasData: null,
   baroData: null,
   circuitObtained: [],
+  worldstateCache: {},
 };

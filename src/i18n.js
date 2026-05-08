@@ -427,6 +427,11 @@ export function tMission(raw) {
   return hasCaches ? `${translated} ${tOrRaw('mission.caches', '(Caches)')}` : translated;
 }
 
+export function tGameMode(raw) {
+  if (!raw) return raw;
+  return tOrRaw(`gameMode.${raw}`, raw);
+}
+
 export function parseDropLocation(location) {
   if (!location) return { planet: '', mission: '', gameMode: '', rotation: '' };
 

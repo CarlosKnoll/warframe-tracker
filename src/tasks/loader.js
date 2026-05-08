@@ -27,6 +27,7 @@ export async function loadTasksCache() {
     state.lastDailyReset = currentDailyReset;
     state.lastWeeklyReset = currentWeeklyReset;
     state.circuitObtained = [];
+    state.worldstateCache = {};
     await saveTasksCache();
     return;
   }
@@ -71,6 +72,12 @@ export async function loadTasksCache() {
   // Guard against missing key in older cache files.
   state.circuitObtained = Array.isArray(raw.circuitObtained) ? raw.circuitObtained : [];
 
+  // worldstateCache — absent in older cache files; treat missing as empty object.
+  // Entries are validated lazily in fetchWorldstate(), so we just carry them forward as-is.
+  state.worldstateCache = (raw.worldstateCache && typeof raw.worldstateCache === 'object' && !Array.isArray(raw.worldstateCache))
+    ? raw.worldstateCache
+    : {};
+
   // Always write back — timestamps may have updated, or merge may have added tasks
   await saveTasksCache();
 }
@@ -78,29 +85,121 @@ export async function loadTasksCache() {
 export async function fetchWorldstate() {
   const BASE = 'https://api.warframestat.us';
   const lang = getLanguage();
+  const now  = Date.now();
 
   const fetchJson = url => fetch(url).then(r => {
     if (!r.ok) throw new Error(`${r.status} ${r.statusText}`);
     return r.json();
   });
 
-  const [sortieResult, archonResult, steelResult, duviriResult, calendarResult, archimedeasResult, baroResult] = await Promise.allSettled([
-    fetchJson(`${BASE}/pc/${lang}/sortie`),
-    fetchJson(`${BASE}/pc/${lang}/archonHunt`),
-    fetchJson(`${BASE}/pc/${lang}/steelPath`),
-    fetchJson(`${BASE}/pc/${lang}/duviriCycle`),
-    fetchJson(`${BASE}/pc/${lang}/calendar`),
-    fetchJson(`${BASE}/pc/${lang}/archimedeas/`),
-    fetchJson(`${BASE}/pc/voidTrader`),
-  ]);
+  const nextDailyReset = new Date(state.lastDailyReset);
+  nextDailyReset.setUTCDate(nextDailyReset.getUTCDate() + 1);
+  const nextWeeklyReset = new Date(state.lastWeeklyReset);
+  nextWeeklyReset.setUTCDate(nextWeeklyReset.getUTCDate() + 7);
 
-  state.sortieData    = sortieResult.status  === 'fulfilled' ? sortieResult.value  : null;
-  state.archonHuntData = archonResult.status === 'fulfilled' ? archonResult.value  : null;
-  state.steelPathData  = steelResult.status  === 'fulfilled' ? steelResult.value   : null;
-  state.duviriCycleData = duviriResult.status  === 'fulfilled' ? duviriResult.value : null;
-  state.calendarData    = calendarResult.status === 'fulfilled' ? calendarResult.value : null;
-  state.archimedeasData = archimedeasResult.status === 'fulfilled' ? archimedeasResult.value : null;
-  state.baroData = baroResult.status === 'fulfilled' ? baroResult.value : null;
+  const dailyExpiry  = nextDailyReset.toISOString();
+  const weeklyExpiry = nextWeeklyReset.toISOString();
+
+  // Language-aware helpers
+  const getCacheKey = (endpoint) => `${endpoint}_${lang}`;
+  
+  const isFresh = (endpoint) => {
+    const entry = state.worldstateCache[getCacheKey(endpoint)];
+    if (!entry || !entry.validUntil || !entry.data) return false;
+    return now < new Date(entry.validUntil).getTime();
+  };
+
+  const store = (endpoint, data, validUntil) => {
+    state.worldstateCache[getCacheKey(endpoint)] = { data, validUntil };
+  };
+
+  // ── Per-endpoint fetch-or-reuse with language keys ──
+
+  // sortie — daily
+  if (isFresh('sortie')) {
+    state.sortieData = state.worldstateCache[getCacheKey('sortie')].data;
+  } else {
+    try {
+      const data = await fetchJson(`${BASE}/pc/${lang}/sortie`);
+      state.sortieData = data;
+      store('sortie', data, dailyExpiry);
+    } catch { state.sortieData = null; }
+  }
+
+  // archonHunt — weekly
+  if (isFresh('archonHunt')) {
+    state.archonHuntData = state.worldstateCache[getCacheKey('archonHunt')].data;
+  } else {
+    try {
+      const data = await fetchJson(`${BASE}/pc/${lang}/archonHunt`);
+      state.archonHuntData = data;
+      store('archonHunt', data, weeklyExpiry);
+    } catch { state.archonHuntData = null; }
+  }
+
+  // steelPath — weekly
+  if (isFresh('steelPath')) {
+    state.steelPathData = state.worldstateCache[getCacheKey('steelPath')].data;
+  } else {
+    try {
+      const data = await fetchJson(`${BASE}/pc/${lang}/steelPath`);
+      state.steelPathData = data;
+      store('steelPath', data, weeklyExpiry);
+    } catch { state.steelPathData = null; }
+  }
+
+  // duviriCycle — weekly
+  if (isFresh('duviriCycle')) {
+    state.duviriCycleData = state.worldstateCache[getCacheKey('duviriCycle')].data;
+  } else {
+    try {
+      const data = await fetchJson(`${BASE}/pc/${lang}/duviriCycle`);
+      state.duviriCycleData = data;
+      store('duviriCycle', data, weeklyExpiry);
+    } catch { state.duviriCycleData = null; }
+  }
+
+  // calendar — weekly
+  if (isFresh('calendar')) {
+    state.calendarData = state.worldstateCache[getCacheKey('calendar')].data;
+  } else {
+    try {
+      const data = await fetchJson(`${BASE}/pc/${lang}/calendar`);
+      state.calendarData = data;
+      store('calendar', data, weeklyExpiry);
+    } catch { state.calendarData = null; }
+  }
+
+  // archimedeas — weekly
+  if (isFresh('archimedeas')) {
+    state.archimedeasData = state.worldstateCache[getCacheKey('archimedeas')].data;
+  } else {
+    try {
+      const data = await fetchJson(`${BASE}/pc/${lang}/archimedeas/`);
+      state.archimedeasData = data;
+      store('archimedeas', data, weeklyExpiry);
+    } catch { state.archimedeasData = null; }
+  }
+
+  // baro — special expiry logic
+  if (isFresh('baro')) {
+    state.baroData = state.worldstateCache[getCacheKey('baro')].data;
+  } else {
+    try {
+      const data = await fetchJson(`${BASE}/pc/voidTrader`); // Baro doesn't use {lang} in URL
+      state.baroData = data;
+      let baroValidUntil = dailyExpiry; 
+      if (data && data.activation && data.expiry) {
+        const activation = new Date(data.activation).getTime();
+        const expiry = new Date(data.expiry).getTime();
+        if (now < activation) baroValidUntil = data.activation;
+        else if (now < expiry) baroValidUntil = data.expiry;
+      }
+      store('baro', data, baroValidUntil);
+    } catch { state.baroData = null; }
+  }
+
+  await saveTasksCache();
 }
 
 export async function saveTasksCache() {
@@ -109,6 +208,7 @@ export async function saveTasksCache() {
     lastWeeklyReset: state.lastWeeklyReset,
     tasks: state.tasks,
     circuitObtained: state.circuitObtained,
+    worldstateCache: state.worldstateCache,
   };
   await invoke('save_tasks_cache', { data: payload });
 }
