@@ -44,6 +44,19 @@ export async function loadTasksCache() {
 
   const builtIns = DEFAULT_TASKS.map(def => {
     const cached = cachedById[def.id];
+
+    // Forma has its own 24h expiry tied to when the user checked it,
+    // independent of the daily reset boundary. Evaluate it separately.
+    if (def.id === 'daily.forma') {
+      const formaExpiry = cached?.formaExpiry ?? null;
+      const formaExpired = !formaExpiry || Date.now() >= new Date(formaExpiry).getTime();
+      return {
+        ...def,
+        checked: cached ? (formaExpired ? false : cached.checked) : false,
+        formaExpiry: formaExpired ? null : formaExpiry,
+      };
+    }
+
     const shouldReset =
       (def.tier === 'daily'  && dailyExpired)  ||
       (def.tier === 'weekly' && weeklyExpired);
@@ -114,8 +127,21 @@ export async function fetchWorldstate() {
   };
 
   // ── Per-endpoint fetch-or-reuse with language keys ──
+  // failedAny: true if any stale endpoint failed to fetch (drives retry scheduling)
+  // nextExpiry: nearest upcoming validUntil across all entries (drives expiry scheduling)
 
-  // sortie — daily
+  let failedAny  = false;
+  let nextExpiry = Infinity;
+
+  const trackExpiry = (endpoint) => {
+    const entry = state.worldstateCache[getCacheKey(endpoint)];
+    if (entry?.validUntil) {
+      const t = new Date(entry.validUntil).getTime();
+      if (t > now) nextExpiry = Math.min(nextExpiry, t);
+    }
+  };
+
+  // sortie — expires per its own API expiry field (16:00 UTC, not midnight)
   if (isFresh('sortie')) {
     console.log('Using cached sortie data');
     state.sortieData = state.worldstateCache[getCacheKey('sortie')].data;
@@ -123,13 +149,15 @@ export async function fetchWorldstate() {
     console.log('Fetching new sortie data');
     try {
       const data = await fetchJson(`${BASE}/pc/${lang}/sortie`);
-      if (data?.activation) data.activation = data.activation.replace(/T\d{2}(?=:\d{2}:\d{2}\.\d{3}Z$)/, 'T00');
-      if (data?.expiry)     data.expiry     = data.expiry.replace(/T\d{2}(?=:\d{2}:\d{2}\.\d{3}Z$)/, 'T00');
       state.sortieData = data;
       console.log('Fetched sortie data:', data);
-      store('sortie', data, dailyExpiry);
-    } catch { state.sortieData = null; }
+      store('sortie', data, data.expiry ?? dailyExpiry);
+    } catch {
+      state.sortieData = null;
+      failedAny = true;
+    }
   }
+  trackExpiry('sortie');
 
   // archonHunt — weekly
   if (isFresh('archonHunt')) {
@@ -139,8 +167,12 @@ export async function fetchWorldstate() {
       const data = await fetchJson(`${BASE}/pc/${lang}/archonHunt`);
       state.archonHuntData = data;
       store('archonHunt', data, weeklyExpiry);
-    } catch { state.archonHuntData = null; }
+    } catch {
+      state.archonHuntData = null;
+      failedAny = true;
+    }
   }
+  trackExpiry('archonHunt');
 
   // steelPath — weekly
   if (isFresh('steelPath')) {
@@ -150,8 +182,12 @@ export async function fetchWorldstate() {
       const data = await fetchJson(`${BASE}/pc/${lang}/steelPath`);
       state.steelPathData = data;
       store('steelPath', data, weeklyExpiry);
-    } catch { state.steelPathData = null; }
+    } catch {
+      state.steelPathData = null;
+      failedAny = true;
+    }
   }
+  trackExpiry('steelPath');
 
   // duviriCycle — weekly
   if (isFresh('duviriCycle')) {
@@ -161,8 +197,12 @@ export async function fetchWorldstate() {
       const data = await fetchJson(`${BASE}/pc/${lang}/duviriCycle`);
       state.duviriCycleData = data;
       store('duviriCycle', data, weeklyExpiry);
-    } catch { state.duviriCycleData = null; }
+    } catch {
+      state.duviriCycleData = null;
+      failedAny = true;
+    }
   }
+  trackExpiry('duviriCycle');
 
   // calendar — weekly
   if (isFresh('calendar')) {
@@ -172,8 +212,12 @@ export async function fetchWorldstate() {
       const data = await fetchJson(`${BASE}/pc/${lang}/calendar`);
       state.calendarData = data;
       store('calendar', data, weeklyExpiry);
-    } catch { state.calendarData = null; }
+    } catch {
+      state.calendarData = null;
+      failedAny = true;
+    }
   }
+  trackExpiry('calendar');
 
   // archimedeas — weekly
   if (isFresh('archimedeas')) {
@@ -183,28 +227,63 @@ export async function fetchWorldstate() {
       const data = await fetchJson(`${BASE}/pc/${lang}/archimedeas/`);
       state.archimedeasData = data;
       store('archimedeas', data, weeklyExpiry);
-    } catch { state.archimedeasData = null; }
+    } catch {
+      state.archimedeasData = null;
+      failedAny = true;
+    }
   }
+  trackExpiry('archimedeas');
 
-  // baro — special expiry logic
+  // baro — expiry driven by activation/expiry window in the response
   if (isFresh('baro')) {
     state.baroData = state.worldstateCache[getCacheKey('baro')].data;
   } else {
     try {
-      const data = await fetchJson(`${BASE}/pc/voidTrader`); // Baro doesn't use {lang} in URL
+      const data = await fetchJson(`${BASE}/pc/voidTrader`);
       state.baroData = data;
-      let baroValidUntil = dailyExpiry; 
-      if (data && data.activation && data.expiry) {
+      let baroValidUntil = dailyExpiry;
+      if (data?.activation && data?.expiry) {
         const activation = new Date(data.activation).getTime();
-        const expiry = new Date(data.expiry).getTime();
-        if (now < activation) baroValidUntil = data.activation;
+        const expiry     = new Date(data.expiry).getTime();
+        if (now < activation)  baroValidUntil = data.activation;
         else if (now < expiry) baroValidUntil = data.expiry;
       }
       store('baro', data, baroValidUntil);
-    } catch { state.baroData = null; }
+    } catch {
+      state.baroData = null;
+      failedAny = true;
+    }
+  }
+  trackExpiry('baro');
+
+  // forma — not a worldstate fetch, but its expiry also feeds the refresh timer
+  const formaTask = state.tasks.find(t => t.id === 'daily.forma');
+  if (formaTask?.formaExpiry) {
+    const t = new Date(formaTask.formaExpiry).getTime();
+    if (t > now) nextExpiry = Math.min(nextExpiry, t);
   }
 
   await saveTasksCache();
+
+  return {
+    failedAny,
+    nextExpiry: nextExpiry === Infinity ? null : nextExpiry,
+  };
+}
+
+// Unchecks any tasks whose linked liveData endpoint has expired in the worldstate cache.
+// Called by the expiry timer before fetchWorldstate so the render reflects the reset.
+export function resetExpiredTasks() {
+  const now  = Date.now();
+  const lang = getLanguage();
+  state.tasks.forEach(task => {
+    if (!task.liveData) return;
+    const endpoint = task.liveData.split('.')[0]; // handles 'archimedea.deepa' etc.
+    const entry = state.worldstateCache[`${endpoint}_${lang}`];
+    if (entry?.validUntil && now >= new Date(entry.validUntil).getTime()) {
+      task.checked = false;
+    }
+  });
 }
 
 export async function saveTasksCache() {
@@ -246,6 +325,13 @@ export async function toggleTask(taskId) {
   const task = state.tasks.find(t => t.id === taskId);
   if (!task) return;
   task.checked = !task.checked;
+
+  if (task.id === 'daily.forma') {
+    task.formaExpiry = task.checked
+      ? new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString()
+      : null;
+  }
+
   await saveTasksCache();
 }
 

@@ -82,6 +82,7 @@ document.querySelectorAll("#sidebar button[data-section]").forEach(btn => {
     // Stop any pending worldstate retry when leaving the tasks tab
     if (section !== 'tasks' && tasksModule) {
       tasksModule.stopWorldstateRetry();
+      tasksModule.stopExpiryRefresh();
     }
 
     setActiveNavButton(section);
