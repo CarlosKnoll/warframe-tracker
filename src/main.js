@@ -1,4 +1,5 @@
 import { initI18n, setLanguage } from './i18n.js';
+import { stopExpiryRefresh } from './tasks/index.js';
 
 const invoke = window.__TAURI_INTERNALS__.invoke;
 

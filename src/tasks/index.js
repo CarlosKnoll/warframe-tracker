@@ -91,5 +91,5 @@ window.addEventListener('langchange', async () => {
   if (result.failedAny) scheduleRetry();
 });
 
-export { renderTasks };
+export { renderTasks, stopExpiryRefresh };
 export { addCustomTask, removeCustomTask } from './loader.js';
