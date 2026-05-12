@@ -287,6 +287,37 @@
   "modal.resurgenceSource": "Obtained by trading 1:1 Aya with the Varzia merchant (Resurgence Prime)",
 
   "tasks.circuit.weapon.mark_obtained":     "Mark as obtained",
-  "tasks.circuit.weapon.mark_not_obtained": "Mark as not obtained"
+  "tasks.circuit.weapon.mark_not_obtained": "Mark as not obtained",
+
+  "mode.market": "Market",
+  "search.market.placeholder": "Search Warframe Market...",
+  "market.loading": "Searching Warframe Market...",
+  "market.placeholder": "Search for an item to see buy/sell orders",
+  "market.noResults": "No active orders found for this item",
+  "market.error": "Failed to fetch market data",
+  "market.buy": "Buy Orders",
+  "market.sell": "Sell Orders",
+  "market.colSeller": "Seller",
+  "market.colStatus": "Status",
+  "market.colPrice": "Price",
+  "market.colQuantity": "Qty",
+  "market.platinum": "platinum",
+  "market.copyWhisper": "Copy",
+  "market.status.ingame": "In Game",
+  "market.status.online": "Online",
+  "market.status.offline": "Offline",
+  "market.searchTooShort": "Please enter at least 2 characters to search",
+  "market.copied": "Copied!",
+  "market.copyFailed": "Failed to copy",
+  "market.searchBtn": "Search",
+  "market.orders": "orders",
+  "market.loadMore": "Load More",
+  "market.more": "more",
+  "market.maxOrders": "Max orders",
+  "market.remaining": "Remaining",
+  "market.rankLabel": "Rank",
+  "market.rank.all": "All",
+  "market.rank.maxed": "Maxed",
+  "market.rank": "Rank"
 
 }

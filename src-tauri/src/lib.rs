@@ -60,6 +60,7 @@ pub fn run() {
             commands::tasks::load_tasks_cache,
             commands::tasks::save_tasks_cache,
             commands::updater::check_for_updates,
+            commands::market::fetch_market_orders_stream,
             utils::js_log,
         ])
         .run(tauri::generate_context!())

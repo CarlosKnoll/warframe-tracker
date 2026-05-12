@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="styles/primes.css" />
   <link rel="stylesheet" href="styles/sidebar.css" />
   <link rel="stylesheet" href="styles/tasks.css" />
+  <link rel="stylesheet" href="styles/market.css" />
 </head>
 <body>
 
@@ -60,8 +61,11 @@
         <!-- Mods — direct nav button -->
         <button class="nav-btn" data-section="mods" data-i18n="mode.mods">Mods</button>
 
-        <!-- Arcanes — direct nav button, active on load -->
+        <!-- Arcanes — direct nav button -->
         <button class="nav-btn" data-section="arcanes" data-i18n="mode.arcanes">Arcanes</button>
+
+        <!-- Market — direct nav button -->
+        <button class="nav-btn" data-section="market" data-i18n="mode.market">Market</button>
 
       </div>
 
@@ -96,6 +100,56 @@
       <div id="tasksSection" class="tracker-section active">
         <div class="tasks-content">
           <!-- Populated entirely by renderer.js — no static HTML needed here -->
+        </div>
+      </div>
+
+      <div id="marketSection" class="tracker-section">
+        <div class="section-toolbar">
+          <div id="marketSearchRow">
+            <div class="market-search-container">
+              <div class="search-input">
+                <input
+                  id="marketSearch"
+                  type="text"
+                  data-i18n-placeholder="search.market.placeholder"
+                  placeholder="Search Warframe Market..."
+                />
+                <button id="clearMarketSearch" class="clear-search-btn" data-i18n-title="search.clear.title" title="Clear search">✕</button>
+              </div>
+              <button id="marketSearchBtn" class="market-search-btn" data-i18n="market.searchBtn">🔍 Search</button>
+            </div>
+          </div>
+        </div>
+        <div id="marketSearchRow">
+        
+          <div class="market-controls-row">
+        
+            <!-- Max orders selector -->
+            <div class="market-control-group">
+              <span class="market-control-label" id="marketMaxOrdersLabel" data-i18n="market.maxOrders">Max orders</span>
+              <select class="market-max-orders-select" id="marketMaxOrders">
+                <option value="10" selected>10</option>
+                <option value="30">30</option>
+                <option value="50">50</option>
+                <option value="100">100</option>
+              </select>
+            </div>
+        
+            <!-- Rank filter — hidden until renderer confirms ranked orders exist -->
+            <div class="market-control-group rank-group" id="marketRankFilterGroup">
+              <span class="market-control-label" id="marketRankLabel" data-i18n="market.rankLabel">Rank</span>
+              <button class="market-rank-filter-btn active" data-rank-filter="all" data-i18n="market.rank.all">All</button>
+              <button class="market-rank-filter-btn"        data-rank-filter="maxed" data-i18n="market.rank.maxed">Maxed</button>
+            </div>
+        
+            <!-- Order count — written by renderer, pushed to the right -->
+            <span class="market-order-count" id="marketOrderCount"></span>
+        
+          </div>
+        </div>
+
+        <div class="section-list">
+          <div id="marketResults"></div>
         </div>
       </div>
 

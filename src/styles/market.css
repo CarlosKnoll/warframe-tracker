@@ -1,0 +1,521 @@
+/* market.css - Warframe Market V2 browser styles */
+
+#marketSection {
+  display: none;
+  flex-direction: column;
+  height: 100%;
+  overflow: hidden;
+}
+
+#marketSection.active {
+  display: flex;
+}
+
+#marketSearchRow {
+  margin-bottom: 16px;
+}
+
+.market-search-container {
+  display: flex;
+  gap: 8px;
+  max-width: 600px;
+  position: relative;
+}
+
+.market-search-container .search-input {
+  flex: 1;
+  position: relative;
+}
+
+.market-search-container .search-input input {
+  width: 100%;
+  padding: 7px 35px 7px 10px;
+  background: #121726;
+  color: #e5e9f0;
+  border: 1px solid #2b3248;
+  border-radius: 6px;
+  font-size: 0.875rem;
+  transition: border-color 0.15s;
+  box-sizing: border-box;
+}
+
+.market-search-container .search-input input:focus {
+  outline: none;
+  border-color: #c9a84c;
+}
+
+.market-search-container .clear-search-btn {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent;
+  border: none;
+  color: #e5e9f0;
+  font-size: 1rem;
+  cursor: pointer;
+  opacity: 0.5;
+  padding: 4px 6px;
+  line-height: 1;
+  transition: opacity 0.2s;
+  display: none;
+  z-index: 2;
+}
+
+.market-search-container .clear-search-btn:hover {
+  opacity: 1;
+}
+
+.market-search-btn {
+  padding: 7px 16px;
+  background: rgba(201, 168, 76, 0.15);
+  border: 1px solid #c9a84c;
+  color: #c9a84c;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  font-size: 0.875rem;
+  transition: all 0.15s;
+  white-space: nowrap;
+}
+
+.market-search-btn:hover {
+  background: rgba(201, 168, 76, 0.3);
+  border-color: #ebcb8b;
+  color: #ebcb8b;
+}
+
+.market-search-btn:active {
+  transform: scale(0.98);
+}
+
+.market-item-name {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #c9a84c;
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #2b3248;
+}
+
+.market-view-toggle {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.market-view-btn {
+  padding: 6px 20px;
+  background: transparent;
+  border: 1px solid #2b3248;
+  color: rgba(255, 255, 255, 0.6);
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  transition: all 0.15s;
+}
+
+.market-view-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.market-view-btn.active {
+  background: rgba(201, 168, 76, 0.15);
+  border-color: #c9a84c;
+  color: #c9a84c;
+}
+
+.market-list-header {
+  display: grid;
+  grid-template-columns: 2fr 0.8fr 0.8fr 0.5fr 1fr;
+  gap: 12px;
+  padding: 8px 12px;
+  background: rgba(0, 0, 0, 0.3);
+  border-radius: 6px;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 8px;
+}
+
+.market-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.market-row {
+  display: grid;
+  grid-template-columns: 2fr 0.8fr 0.8fr 0.5fr 1fr;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-radius: 6px;
+  transition: background 0.15s;
+  font-size: 0.8rem;
+}
+
+.market-row:hover {
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.market-seller {
+  font-weight: 500;
+  color: #e5e9f0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.market-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-align: center;
+  width: fit-content;
+}
+
+.status-ingame {
+  background: rgba(164, 140, 190, 0.2);
+  color: #9572de;
+  border: 1px solid #9572de;
+}
+
+.status-online {
+  background: rgba(136, 208, 148, 0.2);
+  color: #009c00;
+  border: 1px solid #009c00;
+}
+
+.status-offline {
+  background: rgba(191, 97, 106, 0.2);
+  color: #bf616a;
+  border: 1px solid #bf616a;
+}
+
+.market-price {
+  font-weight: 700;
+  color: #ebcb8b;
+}
+
+.market-currency {
+  font-size: 0.65rem;
+  font-weight: normal;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.market-quantity {
+  color: rgba(255, 255, 255, 0.6);
+  text-align: center;
+}
+
+.market-whisper-btn {
+  padding: 4px 10px;
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  color: #c9a84c;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 0.7rem;
+  font-weight: 500;
+  transition: all 0.15s;
+  width: fit-content;
+}
+
+.market-whisper-btn:hover {
+  background: rgba(201, 168, 76, 0.2);
+  border-color: #c9a84c;
+}
+
+.market-whisper-btn.copied {
+  background: rgba(163, 190, 140, 0.2);
+  border-color: #a3be8c;
+  color: #a3be8c;
+}
+
+.market-whisper-btn.error {
+  background: rgba(191, 97, 106, 0.2);
+  border-color: #bf616a;
+  color: #bf616a;
+}
+
+.market-placeholder,
+.market-loading,
+.market-empty,
+.market-error {
+  text-align: center;
+  padding: 48px 20px;
+  color: rgba(255, 255, 255, 0.5);
+  font-size: 0.9rem;
+}
+
+.market-loading::after {
+  content: '';
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-left: 8px;
+  border: 2px solid #2b3248;
+  border-top-color: #c9a84c;
+  border-radius: 50%;
+  animation: market-spin 0.8s linear infinite;
+  vertical-align: middle;
+}
+
+@keyframes market-spin {
+  to { transform: rotate(360deg); }
+}
+
+.market-error {
+  color: #bf616a;
+}
+
+@media (max-width: 800px) {
+  .market-list-header,
+  .market-row {
+    grid-template-columns: 1.5fr 0.7fr 0.7fr 0.5fr 0.8fr;
+    gap: 8px;
+  }
+  
+  .market-whisper-btn {
+    padding: 3px 6px;
+    font-size: 0.65rem;
+  }
+}
+
+.market-context-btn {
+  padding: 2px 8px;
+  background: rgba(136, 192, 208, 0.15);
+  border: 1px solid #88c0d0;
+  color: #88c0d0;
+  border-radius: 4px;
+  font-size: 0.6rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  margin-left: 6px;
+}
+
+.market-context-btn:hover {
+  background: rgba(136, 192, 208, 0.3);
+}
+
+.market-feedback {
+  margin-top: 16px;
+  padding: 10px;
+  border-radius: 6px;
+  text-align: center;
+  font-size: 0.85rem;
+  animation: fadeInOut 2s ease-in-out;
+}
+
+.market-feedback.success {
+  background: rgba(163, 190, 140, 0.15);
+  border: 1px solid #a3be8c;
+  color: #a3be8c;
+}
+
+.market-feedback.error {
+  background: rgba(191, 97, 106, 0.15);
+  border: 1px solid #bf616a;
+  color: #bf616a;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0; transform: translateY(-10px); }
+  15% { opacity: 1; transform: translateY(0); }
+  85% { opacity: 1; transform: translateY(0); }
+  100% { opacity: 0; transform: translateY(-10px); }
+}
+
+.market-whisper-message {
+  display: none;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  margin: 4px 0 8px 0;
+  background: rgba(163, 190, 140, 0.1);
+  border-left: 3px solid #a3be8c;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  font-family: monospace;
+  color: #a3be8c;
+  word-break: break-all;
+}
+
+.market-whisper-icon {
+  font-size: 0.9rem;
+  flex-shrink: 0;
+}
+
+.market-whisper-text {
+  flex: 1;
+  line-height: 1.4;
+}
+
+.market-whisper-btn.copied {
+  background: rgba(163, 190, 140, 0.2);
+  border-color: #a3be8c;
+  color: #a3be8c;
+  cursor: default;
+  opacity: 0.7;
+}
+
+.market-whisper-btn.copied:hover {
+  background: rgba(163, 190, 140, 0.2);
+  border-color: #a3be8c;
+  color: #a3be8c;
+}
+
+.market-whisper-btn.error {
+  background: rgba(191, 97, 106, 0.2);
+  border-color: #bf616a;
+  color: #bf616a;
+}
+
+.market-stats {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  margin-bottom: 12px;
+  text-align: right;
+}
+
+.market-load-more-btn {
+  width: 100%;
+  margin-top: 16px;
+  padding: 10px;
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid rgba(201, 168, 76, 0.3);
+  color: #c9a84c;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.8rem;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+
+.market-load-more-btn:hover {
+  background: rgba(201, 168, 76, 0.2);
+  border-color: #c9a84c;
+}
+
+.market-load-more-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ── Appended to market.css ──────────────────────────────────────────────── */
+
+/*
+  Controls row — lives inside .section-toolbar so it inherits the same
+  padding/indentation as #marketSearchRow above it. No max-width needed.
+*/
+.market-controls-row {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 8px 25px;
+}
+
+.market-control-group {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+/* Hidden until renderer confirms ranked orders exist in the result set. */
+.market-control-group.rank-group {
+  display: none;
+}
+
+.market-control-label {
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.5);
+  white-space: nowrap;
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  font-weight: 600;
+}
+
+/* Order count pushed to the far right of the controls row. */
+.market-order-count {
+  margin-left: auto;
+  font-size: 0.75rem;
+  color: rgba(255, 255, 255, 0.45);
+  white-space: nowrap;
+}
+
+/* Max orders <select> */
+.market-max-orders-select {
+  padding: 4px 28px 4px 10px;
+  background: #121726;
+  color: #e5e9f0;
+  border: 1px solid #2b3248;
+  border-radius: 6px;
+  font-size: 0.8rem;
+  cursor: pointer;
+  appearance: none;
+  -webkit-appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath fill='%23888' d='M0 0l5 6 5-6z'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 8px center;
+  transition: border-color 0.15s;
+}
+
+.market-max-orders-select:focus {
+  outline: none;
+  border-color: #c9a84c;
+}
+
+.market-max-orders-select:hover {
+  border-color: #c9a84c;
+}
+
+/* Rank filter toggle */
+.market-rank-filter-btn {
+  padding: 4px 14px;
+  background: transparent;
+  border: 1px solid #2b3248;
+  color: rgba(255, 255, 255, 0.5);
+  cursor: pointer;
+  font-size: 0.75rem;
+  font-weight: 500;
+  transition: all 0.15s;
+  line-height: 1.4;
+}
+
+.market-rank-filter-btn:first-of-type {
+  border-radius: 20px 0 0 20px;
+}
+
+.market-rank-filter-btn:last-of-type {
+  border-radius: 0 20px 20px 0;
+  border-left: none;
+}
+
+.market-rank-filter-btn:hover {
+  background: rgba(255, 255, 255, 0.05);
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.market-rank-filter-btn.active {
+  background: rgba(201, 168, 76, 0.15);
+  border-color: #c9a84c;
+  color: #c9a84c;
+}
+
+/*
+  Results container — must grow to fill remaining height of #marketSection
+  (which is already display:flex; flex-direction:column; height:100%).
+*/
+#marketResults {
+  flex: 1;
+  overflow-y: auto;
+  min-height: 0;   /* required for flex children to shrink below content size */
+}

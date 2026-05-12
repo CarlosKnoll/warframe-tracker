@@ -1123,6 +1123,37 @@
   "modal.resurgenceSource": "Obtido ao trocar 1:1 Aya com a mercadora Varzia (Ressurgência Prime)",
 
   "tasks.circuit.weapon.mark_obtained":     "Marcar como obtido",
-  "tasks.circuit.weapon.mark_not_obtained": "Marcar como não obtido"
+  "tasks.circuit.weapon.mark_not_obtained": "Marcar como não obtido",
+
+  "mode.market": "Mercado",
+  "search.market.placeholder": "Buscar no Warframe Market...",
+  "market.loading": "Buscando no Warframe Market...",
+  "market.placeholder": "Busque um item para ver ofertas de compra/venda",
+  "market.noResults": "Nenhuma oferta ativa encontrada para este item",
+  "market.error": "Falha ao buscar dados do mercado",
+  "market.buy": "Ofertas de Compra",
+  "market.sell": "Ofertas de Venda",
+  "market.colSeller": "Vendedor",
+  "market.colStatus": "Status",
+  "market.colPrice": "Preço",
+  "market.colQuantity": "Quant.",
+  "market.platinum": "platina",
+  "market.copyWhisper": "Copiar",
+  "market.status.ingame": "No Jogo",
+  "market.status.online": "Online",
+  "market.status.offline": "Offline",
+  "market.searchTooShort": "Digite pelo menos 2 caracteres para buscar",
+  "market.copied": "Copiado!",
+  "market.copyFailed": "Falha ao copiar",
+  "market.searchBtn": "Buscar",
+  "market.orders": "ofertas",
+  "market.loadMore": "Carregar Mais",
+  "market.more": "mais",
+  "market.maxOrders": "Qntd. ofertas",
+  "market.remaining": "Restantes",
+  "market.rankLabel": "Rank",
+  "market.rank.all": "Todos",
+  "market.rank.maxed": "Máx.",
+  "market.rank": "Rank"
 
 }

@@ -21,6 +21,9 @@ let masteryInitialized = false;
 let tasksModule = null;
 let tasksInitialized = false;
 
+let marketModule = null;
+let marketInitialized = false;
+
 // ─── Mastery nav group toggle ──────────────────────────────────────────────────
 
 const masteryToggle = document.getElementById('masteryToggle');
@@ -70,6 +73,8 @@ window.addEventListener('langchange', async () => {
     modsModule.renderMods();
   } else if (activeMode === 'tasks' && tasksInitialized) {
     tasksModule.renderTasks();
+  } else if (activeMode === 'market' && marketInitialized) {
+    marketModule.renderMarket();
   }
 });
 
@@ -137,6 +142,15 @@ document.querySelectorAll("#sidebar button[data-section]").forEach(btn => {
         tasksInitialized = true;
       } else {
         await tasksModule.refreshTasks();
+      }
+    } else if (section === "market") {
+      document.getElementById("marketSection").classList.add("active");
+      if (!marketInitialized) {
+        marketModule = await import('./market/index.js');
+        await marketModule.initMarket();
+        marketInitialized = true;
+      } else {
+        marketModule.renderMarket();
       }
     }
   };

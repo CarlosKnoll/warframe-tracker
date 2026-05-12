@@ -77,23 +77,79 @@ pub async fn fetch_json(
     url: String,
     headers: Option<HashMap<String, String>>,
 ) -> Result<Value, String> {
-    let client = reqwest::Client::new();
+    // Build client with browser-like TLS and automatic decompression
+    let client = reqwest::Client::builder()
+        .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36")
+        .gzip(true)
+        .brotli(true)
+        .build()
+        .map_err(|e| format!("Failed to build HTTP client: {}", e))?;
+    
     let mut req = client.get(&url);
-
+    
+    // Add standard browser headers
+    req = req
+        .header("Accept", "application/json, text/plain, */*")
+        .header("Accept-Language", "en-US,en;q=0.9")
+        .header("Accept-Encoding", "gzip, deflate, br")
+        .header("Cache-Control", "no-cache")
+        .header("Pragma", "no-cache")
+        .header("Sec-Ch-Ua", "\"Not_A Brand\";v=\"8\", \"Chromium\";v=\"120\", \"Google Chrome\";v=\"120\"")
+        .header("Sec-Ch-Ua-Mobile", "?0")
+        .header("Sec-Ch-Ua-Platform", "\"Windows\"")
+        .header("Sec-Fetch-Dest", "empty")
+        .header("Sec-Fetch-Mode", "cors")
+        .header("Sec-Fetch-Site", "cross-site")
+        .header("Referer", "https://warframe.market/");
+    
     if let Some(hdrs) = headers {
         for (key, val) in hdrs {
-            req = req.header(key, val);
+            req = req.header(&key, &val);
         }
     }
-
-    let response = req.send().await.map_err(|e| e.to_string())?;
+    
+    let response = req.send().await.map_err(|e| {
+        if e.is_connect() {
+            format!("Connection failed: {}. Please check your internet connection.", e)
+        } else if e.is_timeout() {
+            "Request timed out. Please try again.".to_string()
+        } else {
+            format!("Request failed: {}", e)
+        }
+    })?;
+    
     let status = response.status();
-    let headers = response.headers().clone();
-    let body = response.text().await.map_err(|e| e.to_string())?;
-    serde_json::from_str(&body).map_err(|e| {
-        eprintln!("fetch_json parse error for {url}: {e}\nBody was: {body}");
-        e.to_string()
-    })
+    
+    if !status.is_success() {
+        return Err(format!("HTTP {}: {}", status.as_u16(), status.canonical_reason().unwrap_or("Unknown error")));
+    }
+    
+    // Get the response bytes - reqwest automatically decompresses based on Content-Encoding
+    let body_bytes = response.bytes().await.map_err(|e| format!("Failed to read response body: {}", e))?;
+    
+    // Parse JSON directly from bytes - this is the safest approach
+    match serde_json::from_slice(&body_bytes) {
+        Ok(json) => Ok(json),
+        Err(json_err) => {
+            // Try to check if it's HTML (Cloudflare challenge)
+            // Only attempt to convert to string if it looks like valid UTF-8
+            if let Ok(body_str) = std::str::from_utf8(&body_bytes) {
+                if body_str.contains("Just a moment...") || 
+                   body_str.contains("cf_chl") || 
+                   (body_str.contains("<html") && body_str.len() < 10000) {
+                    return Err("Market API is protected by Cloudflare. Please try again later.".to_string());
+                }
+                // Provide preview for debugging (safe char iteration, not byte slicing)
+                let preview: String = body_str.chars().take(200).collect();
+                eprintln!("fetch_json parse error for {}: {}\nResponse preview: {}", url, json_err, preview);
+            } else {
+                // Response is not valid UTF-8 - likely compressed or binary
+                eprintln!("fetch_json parse error for {}: {} (response is not valid UTF-8)", url, json_err);
+            }
+            
+            Err(format!("Invalid JSON response from server: {}", json_err))
+        }
+    }
 }
 
 /// Get the data directory path for display to users
