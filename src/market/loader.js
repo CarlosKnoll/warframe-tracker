@@ -18,14 +18,24 @@ const INITIAL_COUNT = 10;
 let searchGeneration = 0;
 
 export function getSlug(itemName, type = 'prime') {
-  let result = itemName.toLowerCase()
+  const normalized = itemName.toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
-    .trim()
-    .replace(/\s+/g, '_');
+    .trim();
+
+  // Zid-an family uses dash separators instead of underscores
+  const usesDashSeparator = normalized.startsWith('zid-an ');
+
+  let result = usesDashSeparator
+    ? normalized.replace(/\s+/g, '-')
+    : normalized.replace(/\s+/g, '_');
 
   // Append _set only for full prime sets (slug ends exactly with "_prime").
   // Components like "ash_prime_neuroptics" are left unchanged.
-  if (type === 'prime' && result.endsWith('_prime') && !result.includes('_set')) {
+  if (
+    type === 'prime' &&
+    result.endsWith('_prime') &&
+    !result.includes('_set')
+  ) {
     result = result + '_set';
   }
 

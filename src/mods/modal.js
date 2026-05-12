@@ -54,6 +54,11 @@ export function openModModal(mod) {
       />
     </div>
     ${mod.isWmCard ? '' : `<div class="modal-item-name">${name}</div>`}
+    <div class="modal-market-row">
+      <button class="modal-market-btn" data-market-name="${mod.name.replace(/"/g, '&quot;')}" data-market-type="mod">
+        🔍 Market
+      </button>
+    </div>
     ${polHtml}
     <div style="display:flex;gap:6px;flex-wrap:wrap;justify-content:center;margin:2px 0 4px;">
       ${classBadge}${rarityHtml}
@@ -74,6 +79,17 @@ export function openModModal(mod) {
   modalBox._rebind           = null;
   modalBox._bindRelicButtons = null;
   modal.classList.remove('hidden');
+
+  // Wire the market button.
+  modalBody.querySelectorAll('[data-market-name]').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      modal.classList.add('hidden');
+      window.dispatchEvent(new CustomEvent('open-in-market', {
+        detail: { name: btn.dataset.marketName, itemType: btn.dataset.marketType },
+      }));
+    };
+  });
 }
 
 // ── Drop table ────────────────────────────────────────────────────────────────

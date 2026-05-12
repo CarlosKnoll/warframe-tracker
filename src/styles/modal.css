@@ -315,3 +315,65 @@
 .modal-detail-right::-webkit-scrollbar-thumb:hover {
   background: #3d4a6e;
 }
+
+/* ── Modal market cross-reference ─────────────────────────────────────────────
+   Add to your modal stylesheet (or import in index.html alongside modal.css).
+   ─────────────────────────────────────────────────────────────────────────── */
+
+.modal-market-row {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  margin: 6px 0 10px;
+  width: 100%;
+}
+
+/* Main "🔍 Market" button — goes to the set / full item */
+.modal-market-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 5px 14px;
+  border: 1px solid var(--accent, #c9a84c);
+  border-radius: 6px;
+  background: transparent;
+  color: var(--accent, #c9a84c);
+  font-size: 0.82rem;
+  font-weight: 600;
+  letter-spacing: 0.03em;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.modal-market-btn:hover {
+  background: var(--accent, #c9a84c);
+  color: var(--bg, #0f1318);
+}
+
+/* Component chips row — shown for primes only */
+.modal-market-chips {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 5px;
+  width: 100%;
+}
+
+.modal-market-chip {
+  padding: 3px 9px;
+  border: 1px solid var(--border-muted, #3a4050);
+  border-radius: 4px;
+  background: transparent;
+  color: var(--text-muted, #8a95a8);
+  font-size: 0.74rem;
+  cursor: pointer;
+  transition: border-color 0.15s, color 0.15s;
+  white-space: nowrap;
+}
+
+.modal-market-chip:hover {
+  border-color: var(--accent, #c9a84c);
+  color: var(--accent, #c9a84c);
+}

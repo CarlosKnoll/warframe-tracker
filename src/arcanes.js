@@ -337,6 +337,7 @@ export function renderArcanes() {
     imageContainer.onclick = () => {
       openArcaneModal({
         name: displayName,
+        rawName: a.name,
         imageUrl: getWikiImageUrl(a.name),
         dropInfo: getDropLocations(a),
         owned: owned[a.uniqueName] ?? 0,

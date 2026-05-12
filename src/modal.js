@@ -12,6 +12,72 @@ const modalClose = document.getElementById("modalClose");
 const modalBox = modal.querySelector(".modal-box");
 const modalStack = [];
 
+// ─── Market cross-reference helper ────────────────────────────────────────────
+// Builds the "Search in Market" button HTML. `name` must be the raw English name
+// (never a translated string). `itemType` is 'prime' | 'mod' | 'arcane'.
+// For primes, pass `components` to also render per-part chip buttons.
+
+// Founder-exclusive primes — untradeable, so no market button.
+const EXCLUSION_LIST = new Set(['Excalibur Prime', 'Lato Prime', 'Skana Prime', 'Sagek Prime', 'Galariak Prime']);
+
+function marketButtonHTML(name, itemType, components = null) {
+  if (EXCLUSION_LIST.has(name)) return '';
+
+  const chips = components
+  ? [...new Map(
+      components
+        .filter(c => !c.isMainItem)
+        .map(c => [c.displayName, c]) // dedupe by visible component name
+    ).values()]
+      .map(c => {
+        const fullName = c.name.includes(name.replace(' Prime', ''))
+          ? c.name
+          : `${name} ${c.name}`;
+
+        return `
+          <button
+            class="modal-market-chip"
+            data-market-name="${escapeAttr(fullName)}"
+            data-market-type="prime"
+          >
+            ${escapeHtml(c.displayName)}
+          </button>
+        `;
+      })
+      .join('')
+  : '';
+
+  return `
+    <div class="modal-market-row">
+      <button class="modal-market-btn" data-market-name="${escapeAttr(name)}" data-market-type="${itemType}">
+        🔍 ${t('mode.market')}
+      </button>
+      ${chips ? `<div class="modal-market-chips">${chips}</div>` : ''}
+    </div>
+  `;
+}
+
+function escapeAttr(str) {
+  return String(str ?? '').replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+}
+
+function escapeHtml(str) {
+  return String(str ?? '').replace(/[&<>"']/g, m =>
+    ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[m]));
+}
+
+function bindMarketButtons(container) {
+  container.querySelectorAll('[data-market-name]').forEach(btn => {
+    btn.onclick = (e) => {
+      e.stopPropagation();
+      closeModal();
+      window.dispatchEvent(new CustomEvent('open-in-market', {
+        detail: { name: btn.dataset.marketName, itemType: btn.dataset.marketType },
+      }));
+    };
+  });
+}
+
 modalClose.onclick = () => closeModal();
 modal.onclick = (e) => { if (e.target === modal) closeModal(); };
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
@@ -166,7 +232,7 @@ function renderLocationRows(locations, dir) {
 
 // ─── Arcane Modal ──────────────────────────────────────────────────────────────
 
-export function openArcaneModal({ name, imageUrl, dropInfo, owned, totalNeeded, uniqueName, onOwnedChange }) {
+export function openArcaneModal({ name, rawName, imageUrl, dropInfo, owned, totalNeeded, uniqueName, onOwnedChange }) {
   const needed = Math.max(0, totalNeeded - owned);
 
   const body = `
@@ -176,6 +242,7 @@ export function openArcaneModal({ name, imageUrl, dropInfo, owned, totalNeeded, 
           <img src="${imageUrl}" alt="${name}" onerror="this.src=''" />
         </div>
         <div class="modal-item-name">${name}</div>
+        ${marketButtonHTML(rawName || name, 'arcane')}
         <div class="modal-item-counter">
           <label>${t('label.owned')}</label>
           <div class="modal-counter-row">
@@ -193,6 +260,7 @@ export function openArcaneModal({ name, imageUrl, dropInfo, owned, totalNeeded, 
   `;
 
   openModal(name, body, 'arcane');
+  bindMarketButtons(modalBody);
 
 let currentOwned = owned;
   const display = document.getElementById('modalCounterDisplay');
@@ -399,6 +467,7 @@ export function openPrimeCardModal(prime, imageUrl, getDropTableHTML, onComponen
             <img src="${imageUrl}" alt="${tPrimeName(prime.name)}" onerror="this.src=''" />
           </div>
           <div class="modal-item-name">${tPrimeName(prime.name)}</div>
+          ${marketButtonHTML(prime.name, 'prime', prime.components)}
           <div class="modal-prime-components">
             ${prime.components.map(comp => `
               <label class="component ${comp.isOwned ? 'owned' : ''} ${comp.isMainItem ? 'main-item' : ''}">
@@ -452,6 +521,7 @@ export function openPrimeCardModal(prime, imageUrl, getDropTableHTML, onComponen
 
   openModal(tPrimeName(prime.name), renderBody(), 'prime');
   rebind();
+  bindMarketButtons(modalBody);
   if (!prime.isSpecial) bindRelicButtons();
   modalBox._primeOnClose = () => {
     if (dirty) onClose();

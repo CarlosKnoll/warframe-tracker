@@ -198,6 +198,33 @@ async function init() {
   }
 }
 
+// ─── Market cross-reference ────────────────────────────────────────────────────
+// Fired by modal.js (and mods/modal.js) when the user clicks "Search in Market".
+// Using an event keeps the modal files decoupled from the lazily-loaded market module.
+
+window.addEventListener('open-in-market', async (e) => {
+  const { name, itemType } = e.detail;
+
+  // Switch to market tab. If it hasn't been initialised yet, the nav handler
+  // does an async import + initMarket() before resolving — we need to wait for
+  // that before calling autoSearchMarket, so we trigger init manually here and
+  // let the nav handler handle the rest (active state, section visibility, etc).
+  const marketBtn = document.querySelector('.nav-btn[data-section="market"]');
+  if (!marketInitialized) {
+    // Kick off the tab switch which will import + init the module.
+    if (marketBtn) marketBtn.click();
+    // Wait for initMarket to finish — poll until marketModule is ready.
+    await new Promise(resolve => {
+      const check = () => marketModule?.autoSearchMarket ? resolve() : requestAnimationFrame(check);
+      check();
+    });
+  } else {
+    if (marketBtn) marketBtn.click();
+  }
+
+  marketModule.autoSearchMarket(name, itemType);
+});
+
 // ─── Grid size slider ──────────────────────────────────────────────────────────
 
 const gridSlider = document.getElementById('gridSizeSlider');
