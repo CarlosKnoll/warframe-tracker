@@ -337,6 +337,7 @@ export async function loadResurgenceRelics() {
     if (cached && cached.expiry && new Date(cached.expiry) > new Date()) {
       // Cache is still valid — hydrate state and return
       state.resurgenceRelics = new Set(cached.relicNames);
+      state.resurgenceExpiry = cached.expiry;
       return;
     }
   } catch (e) {
@@ -389,6 +390,7 @@ export async function loadResurgenceRelics() {
 
   // 5. Hydrate state
   state.resurgenceRelics = new Set(matched);
+  state.resurgenceExpiry = expiry;
 
   // 6. Persist to disk
   try {

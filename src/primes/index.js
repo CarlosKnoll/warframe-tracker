@@ -3,7 +3,7 @@
 import { state } from './state.js';
 import { loadPrimes } from './loader.js';
 import { renderPrimes, initPrimeImageCache } from './renderer.js';
-import { initFilters, updateCategoryFilters } from './filters.js';
+import { initFilters, updateCategoryFilters, startResurgenceCountdown } from './filters.js';
 import { t } from '../i18n.js';
 
 export async function initPrimes(ownedData, ignoredData, saveFn) {
@@ -19,6 +19,8 @@ export async function initPrimes(ownedData, ignoredData, saveFn) {
   // Load disk image cache into memory before any cards are rendered
   await initPrimeImageCache();
   await loadPrimes();
+
+  startResurgenceCountdown();
 
   document.getElementById("founderToggle").checked = state.showFounderItems;
   document.getElementById("specialToggle").checked = state.showSpecialItems;

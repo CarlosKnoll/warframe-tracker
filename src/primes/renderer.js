@@ -184,6 +184,7 @@ export function renderPrimes() {
     let vaultMatch = true;
     if (state.vaultStatus === "Available") vaultMatch = !p.vaulted || p.resurgence;
     else if (state.vaultStatus === "Vaulted") vaultMatch = p.vaulted && !p.resurgence;
+    else if (state.vaultStatus === "Resurgence") vaultMatch = !!p.resurgence;
 
     return nameMatch && catMatch && vaultMatch;
   });

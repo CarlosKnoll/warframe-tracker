@@ -131,14 +131,17 @@
 
       <div id="primesSection" class="tracker-section">
         <div class="section-toolbar">
-          <div class="search-container">
-            <input
-              id="primeSearch"
-              type="text"
-              data-i18n-placeholder="search.primes.placeholder"
-              placeholder="Search primes..."
-            />
-            <button id="clearPrimeSearch" class="clear-search-btn" data-i18n-title="search.clear.title" title="Clear search">✕</button>
+          <div id="primesSearchRow">
+            <div class="search-container">
+              <input
+                id="primeSearch"
+                type="text"
+                data-i18n-placeholder="search.primes.placeholder"
+                placeholder="Search primes..."
+              />
+              <button id="clearPrimeSearch" class="clear-search-btn" data-i18n-title="search.clear.title" title="Clear search">✕</button>
+            </div>
+            <span id="resurgenceCountdown"></span>
           </div>
           <div id="primeFilters">
             <button data-cat="All" data-i18n="filter.all">All</button>
@@ -157,6 +160,7 @@
               <button data-vault="All" class="active" data-i18n="filter.all">All</button>
               <button data-vault="Available" data-i18n="filter.available">Available</button>
               <button data-vault="Vaulted" data-i18n="filter.vaulted">Vaulted</button>
+              <button data-vault="Resurgence" data-i18n="filter.resurgence">Resurgence</button>
             </div>
             <div id="founderFilter">
               <label>

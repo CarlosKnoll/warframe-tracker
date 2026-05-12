@@ -82,9 +82,12 @@
   "filter.all": "Todos",
   "filter.available": "Disponível",
   "filter.vaulted": "No Cofre",
+  "filter.resurgence": "Ressurgência",
   "filter.showFounder": "Exibir Itens Founder",
   "filter.showSpecial": "Exibir Itens Especiais",
   "filter.dropSource": "Fontes de Drop:",
+
+  "resurgence.countdown": "Ressurgência termina em {{time}}",
 
   "category.all": "Todos",
   "category.warframe": "Warframe",

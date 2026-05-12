@@ -1,3 +1,50 @@
+/* ─── Primes search row (search + countdown on same line) ───────────────────── */
+
+#primesSearchRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  width: 100%;
+
+  min-height: 36px;
+}
+
+#primesSearchRow .search-container {
+  display: flex;
+  align-items: center;
+}
+
+#primesSearchRow .search-container input {
+  margin: 0;
+}
+
+/* ─── Resurgence countdown ──────────────────────────────────────────────────── */
+
+#resurgenceCountdown {
+  margin: 0;
+  padding: 0;
+
+  display: flex;
+  align-items: center;
+
+  white-space: nowrap;
+  font-size: 0.75rem;
+  font-weight: 600;
+  line-height: 1;
+
+  color: #d08a3a;
+  opacity: 0.85;
+  letter-spacing: 0.3px;
+
+  flex-shrink: 0;
+  margin-left: auto;
+  margin-bottom: 12px;
+}
+
+#resurgenceCountdown[hidden] {
+  display: none !important;
+}
 /* ─── Filter rows spacing ───────────────────────────────────────────────────── */
 
 #filters, #primeFilters, #primeVaultAndFounder, #dropFilters {
@@ -152,3 +199,11 @@
 }
 
 .clear-search-btn:hover { opacity: 1; }
+
+/* ─── Resurgence vault filter button — active uses orange accent ────────────── */
+
+#primeVaultFilter button[data-vault="Resurgence"].active {
+  background: rgba(208, 138, 58, 0.12);
+  border-color: #d08a3a;
+  color: #d08a3a;
+}

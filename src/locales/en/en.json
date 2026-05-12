@@ -79,9 +79,12 @@
   "filter.all": "All",
   "filter.available": "Available",
   "filter.vaulted": "Vaulted",
+  "filter.resurgence": "Resurgence",
   "filter.showFounder": "Show Founder Items",
   "filter.showSpecial": "Show Special Items",
   "filter.dropSource": "Drop Source:",
+
+  "resurgence.countdown": "Resurgence ends in {{time}}",
 
   "category.all": "All",
   "category.warframe": "Warframe",

@@ -2,6 +2,59 @@
 
 import { state } from './state.js';
 import { renderPrimes } from './renderer.js';
+import { t } from '../i18n.js';
+
+// ─── Resurgence countdown ──────────────────────────────────────────────────────
+
+let countdownInterval = null;
+
+function formatCountdown(expiryIso) {
+  const now = Date.now();
+  const end = new Date(expiryIso).getTime();
+  const diff = end - now;
+
+  if (diff <= 0) return null;
+
+  const totalSeconds = Math.floor(diff / 1000);
+  const days    = Math.floor(totalSeconds / 86400);
+  const hours   = Math.floor((totalSeconds % 86400) / 3600);
+  const minutes = Math.floor((totalSeconds % 3600) / 60);
+  const seconds = totalSeconds % 60;
+
+  const pad = n => String(n).padStart(2, '0');
+
+  if (days > 0) return `${days}d ${pad(hours)}h ${pad(minutes)}m`;
+  return `${pad(hours)}h ${pad(minutes)}m ${pad(seconds)}s`;
+}
+
+function updateCountdown() {
+  const el = document.getElementById('resurgenceCountdown');
+  if (!el) return;
+
+  if (!state.resurgenceExpiry) {
+    el.textContent = '';
+    el.hidden = true;
+    return;
+  }
+
+  const label = formatCountdown(state.resurgenceExpiry);
+  if (!label) {
+    el.textContent = '';
+    el.hidden = true;
+    return;
+  }
+
+  el.hidden = false;
+  el.textContent = t('resurgence.countdown', { time: label });
+}
+
+export function startResurgenceCountdown() {
+  updateCountdown();
+  if (countdownInterval) clearInterval(countdownInterval);
+  countdownInterval = setInterval(updateCountdown, 1000);
+}
+
+// ─── Filter init ───────────────────────────────────────────────────────────────
 
 export function initFilters() {
   const searchInput = document.getElementById("primeSearch");
