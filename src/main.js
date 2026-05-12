@@ -47,10 +47,13 @@ function setActiveNavButton(section) {
     const subBtn = document.querySelector(`.nav-sub-btn[data-section="${section}"]`);
     subBtn?.classList.add('active');
     masteryToggle?.classList.add('has-active');
+    updateGridSliderVisibility(subBtn);
   } else {
     const btn = document.querySelector(`.nav-btn[data-section="${section}"]`);
     btn?.classList.add('active');
+    updateGridSliderVisibility(btn);
   }
+  
 }
 
 // ─── Language switcher ─────────────────────────────────────────────────────────
@@ -196,6 +199,14 @@ async function init() {
   } catch (err) {
     console.error("Initialization error:", err);
   }
+
+  const initialActive = document.querySelector(
+    ".nav-btn.active, .nav-sub-btn.active"
+  );
+
+  if (initialActive) {
+    updateGridSliderVisibility(initialActive);
+  }
 }
 
 // ─── Market cross-reference ────────────────────────────────────────────────────
@@ -271,3 +282,13 @@ function updateSliderRange() {
 
 window.addEventListener('resize', updateSliderRange);
 updateSliderRange(); // run once on init
+
+// ─── Grid Slider Visibility ───────────────────────────────────────────────────
+
+const gridSizeControl = document.getElementById("gridSizeControl");
+
+function updateGridSliderVisibility(activeButton) {
+  const hasGrid = activeButton.dataset.hasGrid === "true";
+
+  gridSizeControl.style.display = hasGrid ? "" : "none";
+}
