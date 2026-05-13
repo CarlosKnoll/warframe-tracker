@@ -93,7 +93,6 @@
   font-size: 1.2rem;
   font-weight: 600;
   color: #c9a84c;
-  padding-bottom: 8px;
 }
 
 .market-view-toggle {
@@ -511,13 +510,15 @@
   display: flex;
   align-items: center;   /* was: center */
   gap: 12px;
+  height: 72px; 
   margin-bottom: 12px;
+  flex-shrink: 0;
 }
 
 .market-item-img {
-  width: auto;            /* was: 64px */
+  width: 72px;            /* was: 64px */
   max-width: 80px;
-  height: auto;           /* was: 64px */
+  height: 72px;           /* was: 64px */
   object-fit: contain;
   flex-shrink: 0;
   align-self: center;

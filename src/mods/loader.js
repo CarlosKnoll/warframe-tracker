@@ -3,6 +3,8 @@
 import { state, MODS_URLS, WM_ITEMS_URL, WM_STATIC_BASE, WFCD_IMG_BASE } from './state.js';
 import { CUSTOM_DROP_SOURCES } from './drop_sources.js';
 
+const WM_MAP_CACHE_VERSION = 2; // bump this whenever the key format changes
+
 // Tauri's invoke is injected as a global by the Tauri runtime (no bundler needed).
 // Falls back to null so the module still loads in a plain browser context.
 // Tauri v2 without a bundler exposes invoke via __TAURI_INTERNALS__, not __TAURI__.core.
@@ -217,7 +219,7 @@ async function buildWmImageMap() {
       const cached = await invoke('load_wm_map_cache');
       if (cached && cached.cachedAt && cached.map) {
         const age = Date.now() - new Date(cached.cachedAt).getTime();
-        if (age < WM_MAP_CACHE_TTL_MS) {
+        if (age < WM_MAP_CACHE_TTL_MS && cached.version === WM_MAP_CACHE_VERSION) {
           _wmMap = cached.map;
           return _wmMap;
         }
@@ -254,8 +256,8 @@ async function buildWmImageMap() {
       if (!hash) continue;
   
       // derive url_name from the icon path: "items/images/en/secura_dual_cestra.HASH.png"
-      const fileName = icon.split('/').pop();               // "secura_dual_cestra.HASH.png"
-      const urlName  = fileName.replace(`.${hash}.png`, ''); // "secura_dual_cestra"
+      const fileName = icon.split('/').pop();
+      const urlName  = fileName.replace(`.${hash}.png`, '').replace(`.${hash}.webp`, '');
 
       if (WM_EXCLUDE.has(urlName)) continue;
   
@@ -265,7 +267,7 @@ async function buildWmImageMap() {
     // ── Persist to disk cache ───────────────────────────────────────────────
     try {
       await invoke('save_wm_map_cache', {
-        data: { cachedAt: new Date().toISOString(), map: _wmMap },
+        data: { cachedAt: new Date().toISOString(), version: WM_MAP_CACHE_VERSION, map: _wmMap },
       });
     } catch (e) {
       console.warn('WM map cache write failed:', e);

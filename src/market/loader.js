@@ -13,11 +13,16 @@ const invoke = window.__TAURI_INTERNALS__?.invoke
 let _wmMap = null;
 
 async function getWmMap() {
-  if (_wmMap) return _wmMap;
+  if (_wmMap) {
+    console.log('[wmMap] returning cached, size:', Object.keys(_wmMap).length);
+    return _wmMap;
+  }
   try {
     const cached = invoke ? await invoke('load_wm_map_cache') : null;
+    console.log('[wmMap] loaded from disk, map size:', cached?.map ? Object.keys(cached.map).length : 0);
     _wmMap = (cached?.map && typeof cached.map === 'object') ? cached.map : {};
-  } catch {
+  } catch (e) {
+    console.log('[wmMap] load failed:', e);
     _wmMap = {};
   }
   return _wmMap;
@@ -30,26 +35,30 @@ const INITIAL_COUNT = 10;
 // are silently discarded instead of overwriting a newer search.
 let searchGeneration = 0;
 
+const WARFRAME_PARTS = ['neuroptics', 'chassis', 'systems', 'harness'];
+
 export function getSlug(itemName, type = 'prime') {
   const normalized = itemName.toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
     .trim();
 
-  // Zid-an family uses dash separators instead of underscores
   const usesDashSeparator = normalized.startsWith('zid-an ');
 
   let result = usesDashSeparator
     ? normalized.replace(/\s+/g, '-')
     : normalized.replace(/\s+/g, '_');
 
-  // Append _set only for full prime sets (slug ends exactly with "_prime").
-  // Components like "ash_prime_neuroptics" are left unchanged.
   if (
     type === 'prime' &&
     result.endsWith('_prime') &&
     !result.includes('_set')
   ) {
     result = result + '_set';
+  }
+
+  const endsWithPart = WARFRAME_PARTS.some(part => result.endsWith(`_${part}`));
+  if (type === 'prime' && endsWithPart && !result.endsWith('_blueprint')) {
+    result = result + '_blueprint';
   }
 
   return result;
@@ -141,7 +150,12 @@ export async function performSearch(slug, callback, targetCount = 50, rankFilter
   try {
     const displayName = getDisplayNameFromSlug(slug);
     const wmMap = await getWmMap();
-    const imgUrl = wmMap[slug] ?? null;
+    // const imgUrl = wmMap[slug]
+    //     ?? (slug.endsWith('_blueprintgithub') ? wmMap[slug.replace(/_blueprint$/, '')] ?? null : null);
+    const stripped = slug.endsWith('_blueprint') ? slug.replace(/_blueprint$/, '') : null;
+    console.log('[market img]', { slug, direct: wmMap[slug], stripped, strippedResult: stripped ? wmMap[stripped] : 'n/a' });
+    const imgUrl = wmMap[slug]
+        ?? (stripped ? wmMap[stripped] ?? null : null);
     const orders = await fetchOrders(slug, displayName, targetCount, rankFilter);
 
     if (searchGeneration !== myGen) return;

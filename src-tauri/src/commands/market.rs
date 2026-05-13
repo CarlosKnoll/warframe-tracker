@@ -93,7 +93,8 @@ pub async fn fetch_market_orders_stream(
 ) -> Result<MarketStreamResult, String> {
     let client = reqwest::Client::builder()
         .user_agent("WarframeCollectionTracker/1.0")
-        .timeout(std::time::Duration::from_secs(60))
+        .connect_timeout(std::time::Duration::from_secs(5))
+        .timeout(std::time::Duration::from_secs(30))
         .gzip(true)
         .brotli(true)
         .build()
@@ -118,11 +119,21 @@ pub async fn fetch_market_orders_stream(
     );
 
     let response = client
-        .get(&url)
-        .headers(headers)
-        .send()
-        .await
-        .map_err(|e| format!("Request failed: {}", e))?;
+    .get(&url)
+    .headers(headers)
+    .send()
+    .await
+    .map_err(|e| {
+        if e.is_timeout() {
+            "The request timed out — the Warframe Market API did not respond in time. Try again.".to_string()
+        } else if e.is_connect() {
+            "Could not connect to Warframe Market. Check your internet connection.".to_string()
+        } else if e.is_request() {
+            format!("Request error: {}", e)
+        } else {
+            format!("Network error: {}", e)
+        }
+    })?;
 
     if !response.status().is_success() {
         return Err(format!(
@@ -155,7 +166,7 @@ pub async fn fetch_market_orders_stream(
     let mut cursor: usize = 0;
 
     'stream: while let Some(chunk_result) = stream.next().await {
-        let chunk = chunk_result.map_err(|e| format!("Stream error: {}", e))?;
+        let chunk = chunk_result.map_err(|e| format!("Connection dropped while receiving data: {}", e))?;
         let chunk_len = chunk.len();
         let buf_before = buffer.len();
         buffer.push_str(&String::from_utf8_lossy(&chunk));
