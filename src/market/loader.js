@@ -14,15 +14,12 @@ let _wmMap = null;
 
 async function getWmMap() {
   if (_wmMap) {
-    console.log('[wmMap] returning cached, size:', Object.keys(_wmMap).length);
     return _wmMap;
   }
   try {
     const cached = invoke ? await invoke('load_wm_map_cache') : null;
-    console.log('[wmMap] loaded from disk, map size:', cached?.map ? Object.keys(cached.map).length : 0);
     _wmMap = (cached?.map && typeof cached.map === 'object') ? cached.map : {};
   } catch (e) {
-    console.log('[wmMap] load failed:', e);
     _wmMap = {};
   }
   return _wmMap;
@@ -97,8 +94,6 @@ async function fetchOrders(slug, displayName, targetCount, rankFilter = 'all') {
     rankFilter: rankFilterValue,
   });
 
-  console.log('[market] stream result:', result);
-
   const sellOrders = Array.isArray(result?.new_sell_orders) ? result.new_sell_orders : [];
   const buyOrders  = Array.isArray(result?.new_buy_orders)  ? result.new_buy_orders  : [];
 
@@ -153,7 +148,6 @@ export async function performSearch(slug, callback, targetCount = 50, rankFilter
     // const imgUrl = wmMap[slug]
     //     ?? (slug.endsWith('_blueprintgithub') ? wmMap[slug.replace(/_blueprint$/, '')] ?? null : null);
     const stripped = slug.endsWith('_blueprint') ? slug.replace(/_blueprint$/, '') : null;
-    console.log('[market img]', { slug, direct: wmMap[slug], stripped, strippedResult: stripped ? wmMap[stripped] : 'n/a' });
     const imgUrl = wmMap[slug]
         ?? (stripped ? wmMap[stripped] ?? null : null);
     const orders = await fetchOrders(slug, displayName, targetCount, rankFilter);

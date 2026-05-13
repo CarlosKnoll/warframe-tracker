@@ -143,14 +143,12 @@ export async function fetchWorldstate() {
 
   // sortie — expires per its own API expiry field (16:00 UTC, not midnight)
   if (isFresh('sortie')) {
-    console.log('Using cached sortie data');
     state.sortieData = state.worldstateCache[getCacheKey('sortie')].data;
   } else {
-    console.log('Fetching new sortie data');
     try {
       const data = await fetchJson(`${BASE}/pc/${lang}/sortie`);
       state.sortieData = data;
-      console.log('Fetched sortie data:', data);
+
       store('sortie', data, data.expiry ?? dailyExpiry);
     } catch {
       state.sortieData = null;

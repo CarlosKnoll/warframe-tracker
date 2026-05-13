@@ -94,7 +94,7 @@ pub async fn fetch_market_orders_stream(
     let client = reqwest::Client::builder()
         .user_agent("WarframeCollectionTracker/1.0")
         .connect_timeout(std::time::Duration::from_secs(5))
-        .timeout(std::time::Duration::from_secs(30))
+        .timeout(std::time::Duration::from_secs(15))
         .gzip(true)
         .brotli(true)
         .build()
@@ -170,7 +170,6 @@ pub async fn fetch_market_orders_stream(
         let chunk_len = chunk.len();
         let buf_before = buffer.len();
         buffer.push_str(&String::from_utf8_lossy(&chunk));
-        eprintln!("[market] chunk bytes={} buf_before={} buf_after={} cursor={}", chunk_len, buf_before, buffer.len(), cursor);
 
         let mut i = cursor;
         let mut objects_this_chunk = 0usize;
@@ -182,7 +181,6 @@ pub async fn fetch_market_orders_stream(
                 // Scan for "data":[ — the opening of the orders array.
                 if buffer[i..].starts_with("\"data\":[") {
                     in_data = true;
-                    eprintln!("[market] found data:[ at i={}", i);
                     i += 8; // skip `"data":[`
                     continue;
                 }
@@ -200,7 +198,6 @@ pub async fn fetch_market_orders_stream(
                     brace_depth = 1;
                 } else if ch == ']' {
                     // End of the data array — no more orders.
-                    eprintln!("[market] hit ] at i={}, breaking", i);
                     break 'stream;
                 }
                 i += 1;
@@ -253,9 +250,6 @@ pub async fn fetch_market_orders_stream(
 
             i += 1;
         }
-
-        eprintln!("[market] chunk done: objects_this_chunk={} total_processed={} i={} buf_len={} in_object={} in_data={}", 
-            objects_this_chunk, total_processed, i, buffer.len(), in_object, in_data);
 
         // Buffer + cursor management.
         // Mid-object: leave buffer intact (object_start and brace_depth are live
@@ -320,8 +314,6 @@ struct RawUser {
 }
 
 fn parse_order(obj_str: &str) -> Option<CompactOrder> {
-    eprintln!("[market] raw obj: {}", &obj_str[..obj_str.len().min(300)]);  // ← add this
-    
     let raw: RawOrder = serde_json::from_str(obj_str).ok()?;
 
     // Skip invisible orders.

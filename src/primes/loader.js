@@ -35,7 +35,6 @@ export async function loadPrimes() {
           + ' relic';
         state.relicUniqueNameMap.set(relic.uniqueName, displayKey);
       }
-      console.log('[Relics] relicUniqueNameMap size:', state.relicUniqueNameMap.size);
     } 
 
     // ── Process mission rewards → farmableRelics + relicLocationMap ──────────
@@ -95,10 +94,6 @@ export async function loadPrimes() {
           }
         }
       });
-      console.log('[Relics] relicUniqueNameMap size:', state.relicUniqueNameMap.size);
-      console.log('[Relics] sample uniqueName entry:', [...state.relicUniqueNameMap.entries()][0]);
-      console.log('[Relics] intactRelics count:', intactRelics.length);
-      console.log('[Relics] sample relic:', intactRelics[0]);
     } else {
       console.error("Error loading relics data:", relicsResult.reason);
     }
@@ -380,13 +375,7 @@ export async function loadResurgenceRelics() {
   }
 
   // 4. Resolve uniqueNames → display names via reverse map
-  const matched = resolveResurgenceUniqueNames(resurgenceNames);
-  console.log('[Resurgence] raw normalized uniqueNames from API:', resurgenceNames);
-  console.log('[Resurgence] relicUniqueNameMap size:', state.relicUniqueNameMap.size);
-  // Sample a few entries from the map to confirm it populated
-  const sample = [...state.relicUniqueNameMap.entries()].slice(0, 5);
-  console.log('[Resurgence] relicUniqueNameMap sample:', sample);
-  
+  const matched = resolveResurgenceUniqueNames(resurgenceNames);  
 
   // 5. Hydrate state
   state.resurgenceRelics = new Set(matched);
@@ -409,8 +398,6 @@ function resolveResurgenceUniqueNames(uniqueNames) {
     if (displayName) matched.push(displayName);
     // else: uniqueName not found in WFCD data — silently skip
   }
-
-  console.log('[Resurgence] relics resolved:', state.resurgenceRelics.size, [...state.resurgenceRelics]);
 
   return matched;
 }
