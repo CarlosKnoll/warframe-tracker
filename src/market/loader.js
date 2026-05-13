@@ -10,6 +10,19 @@ const invoke = window.__TAURI_INTERNALS__?.invoke
   ?? window.__TAURI__?.tauri?.invoke
   ?? null;
 
+let _wmMap = null;
+
+async function getWmMap() {
+  if (_wmMap) return _wmMap;
+  try {
+    const cached = invoke ? await invoke('load_wm_map_cache') : null;
+    _wmMap = (cached?.map && typeof cached.map === 'object') ? cached.map : {};
+  } catch {
+    _wmMap = {};
+  }
+  return _wmMap;
+}
+
 // Initial visible count and how many to add on "load more".
 const INITIAL_COUNT = 10;
 
@@ -127,6 +140,8 @@ export async function performSearch(slug, callback, targetCount = 50, rankFilter
 
   try {
     const displayName = getDisplayNameFromSlug(slug);
+    const wmMap = await getWmMap();
+    const imgUrl = wmMap[slug] ?? null;
     const orders = await fetchOrders(slug, displayName, targetCount, rankFilter);
 
     if (searchGeneration !== myGen) return;
@@ -138,6 +153,7 @@ export async function performSearch(slug, callback, targetCount = 50, rankFilter
     const results = {
       slug,
       displayName,
+      imgUrl,
       totalSellCount: orders.sell.length,
       totalBuyCount:  orders.buy.length,
       streamingStats: {
@@ -148,7 +164,12 @@ export async function performSearch(slug, callback, targetCount = 50, rankFilter
       lastUpdated: Date.now(),
     };
 
-    orderCache.set(cacheKey, { data: results, allOrders: state.allOrders, maxRank: state.maxRank, timestamp: Date.now() });
+    orderCache.set(cacheKey, {
+        data: results,          // imgUrl is already inside results
+        allOrders: state.allOrders,
+        maxRank: state.maxRank,
+        timestamp: Date.now()
+    });
     state.currentResults = results;
     state.loading = false;
 

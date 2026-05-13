@@ -50,6 +50,7 @@ export function renderMarketResults(container, results) {
   const globalMaxRank = allBothSides.reduce((max, o) => Math.max(max, o.rank ?? 0), 0);
 
   updateRankFilterVisibility(globalMaxRank > 0);
+  updateViewToggle(view);
 
   // Orders are already rank-filtered server-side; just sort and paginate.
   const sorted    = sortOrders(allViewOrders, state.sort[view]);
@@ -59,6 +60,7 @@ export function renderMarketResults(container, results) {
 
   // Push count into the controls row (lives outside #marketResults).
   updateOrderCount(displayed.length, sorted.length);
+  updateViewToggle(view);
 
   // Rebuild whisper map for displayed orders.
   whisperMessages.clear();
@@ -73,11 +75,14 @@ export function renderMarketResults(container, results) {
   const arrow    = (col) => s.key === col ? (s.dir === 'asc' ? ' ↑' : ' ↓') : '';
   const hdrClass = (col) => s.key === col ? 'sorted' : '';
 
+  const imgHtml = results.imgUrl
+  ? `<img class="market-item-img" src="${results.imgUrl}" alt="${escapeHtml(results.displayName)}" draggable="false" />`
+  : '';
+
   let html = `
-    <div class="market-item-name">${escapeHtml(results.displayName)}</div>
-    <div class="market-view-toggle">
-      <button class="market-view-btn ${view === 'sell' ? 'active' : ''}" data-view="sell">💰 ${t('market.sell')}</button>
-      <button class="market-view-btn ${view === 'buy'  ? 'active' : ''}" data-view="buy">🛒 ${t('market.buy')}</button>
+    <div class="market-item-header">
+        ${imgHtml}
+        <div class="market-item-name">${escapeHtml(results.displayName)}</div>
     </div>
     <div class="market-list-header">
       <span class="sortable ${hdrClass('user')}"     data-sort="user"     >${t('market.colSeller')}${arrow('user')}</span>
@@ -194,13 +199,17 @@ function renderOrderRow(order, index, view, globalMaxRank = 0) {
 
 function bindEvents(container) {
   // View toggle
-  container.querySelectorAll('.market-view-btn').forEach(btn => {
-    btn.onclick = () => {
-      state.currentView = btn.dataset.view;
-      copiedStates.clear();
-      renderMarketResults(container, currentResults);
-    };
-  });
+  const viewToggle = document.getElementById('marketViewToggle');
+  if (viewToggle && !viewToggle.dataset.bound) {
+    viewToggle.dataset.bound = 'true';
+    viewToggle.querySelectorAll('[data-view]').forEach(btn => {
+      btn.onclick = () => {
+        state.currentView = btn.dataset.view;
+        copiedStates.clear();
+        renderMarketResults(currentContainer, currentResults);
+      };
+    });
+  }
 
   // Sortable column headers
   container.querySelectorAll('.sortable').forEach(hdr => {
@@ -276,4 +285,12 @@ export function refreshCurrentMarketView(container) {
     copiedStates.clear();
     renderMarketResults(container, currentResults);
   }
+}
+
+function updateViewToggle(view) {
+  const group = document.getElementById('marketViewToggle');
+  if (!group) return;
+  group.querySelectorAll('[data-view]').forEach(btn => {
+    btn.classList.toggle('active', btn.dataset.view === view);
+  });
 }

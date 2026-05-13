@@ -141,6 +141,12 @@
               <button class="market-rank-filter-btn active" data-rank-filter="all" data-i18n="market.rank.all">All</button>
               <button class="market-rank-filter-btn"        data-rank-filter="maxed" data-i18n="market.rank.maxed">Maxed</button>
             </div>
+
+            <!-- Sell / Buy toggle — active class managed by renderer -->
+            <div class="market-control-group" id="marketViewToggle">
+              <button class="market-rank-filter-btn active" data-view="sell" data-i18n="market.sell">💰 Sell</button>
+              <button class="market-rank-filter-btn"        data-view="buy"  data-i18n="market.buy">🛒 Buy</button>
+            </div>
         
             <!-- Order count — written by renderer, pushed to the right -->
             <span class="market-order-count" id="marketOrderCount"></span>

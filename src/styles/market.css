@@ -93,26 +93,13 @@
   font-size: 1.2rem;
   font-weight: 600;
   color: #c9a84c;
-  margin-bottom: 16px;
   padding-bottom: 8px;
-  border-bottom: 1px solid #2b3248;
 }
 
 .market-view-toggle {
   display: flex;
   gap: 12px;
   margin-bottom: 16px;
-}
-
-.market-view-btn {
-  padding: 6px 20px;
-  background: transparent;
-  border: 1px solid #2b3248;
-  color: rgba(255, 255, 255, 0.6);
-  border-radius: 20px;
-  cursor: pointer;
-  font-size: 0.85rem;
-  transition: all 0.15s;
 }
 
 .market-view-btn:hover {
@@ -420,7 +407,7 @@
   align-items: center;
   gap: 16px;
   flex-wrap: wrap;
-  padding: 8px 25px;
+  padding: 8px 25px 0px;
 }
 
 .market-control-group {
@@ -518,4 +505,20 @@
   flex: 1;
   overflow-y: auto;
   min-height: 0;   /* required for flex children to shrink below content size */
+}
+
+.market-item-header {
+  display: flex;
+  align-items: center;   /* was: center */
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.market-item-img {
+  width: auto;            /* was: 64px */
+  max-width: 80px;
+  height: auto;           /* was: 64px */
+  object-fit: contain;
+  flex-shrink: 0;
+  align-self: center;
 }

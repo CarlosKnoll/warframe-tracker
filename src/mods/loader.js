@@ -370,3 +370,5 @@ function extractDescription(item) {
   }
   return '';
 }
+
+export function getWmMap() { return _wmMap ?? {}; }
