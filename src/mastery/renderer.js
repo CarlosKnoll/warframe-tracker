@@ -270,6 +270,7 @@ function buildCard(item, observer) {
           isOwned: (primesState.owned[comp.uniqueName] ?? 0) > 0,
         }));
 
+        const now = new Date().toISOString().slice(0, 10);
         openPrimeCardModal(
           { ...matchedPrime, components: compsForModal, isSpecial },
           resolvedImg,
@@ -278,7 +279,18 @@ function buildCard(item, observer) {
             primesState.owned[uniqueName] = val;
             try { await primesState.saveFunction(); } catch (err) { console.error('Save failed:', err); }
           },
-          () => { /* no mastery re-render needed */ }
+          async (uniqueName, checked) => {
+            if (checked) masteryState.masteryMastered[uniqueName] = { since: now };
+            else delete masteryState.masteryMastered[uniqueName];
+            card.classList.toggle('mastered', checked);
+            const badge = body.querySelector('.mastery-badge');
+            if (badge) badge.outerHTML = buildBadge(item);
+            const masteredBox = controls.querySelector('[data-action="mastered"]');
+            if (masteredBox) masteredBox.checked = checked;
+            try { await masteryState.saveFunction(); } catch (err) { console.error('Mastery save failed:', err); }
+            document.dispatchEvent(new CustomEvent('mastery-progress-update'));
+          },
+          () => { /* no mastery re-render needed on prime parts ownership change */ }
         );
         return;
       }

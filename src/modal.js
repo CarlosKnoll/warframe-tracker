@@ -455,9 +455,10 @@ function stripRotation(location = '') {
 
 // ─── Prime Modal ───────────────────────────────────────────────────────────────
 
-export function openPrimeCardModal(prime, imageUrl, getDropTableHTML, onComponentChange, onClose) {
+export function openPrimeCardModal(prime, imageUrl, getDropTableHTML, onComponentChange, onMasteredChange, onClose) {
   let dirty = false;
   const renderBody = () => {
+    const isMastered = !!masteryState.masteryMastered[prime.uniqueName];
 
     // Re-read owned state for checkboxes each render
     return `
@@ -469,8 +470,18 @@ export function openPrimeCardModal(prime, imageUrl, getDropTableHTML, onComponen
           <div class="modal-item-name">${tPrimeName(prime.name)}</div>
           ${marketButtonHTML(prime.name, 'prime', prime.components)}
           <div class="modal-prime-components">
-            ${prime.components.map(comp => `
-              <label class="component ${comp.isOwned ? 'owned' : ''} ${comp.isMainItem ? 'main-item' : ''}">
+            ${prime.components.filter(c => c.isMainItem).map(comp => `
+              <label class="component ${comp.isOwned ? 'owned' : ''} main-item">
+                <input type="checkbox" ${comp.isOwned ? 'checked' : ''} data-unique="${comp.uniqueName}" />
+                <span>${comp.displayName}</span>
+              </label>
+            `).join('')}
+            <label class="component ${isMastered ? 'owned' : ''}" id="primeModalMasteredLabel">
+              <input type="checkbox" id="primeModalMastered" ${isMastered ? 'checked' : ''} />
+              <span>${t('mastery.label.mastered')}</span>
+            </label>
+            ${prime.components.filter(c => !c.isMainItem).map(comp => `
+              <label class="component ${comp.isOwned ? 'owned' : ''}">
                 <input type="checkbox" ${comp.isOwned ? 'checked' : ''} data-unique="${comp.uniqueName}" />
                 <span>${comp.displayName}</span>
               </label>
@@ -486,6 +497,15 @@ export function openPrimeCardModal(prime, imageUrl, getDropTableHTML, onComponen
 
   const rebind = () => {
     modalBody.querySelectorAll('input[type="checkbox"]').forEach(checkbox => {
+      if (checkbox.id === 'primeModalMastered') {
+        checkbox.onchange = (e) => {
+          const label = document.getElementById('primeModalMasteredLabel');
+          if (label) label.classList.toggle('owned', e.target.checked);
+          onMasteredChange(prime.uniqueName, e.target.checked);
+        };
+        return;
+      }
+
       checkbox.onchange = (e) => {
         dirty = true;
         const uniqueName = e.target.dataset.unique;

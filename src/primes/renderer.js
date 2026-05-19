@@ -1,6 +1,7 @@
 // primes/renderer.js - Rendering logic for primes list and drop tables
 
 import { state, FOUNDER_ITEMS, PRIME_IMAGE_BASE } from './state.js';
+import { masteryState } from '../mastery/state.js';
 import { openPrimeCardModal } from '../modal.js';
 import { normalizeRelicName } from './loader.js';
 import { t, tRarity, tComponent, tRelicName, tPrimeName, tOrRaw, tMission, parseDropLocation } from '../i18n.js';
@@ -333,6 +334,16 @@ export function renderPrimes() {
             updatePrimeCardTag(p, card);
           } catch (err) {
             console.error("Save failed:", err);
+          }
+        },
+        async (uniqueName, val) => {
+          const key = uniqueName;
+          if (val) masteryState.masteryMastered[key] = true;
+          else delete masteryState.masteryMastered[key];
+          try {
+            await masteryState.saveFunction();
+          } catch (err) {
+            console.error("Mastery save failed:", err);
           }
         },
         () => {
