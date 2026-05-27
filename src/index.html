@@ -16,6 +16,7 @@
   <link rel="stylesheet" href="styles/sidebar.css" />
   <link rel="stylesheet" href="styles/tasks.css" />
   <link rel="stylesheet" href="styles/market.css" />
+  <link rel="stylesheet" href="styles/settings.css" />
 </head>
 <body>
 
@@ -66,6 +67,12 @@
 
         <!-- Market — direct nav button -->
         <button class="nav-btn" data-section="market" data-has-grid="false" data-i18n="mode.market">Market</button>
+
+        <!-- Settings — direct nav button -->
+        <button class="nav-btn" data-section="settings" data-has-grid="false">
+          <span data-i18n="mode.settings">Settings</span>
+          <span class="sync-status-icon" id="syncStatusIcon"></span>
+        </button>
 
       </div>
 
@@ -316,6 +323,39 @@
         </div>
       </div>
 
+      <div id="settingsSection" class="tracker-section">
+        <p class="settings-heading" id="syncHeading"></p>
+
+        <div class="settings-card">
+
+          <!-- Connected state -->
+          <div id="syncConnected" class="hidden">
+            <div class="sync-account-row">
+              <img id="syncAvatar" class="sync-avatar" />
+              <div class="sync-account-info">
+                <div class="sync-name" id="syncName"></div>
+                <div class="sync-email" id="syncEmail"></div>
+                <div class="sync-last-time" id="syncLastTime"></div>
+              </div>
+            </div>
+            <div class="sync-unsynced-badge hidden" id="syncUnsyncedBadge"></div>
+            <div class="settings-btn-row">
+              <button class="settings-btn settings-btn-primary" id="syncNowBtn"></button>
+              <button class="settings-btn settings-btn-ghost"   id="syncDisconnectBtn"></button>
+            </div>
+            <div class="sync-status-indicator" id="syncStatusIndicator"></div>
+          </div>
+
+          <!-- Disconnected state -->
+          <div id="syncDisconnected">
+            <p class="sync-disconnected-text" id="syncDisconnectedText"></p>
+            <div class="settings-btn-row">
+              <button class="settings-btn settings-btn-primary" id="syncConnectBtn"></button>
+            </div>
+          </div>
+
+        </div>
+      </div>
     </main>
   </div>
 

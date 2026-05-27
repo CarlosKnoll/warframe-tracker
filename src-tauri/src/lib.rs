@@ -1,22 +1,18 @@
+// src-tauri/src/lib.rs
 use tauri::Manager;
 use tauri_plugin_log::Builder;
 use tauri_plugin_log::Target;
 use tauri_plugin_log::TargetKind;
 
-
 mod commands;
 mod utils;
 
-
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
-
     tauri::Builder::default()
-
         .setup(|app| {
             #[cfg(debug_assertions)]
             {
-                // In dev, skip updater and show main window directly
                 if let Some(main) = app.get_webview_window("main") {
                     main.show().ok();
                 }
@@ -26,24 +22,27 @@ pub fn run() {
             }
             Ok(())
         })
-
         .plugin(tauri_plugin_opener::init())
         .plugin(tauri_plugin_updater::Builder::new().build())
         .plugin(tauri_plugin_process::init())
         .plugin(
             Builder::new()
                 .level(log::LevelFilter::Info)
-                .level_for("tao::platform_impl::platform::event_loop::runner", log::LevelFilter::Error)
+                .level_for(
+                    "tao::platform_impl::platform::event_loop::runner",
+                    log::LevelFilter::Error,
+                )
                 .target(Target::new(TargetKind::Folder {
                     path: utils::get_install_dir().join("logs"),
                     file_name: Some("updater".into()),
                 }))
-                .build()
+                .build(),
         )
         .invoke_handler(tauri::generate_handler![
             commands::data::load_owned,
             commands::data::save_owned,
             commands::data::load_custom_drops,
+            commands::data::save_custom_drops,
             commands::data::fetch_image_base64,
             commands::data::fetch_json,
             commands::data::get_data_path,
@@ -61,6 +60,7 @@ pub fn run() {
             commands::tasks::save_tasks_cache,
             commands::updater::check_for_updates,
             commands::market::fetch_market_orders_stream,
+            commands::oauth::start_oauth_listener,  // NEW
             utils::js_log,
         ])
         .run(tauri::generate_context!())

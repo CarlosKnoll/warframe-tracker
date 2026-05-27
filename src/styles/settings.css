@@ -1,0 +1,263 @@
+/* settings.css — Settings tab: sync section */
+/* Follows the same design language as sidebar.css and layout.css */
+
+/* ─── Section shell ─────────────────────────────────────────────────────────── */
+
+#settingsSection {
+  padding: 28px 32px;
+  max-width: 520px;
+}
+
+/* ─── Section heading ────────────────────────────────────────────────────────── */
+
+.settings-heading {
+  font-size: 0.7rem;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-muted, rgba(255,255,255,0.35));
+  margin: 0 0 16px;
+}
+
+/* ─── Card container ─────────────────────────────────────────────────────────── */
+
+.settings-card {
+  background: rgba(255,255,255,0.03);
+  border: 1px solid var(--border, rgba(255,255,255,0.08));
+  border-radius: 8px;
+  padding: 20px;
+  margin-bottom: 24px;
+}
+
+/* ─── Connected state ─────────────────────────────────────────────────────────  */
+
+.sync-account-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.sync-account-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--nav-active-bg, rgba(201,168,76,0.12));
+  border: 1px solid rgba(201,168,76,0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  flex-shrink: 0;
+  color: var(--accent, #c9a84c);
+}
+
+.sync-account-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.sync-email {
+  font-size: 0.875rem;
+  color: var(--text, #e5e9f0);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sync-last-time {
+  font-size: 0.75rem;
+  color: var(--text-muted, rgba(255,255,255,0.4));
+  margin-top: 2px;
+}
+
+/* ─── Unsynced badge ──────────────────────────────────────────────────────────  */
+
+.sync-unsynced-badge {
+  display: inline-block;
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #c9a84c;
+  background: rgba(201,168,76,0.12);
+  border: 1px solid rgba(201,168,76,0.3);
+  border-radius: 3px;
+  padding: 2px 6px;
+  margin-bottom: 14px;
+}
+
+.sync-unsynced-badge.hidden { display: none; }
+
+/* ─── Disconnected state ──────────────────────────────────────────────────────  */
+
+.sync-disconnected-text {
+  font-size: 0.875rem;
+  color: var(--text-muted, rgba(255,255,255,0.4));
+  margin-bottom: 16px;
+  line-height: 1.5;
+}
+
+/* ─── Button row ──────────────────────────────────────────────────────────────  */
+
+.settings-btn-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+/* Base button */
+.settings-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 14px;
+  border-radius: 5px;
+  font-size: 0.82rem;
+  font-weight: 500;
+  cursor: pointer;
+  border: 1px solid transparent;
+  transition: background 0.15s, opacity 0.15s;
+  white-space: nowrap;
+}
+
+.settings-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+/* Primary — connect / sync now */
+.settings-btn-primary {
+  background: var(--nav-active-bg, rgba(201,168,76,0.12));
+  border-color: rgba(201,168,76,0.35);
+  color: var(--accent, #c9a84c);
+}
+
+.settings-btn-primary:hover:not(:disabled) {
+  background: rgba(201,168,76,0.2);
+}
+
+/* Ghost — disconnect */
+.settings-btn-ghost {
+  background: transparent;
+  border-color: var(--border, rgba(255,255,255,0.1));
+  color: var(--text-muted, rgba(255,255,255,0.45));
+}
+
+.settings-btn-ghost:hover:not(:disabled) {
+  background: rgba(255,255,255,0.05);
+  color: var(--text, rgba(255,255,255,0.8));
+}
+
+/* ─── Status indicator ────────────────────────────────────────────────────────  */
+
+.sync-status-indicator {
+  font-size: 0.75rem;
+  margin-top: 14px;
+  min-height: 1.1em; /* reserve space so layout doesn't jump */
+}
+
+.status-syncing { color: rgba(255,255,255,0.45); }
+.status-synced  { color: rgba(100,200,120,0.8); }
+.status-updated { color: rgba(100,200,120,0.8); }
+.status-error   { color: rgba(220,80,80,0.85); }
+.status-offline { color: rgba(255,255,255,0.3); }
+
+.sync-avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  margin-right: 12px;
+  object-fit: cover;
+}
+.sync-name {
+  font-weight: 600;
+  margin-bottom: 2px;
+}
+
+.sync-avatar[src=""], .sync-avatar:not([src]) {
+  display: none;
+}
+
+/* ─── Utility ─────────────────────────────────────────────────────────────────  */
+
+.hidden { display: none !important; }
+
+/* ─── Mobile ──────────────────────────────────────────────────────────────────  */
+
+@media (max-width: 768px) {
+  #settingsSection {
+    padding: 20px 16px;
+    max-width: 100%;
+  }
+
+  .settings-btn-row {
+    flex-direction: column;
+  }
+
+  .settings-btn {
+    width: 100%;
+    justify-content: center;
+  }
+}
+
+/* Sync status icon next to Settings button */
+.sync-status-icon {
+  display: inline-block;
+  width: 1.2rem;
+  height: 1.2rem;
+  margin-left: 0.5rem;
+  text-align: center;
+  line-height: 1.2rem;
+  font-size: 0.9rem;
+  transition: opacity 0.15s;
+}
+
+.sync-status-icon,
+.sync-status-icon::before {
+  border: none;
+  outline: none;
+  background: transparent;
+  box-shadow: none;
+}
+
+/* Different states */
+.sync-status-icon.status-ok {
+  color: #4caf50;
+  content: "✓";
+}
+.sync-status-icon.status-ok::before {
+  content: "✓";
+}
+
+.sync-status-icon.status-syncing {
+  color: var(--accent, #c9a84c);
+  animation: spin 0.8s linear infinite;
+}
+.sync-status-icon.status-syncing::before {
+  content: "⟳";
+  display: inline-block;
+}
+
+.sync-status-icon.status-disconnected,
+.sync-status-icon.status-error {
+  color: #f44336;
+}
+.sync-status-icon.status-disconnected::before {
+  content: "⚠️";
+}
+.sync-status-icon.status-error::before {
+  content: "⚠️";
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+/* Align sync icon to the right for Settings button only */
+.nav-btn:has(.sync-status-icon) {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}

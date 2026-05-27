@@ -3,6 +3,7 @@ use serde_json::Value;
 use tauri::AppHandle;
 use std::collections::HashMap;
 use reqwest;
+use crate::utils;
 use base64::{Engine as _, engine::general_purpose};
 use crate::utils::{get_user_data_file, get_custom_drops_file, get_data_dir};
 
@@ -251,4 +252,10 @@ pub fn save_resurgence_cache(data: Value) -> Result<(), String> {
     let path = get_data_dir().join("resurgence_cache.json");
     let content = serde_json::to_string_pretty(&data).map_err(|e| e.to_string())?;
     fs::write(path, content).map_err(|e| e.to_string())
+}
+
+#[tauri::command]
+pub fn save_custom_drops(data: String) -> Result<(), String> {
+    let path = utils::get_data_dir().join("custom_drops.json");
+    std::fs::write(path, data).map_err(|e| e.to_string())
 }

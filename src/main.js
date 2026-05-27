@@ -1,5 +1,8 @@
-import { initI18n, setLanguage } from './i18n.js';
-import { stopExpiryRefresh } from './tasks/index.js';
+import { initI18n, setLanguage, t } from './i18n.js';
+import { registerReloadFn, pullFromDrive, flushPush, onSyncStatus, isSyncInFlight } from './lib/sync.js';
+import { isConnected } from './lib/auth.js';
+import { masteryState } from './mastery/state.js';
+import { getSyncMeta, setSyncMeta } from './lib/storage.js';
 
 const invoke = window.__TAURI_INTERNALS__.invoke;
 
@@ -155,6 +158,10 @@ document.querySelectorAll("#sidebar button[data-section]").forEach(btn => {
       } else {
         marketModule.renderMarket();
       }
+    } else if (section === "settings") {
+      document.getElementById("settingsSection").classList.add("active");
+      const settingsMod = await import('./settings.js');
+      await settingsMod.initSettings();
     }
   };
 });
@@ -171,6 +178,8 @@ async function save() {
         masteryMastered,
       }
     });
+    const { schedulePush } = await import('./lib/sync.js');
+    schedulePush();
     return result;
   } catch (err) {
     console.error("Save error:", err);
@@ -191,6 +200,56 @@ async function init() {
     ignoredPrimes        = new Set(stored.ignoredPrimes        || []);
     ignoredMasteryItems  = new Set(stored.ignoredMasteryItems  || []);
     masteryMastered      = stored.masteryMastered      || {};
+
+    const meta = await getSyncMeta();
+    if (!meta.lastModifiedAt && Object.keys(owned).length > 0) {
+      await setSyncMeta({ ...meta, lastModifiedAt: new Date().toISOString(), hasPendingPush: true });
+    }
+
+    masteryState.saveFunction       = save;
+    masteryState.masteryMastered    = masteryMastered;
+    masteryState.owned              = owned;
+    masteryState.ignoredMasteryItems = ignoredMasteryItems;
+    
+    // Sync pull on startup (will only run if connected)
+    registerReloadFn(async () => {
+      const stored = await invoke('load_owned');
+      Object.keys(owned).forEach(k => delete owned[k]);
+      Object.assign(owned, stored.owned || {});
+
+      ignoredPrimes.clear();
+      (stored.ignoredPrimes || []).forEach(v => ignoredPrimes.add(v));
+
+      ignoredMasteryItems.clear();
+      (stored.ignoredMasteryItems || []).forEach(v => ignoredMasteryItems.add(v));
+
+      Object.keys(masteryMastered).forEach(k => delete masteryMastered[k]);
+      Object.assign(masteryMastered, stored.masteryMastered || {});
+
+      const active = document.querySelector('#sidebar .nav-btn.active, #sidebar .nav-sub-btn.active');
+      if (active) {
+        const section = active.dataset.section;
+        if (section === 'arcanes' && arcanesInitialized) arcanesModule.renderArcanes();
+        else if (section === 'primes' && primesInitialized) primesModule.renderPrimes();
+        else if (section.startsWith('mastery-') && masteryInitialized) masteryModule.renderMastery();
+        else if (section === 'mods' && modsInitialized) modsModule.renderMods();
+        else if (section === 'tasks' && tasksInitialized) tasksModule.renderTasks();
+        else if (section === 'market' && marketInitialized) marketModule.renderMarket();
+        else if (section === 'settings') import('./settings.js').then(m => m.refreshSettings());
+      }
+    });
+
+    // Pull from Drive (if connected)
+    pullFromDrive().catch(console.warn);
+
+    // Flush pending pushes before app closes (if Tauri window API is available)
+    if (window.__TAURI__?.window?.getCurrentWindow) {
+      const currentWindow = window.__TAURI__.window.getCurrentWindow();
+      currentWindow.listen('tauri://close-requested', () => { flushPush(); });
+    } else {
+      // Fallback: listen to beforeunload (less reliable but works in web)
+      window.addEventListener('beforeunload', () => { flushPush(); });
+    }
 
     // Tasks is the new default tab
     tasksModule = await import('./tasks/index.js');
@@ -256,6 +315,57 @@ gridSlider.addEventListener('input', () => {
 export { owned, ignoredPrimes, masteryMastered, save };
 
 init();
+
+// ─── Sync status indicator (Settings button) ─────────────────────────────────
+
+const syncStatusIcon = document.getElementById('syncStatusIcon');
+
+async function updateSyncIcon() {
+  if (!syncStatusIcon) return;
+
+  const connected = await isConnected();
+  const inFlight = isSyncInFlight();
+
+  // Remove all status classes
+  syncStatusIcon.classList.remove('status-ok', 'status-syncing', 'status-disconnected', 'status-error');
+
+  if (!connected) {
+    syncStatusIcon.classList.add('status-disconnected');
+    syncStatusIcon.title = t('sync.status.offline');
+    //'Not connected to Google Drive';
+    return;
+  }
+
+  if (inFlight) {
+    syncStatusIcon.classList.add('status-syncing');
+    syncStatusIcon.title = t('sync.status.syncing');
+    //'Syncing...';
+    return;
+  }
+
+  // Connected and idle
+  syncStatusIcon.classList.add('status-ok');
+  syncStatusIcon.title = t('sync.status.synced')
+  //'Sync up to date';
+}
+
+// Listen to sync status events
+onSyncStatus((status, detail) => {
+  // Trigger update on any sync event
+  updateSyncIcon();
+});
+
+// Also update on visibility change (to catch any missed state)
+document.addEventListener('visibilitychange', () => {
+  if (!document.hidden) updateSyncIcon();
+});
+
+// Initial update after DOM ready
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', updateSyncIcon);
+} else {
+  updateSyncIcon();
+}
 
 // ─── Responsive slider range ───────────────────────────────────────────────────
 
