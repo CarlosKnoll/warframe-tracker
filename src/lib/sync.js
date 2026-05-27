@@ -290,7 +290,6 @@ async function _pushToDriveInternal() {
     customDrops ? driveUpload(SYNC_FILES.customDrops, JSON.stringify(customDrops)) : Promise.resolve(),
     driveUpload(SYNC_FILES.syncMeta, JSON.stringify(syncMetaPayload)),
   ]);
-  console.log('[sync] Uploading owned:', JSON.stringify(owned));
   await setSyncMeta({ ...meta, lastModifiedAt: now, lastSyncedAt: now, hasPendingPush: false });
   emit('synced');
 }
@@ -303,13 +302,13 @@ export async function pushToDrive() {
 }
 
 export function schedulePush() {
-  console.log('[sync] Change detected, scheduling push...');
   if (_pushTimer) clearTimeout(_pushTimer);
   _pushTimer = setTimeout(() => { _pushTimer = null; pushToDrive(); }, 5_000);
 }
 
 export function flushPush() {
-  if (_pushTimer) { clearTimeout(_pushTimer); _pushTimer = null; pushToDrive(); }
+  if (_pushTimer) { clearTimeout(_pushTimer); _pushTimer = null; return pushToDrive(); }
+  return Promise.resolve();
 }
 
 document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'hidden') flushPush(); });

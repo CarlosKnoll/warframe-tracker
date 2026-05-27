@@ -243,11 +243,17 @@ async function init() {
     pullFromDrive().catch(console.warn);
 
     // Flush pending pushes before app closes (if Tauri window API is available)
-    if (window.__TAURI__?.window?.getCurrentWindow) {
-      const currentWindow = window.__TAURI__.window.getCurrentWindow();
-      currentWindow.listen('tauri://close-requested', () => { flushPush(); });
-    } else {
-      // Fallback: listen to beforeunload (less reliable but works in web)
+    try {
+      const { getCurrentWindow } = window.__TAURI__.window;
+      const currentWindow = getCurrentWindow();
+      const unlisten = await currentWindow.listen('tauri://close-requested', async () => {
+        unlisten();
+        console.log("Flushing pending pushes before close...");
+        await flushPush();
+        console.log('flush done');
+        await window.__TAURI__.process.exit(0);
+      });
+    } catch {
       window.addEventListener('beforeunload', () => { flushPush(); });
     }
 
