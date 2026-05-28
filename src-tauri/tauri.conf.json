@@ -58,7 +58,7 @@
       }
     ],
     "security": {
-      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://raw.githubusercontent.com https://api.warframe.market https://api.warframestat.us https://www.googleapis.com https://accounts.google.com https://wfmarket-worker.warframe-tracker.workers.dev https://cdn.jsdelivr.net/gh/CarlosKnoll/warframe-tracker-locales;",
+      "csp": "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; connect-src 'self' https://raw.githubusercontent.com https://api.warframe.market https://api.warframestat.us https://www.googleapis.com https://accounts.google.com https://wfmarket-worker.warframe-tracker.workers.dev https://cdn.jsdelivr.net/;",
       "assetProtocol": {
         "enable": true,
         "scope": ["**"]
