@@ -3,6 +3,8 @@
 const STORAGE_KEY = 'wf-tracker-lang';
 const SUPPORTED_LANGS = ['en', 'pt'];
 const DEFAULT_LANG = 'en';
+const MANIFEST_URL = 'https://raw.githubusercontent.com/CarlosKnoll/warframe-tracker-locales/releases/manifest.json';
+const LOCALE_CDN_BASE = 'https://cdn.jsdelivr.net/gh/CarlosKnoll/warframe-tracker-locales';
 
 let currentLang = DEFAULT_LANG;
 let uiStrings = {};
@@ -20,23 +22,17 @@ export async function initI18n() {
 }
 
 async function loadLocale(lang) {
-  // Step 1: always load English as the baseline
-  // Step 2: overlay the target language on top (missing keys fall through to EN)
-  // Step 3: t() falls back to the key string itself if still not found
+  const version = await fetchManifest();
+
   const [enStrings, targetStrings] = await Promise.all([
-    fetch(`./locales/en/en.json`).then(r => r.json()).catch(() => ({})),
-    lang === 'en'
-      ? Promise.resolve({})
-      : fetch(`./locales/${lang}/${lang}.json`).then(r => r.json()).catch(() => ({})),
+    fetchLocale('en', version),
+    lang === 'en' ? Promise.resolve({}) : fetchLocale(lang, version),
   ]);
 
-  // Target language keys override English; absent keys transparently use EN values
   uiStrings = { ...enStrings, ...targetStrings };
 
-  // Rebuild locationsMap from keys whose prefix is in LOCATION_PREFIXES.
-  // Add any new prefix here to have it participate in tLocation() translation.
-  const LOCATION_PREFIXES = ['loc.', 'mission.', 'quests.', 'planet.', 'gameMode.', 
-                            'dropSource.', 'events.', 'syndicateRank.', 'syndicate.', 
+  const LOCATION_PREFIXES = ['loc.', 'mission.', 'quests.', 'planet.', 'gameMode.',
+                            'dropSource.', 'events.', 'syndicateRank.', 'syndicate.',
                             'npc.', 'enemy.'];
   locationsMap = Object.fromEntries(
     Object.entries(uiStrings)
@@ -46,6 +42,62 @@ async function loadLocale(lang) {
         return [k.slice(prefix.length), v];
       })
   );
+}
+
+const MANIFEST_CACHE_KEY = 'wf-locale-manifest';
+const MANIFEST_TTL_MS    = 60 * 60 * 1000; // 1 hour
+
+async function fetchManifest() {
+  // Return cached version if still fresh
+  try {
+    const cached = localStorage.getItem(MANIFEST_CACHE_KEY);
+    if (cached) {
+      const { version, fetchedAt } = JSON.parse(cached);
+      if (Date.now() - fetchedAt < MANIFEST_TTL_MS) return version;
+    }
+  } catch { /* fall through */ }
+
+  // Fetch from CDN
+  try {
+    const res = await fetch(MANIFEST_URL);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const { localeVersion } = await res.json();
+    try {
+      localStorage.setItem(MANIFEST_CACHE_KEY, JSON.stringify({ version: localeVersion, fetchedAt: Date.now() }));
+    } catch { /* storage full, ignore */ }
+    return localeVersion;
+  } catch (err) {
+    console.warn('[i18n] Failed to fetch manifest:', err);
+    // Serve stale cached version on network failure rather than breaking
+    try {
+      const cached = localStorage.getItem(MANIFEST_CACHE_KEY);
+      if (cached) return JSON.parse(cached).version;
+    } catch { /* ignore */ }
+    return null; // fetchLocale falls back to @latest
+  }
+}
+
+async function fetchLocale(lang, version) {
+  const cacheKey = `wf-locale:${lang}:${version ?? 'latest'}`;
+
+  try {
+    const cached = localStorage.getItem(cacheKey);
+    if (cached) return JSON.parse(cached);
+  } catch { /* ignore parse errors, fall through to fetch */ }
+
+  try {
+    const url = version
+      ? `${LOCALE_CDN_BASE}@${version}/${lang}/${lang}.json`
+      : `${LOCALE_CDN_BASE}@latest/${lang}/${lang}.json`;
+    const res = await fetch(url);
+    if (!res.ok) throw new Error(`HTTP ${res.status}`);
+    const data = await res.json();
+    try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch { /* storage full, ignore */ }
+    return data;
+  } catch (err) {
+    console.warn(`[i18n] Failed to fetch locale '${lang}':`, err);
+    return {};
+  }
 }
 
 // ─── Language switching ────────────────────────────────────────────────────────
