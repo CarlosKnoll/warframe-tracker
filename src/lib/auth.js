@@ -47,7 +47,14 @@ async function generateCodeChallenge(verifier) {
 export async function isConnected() {
   const tokens = await get(TOKEN_KEY);
   if (!tokens?.access_token) return false;
-  return Date.now() < (tokens.expires_at - 60_000);
+  if (Date.now() < (tokens.expires_at - 60_000)) return true;
+  if (!tokens.refresh_token) return false;
+  try {
+    await getAccessToken(); // attempts refresh and stores updated tokens
+    return true;
+  } catch {
+    return false;
+  }
 }
 
 export async function startOAuthFlow() {
