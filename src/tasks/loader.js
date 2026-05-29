@@ -284,7 +284,7 @@ export function resetExpiredTasks() {
   });
 }
 
-export async function saveTasksCache() {
+export async function saveTasksCache({ fromSync = false } = {}) {
   const payload = {
     lastDailyReset: state.lastDailyReset,
     lastWeeklyReset: state.lastWeeklyReset,
@@ -293,6 +293,10 @@ export async function saveTasksCache() {
     worldstateCache: state.worldstateCache,
   };
   await invoke('save_tasks_cache', { data: payload });
+  if (!fromSync) {
+    const { schedulePush } = await import('../lib/sync.js');
+    schedulePush();
+  }
 }
 
 export async function addCustomTask(customLabel, tier, group = null) {

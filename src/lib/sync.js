@@ -295,7 +295,7 @@ async function _pushToDriveInternal() {
 }
 
 export async function pushToDrive() {
-  if (_syncInFlight) return;
+  if (_syncInFlight) { schedulePush(); return; }
   if (!isOnline()) { emit('offline'); return; }
   _syncInFlight = true;
   try { await _pushToDriveInternal(); } catch (err) { console.error('[sync] Push failed:', err); emit('error', err.message); } finally { _syncInFlight = false; }
@@ -303,7 +303,7 @@ export async function pushToDrive() {
 
 export function schedulePush() {
   if (_pushTimer) clearTimeout(_pushTimer);
-  _pushTimer = setTimeout(() => { _pushTimer = null; pushToDrive(); }, 5_000);
+  _pushTimer = setTimeout(() => { _pushTimer = null; pushToDrive(); }, 2_000);
 }
 
 export function flushPush() {

@@ -233,7 +233,7 @@ async function init() {
         else if (section === 'primes' && primesInitialized) primesModule.renderPrimes();
         else if (section.startsWith('mastery-') && masteryInitialized) masteryModule.renderMastery();
         else if (section === 'mods' && modsInitialized) modsModule.renderMods();
-        else if (section === 'tasks' && tasksInitialized) tasksModule.renderTasks();
+        else if (section === 'tasks' && tasksInitialized) await tasksModule.initTasks();
         else if (section === 'market' && marketInitialized) marketModule.renderMarket();
         else if (section === 'settings') import('./settings.js').then(m => m.refreshSettings());
       }
