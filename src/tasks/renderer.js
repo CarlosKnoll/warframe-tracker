@@ -1,6 +1,7 @@
 import { t, tOrRaw, tGameMode, tBaroItem } from '../i18n.js';
 import { state } from './state.js';
 import { toggleTask, addCustomTask, removeCustomTask, toggleCircuitWeapon } from './loader.js';
+import { getOwned } from '../lib/storage.js';
 
 // ─── Countdown timer ───────────────────────────────────────────────────────────
 
@@ -145,6 +146,7 @@ function buildBaroSection(baroData) {
       // Category group: header + bordered table wrap
       const catGroup = document.createElement('div');
       catGroup.className = 'tasks-baro-category-group';
+      catGroup.dataset.category = category;
 
       const catHeader = document.createElement('div');
       catHeader.className = 'tasks-baro-category-header';
@@ -179,6 +181,13 @@ function buildBaroSection(baroData) {
       const tbody = document.createElement('tbody');
       items.forEach(entry => {
         const tr = document.createElement('tr');
+
+        const normalizedName = entry.uniqueName?.replace('/StoreItems/', '/');
+        const isMastered = category === 'weapon' &&
+          normalizedName &&
+          state.masteredSet.has(normalizedName);
+
+        if (isMastered) tr.classList.add('is-mastered');
 
         const tdItem = document.createElement('td');
         tdItem.textContent = entry.displayName || '—';
@@ -743,7 +752,10 @@ function buildWeeklyGroup(groupKey, tasks) {
 
 // ─── Public render ─────────────────────────────────────────────────────────────
 
-export function renderTasks() {
+export async function renderTasks() {
+  const owned = await getOwned();
+  state.masteredSet = new Set(Object.keys(owned?.masteryMastered ?? {}));
+
   stopCountdowns();
 
   const container = document.querySelector('#tasksSection .tasks-content');

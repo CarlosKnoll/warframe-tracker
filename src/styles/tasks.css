@@ -457,6 +457,12 @@
   color: rgba(255, 255, 255, 0.3);   /* keep header colour consistent */
 }
 
+.tasks-baro-category-group[data-category="weapon"] tr:not(.is-mastered) td:first-child {
+  font-weight: 700;
+  color: #c9a84c;
+}
+
+
 /* ─── Duviri Circuit incarnon weapon chips ───────────────────────────────────── */
 
 .tasks-circuit-weapons {

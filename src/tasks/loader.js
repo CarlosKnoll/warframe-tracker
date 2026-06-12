@@ -1,5 +1,6 @@
 import { state, DEFAULT_TASKS } from './state.js';
 import { getLanguage } from '../i18n.js';
+import { getOwned } from '../lib/storage.js';
 
 const invoke = window.__TAURI_INTERNALS__.invoke;
 
@@ -17,7 +18,11 @@ function getLastWeeklyReset() {
 }
 
 export async function loadTasksCache() {
-  const raw = await invoke('load_tasks_cache');      // returns null if file absent
+  const [raw, owned] = await Promise.all([invoke('load_tasks_cache'), getOwned()]);
+
+  // Build mastered set from owned store — used by renderer to mark mastered Baro weapons
+  const mastered = owned?.masteryMastered ?? {};
+  state.masteredSet = new Set(Object.keys(mastered));
   const currentDailyReset = getLastDailyReset();
   const currentWeeklyReset = getLastWeeklyReset();
 

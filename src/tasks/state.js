@@ -33,4 +33,5 @@ export const state = {
   baroData: null,
   circuitObtained: [],
   worldstateCache: {},
+  masteredSet: new Set(),   // uniqueNames of mastered items, loaded from owned store
 };
