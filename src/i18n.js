@@ -484,6 +484,38 @@ export function tGameMode(raw) {
   return tOrRaw(`gameMode.${raw}`, raw);
 }
 
+/**
+ * Resolve a Baro Ki'Teer inventory entry's display name and category from locale keys.
+ *
+ * Key format: "baro.item.<category>.<apiIdentifier>"
+ * e.g. "baro.item.mod.Weapon Shotgun Faction Damage Murmurs Expert" → "Primed Cleanse The Murmur"
+ *
+ * Returns { name: string, category: string } where:
+ *   - name:     localized display name; falls back to the raw API identifier if no key is found
+ *   - category: slug from the key path (e.g. "mod", "weapon", "prime"); falls back to "other"
+ */
+export function tBaroItem(apiIdentifier) {
+  const prefix = 'baro.item.';
+
+  for (const [key, value] of Object.entries(uiStrings)) {
+    if (!key.startsWith(prefix)) continue;
+
+    // rest = "<category>.<apiIdentifier>"
+    const rest   = key.slice(prefix.length);
+    const dotIdx = rest.indexOf('.');
+    if (dotIdx === -1) continue;
+
+    const category   = rest.slice(0, dotIdx);
+    const identifier = rest.slice(dotIdx + 1);
+
+    if (identifier === apiIdentifier) {
+      return { name: value || apiIdentifier, category };
+    }
+  }
+
+  return { name: apiIdentifier, category: 'other' };
+}
+
 export function parseDropLocation(location) {
   if (!location) return { planet: '', mission: '', gameMode: '', rotation: '' };
 

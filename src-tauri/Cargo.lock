@@ -5194,7 +5194,7 @@ dependencies = [
 
 [[package]]
 name = "warframe-tracker"
-version = "2.5.5"
+version = "2.5.6"
 dependencies = [
  "base64 0.22.1",
  "dirs",

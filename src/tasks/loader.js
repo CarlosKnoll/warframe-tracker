@@ -146,7 +146,7 @@ export async function fetchWorldstate() {
     state.sortieData = state.worldstateCache[getCacheKey('sortie')].data;
   } else {
     try {
-      const data = await fetchJson(`${BASE}/pc/${lang}/sortie`);
+      const data = await fetchJson(`${BASE}/${lang}/sortie`);
       state.sortieData = data;
 
       store('sortie', data, data.expiry ?? dailyExpiry);
@@ -162,7 +162,7 @@ export async function fetchWorldstate() {
     state.archonHuntData = state.worldstateCache[getCacheKey('archonHunt')].data;
   } else {
     try {
-      const data = await fetchJson(`${BASE}/pc/${lang}/archonHunt`);
+      const data = await fetchJson(`${BASE}/${lang}/archonHunt`);
       state.archonHuntData = data;
       store('archonHunt', data, weeklyExpiry);
     } catch {
@@ -177,7 +177,7 @@ export async function fetchWorldstate() {
     state.steelPathData = state.worldstateCache[getCacheKey('steelPath')].data;
   } else {
     try {
-      const data = await fetchJson(`${BASE}/pc/${lang}/steelPath`);
+      const data = await fetchJson(`${BASE}/${lang}/steelPath`);
       state.steelPathData = data;
       store('steelPath', data, weeklyExpiry);
     } catch {
@@ -192,7 +192,7 @@ export async function fetchWorldstate() {
     state.duviriCycleData = state.worldstateCache[getCacheKey('duviriCycle')].data;
   } else {
     try {
-      const data = await fetchJson(`${BASE}/pc/${lang}/duviriCycle`);
+      const data = await fetchJson(`${BASE}/${lang}/duviriCycle`);
       state.duviriCycleData = data;
       store('duviriCycle', data, weeklyExpiry);
     } catch {
@@ -207,7 +207,7 @@ export async function fetchWorldstate() {
     state.calendarData = state.worldstateCache[getCacheKey('calendar')].data;
   } else {
     try {
-      const data = await fetchJson(`${BASE}/pc/${lang}/calendar`);
+      const data = await fetchJson(`${BASE}/${lang}/calendar`);
       state.calendarData = data;
       store('calendar', data, weeklyExpiry);
     } catch {
@@ -222,7 +222,7 @@ export async function fetchWorldstate() {
     state.archimedeasData = state.worldstateCache[getCacheKey('archimedeas')].data;
   } else {
     try {
-      const data = await fetchJson(`${BASE}/pc/${lang}/archimedeas/`);
+      const data = await fetchJson(`${BASE}/${lang}/archimedeas/`);
       state.archimedeasData = data;
       store('archimedeas', data, weeklyExpiry);
     } catch {
@@ -237,7 +237,7 @@ export async function fetchWorldstate() {
     state.baroData = state.worldstateCache[getCacheKey('baro')].data;
   } else {
     try {
-      const data = await fetchJson(`${BASE}/pc/voidTrader`);
+      const data = await fetchJson(`${BASE}/voidTrader`);
       state.baroData = data;
       let baroValidUntil = dailyExpiry;
       if (data?.activation && data?.expiry) {

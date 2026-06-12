@@ -374,6 +374,30 @@
   padding: 4px 0;
 }
 
+/* ── Inventory grouped by category ── */
+
+.tasks-baro-inventory {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.tasks-baro-category-group {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.tasks-baro-category-header {
+  font-size: 0.65rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  color: rgba(201, 168, 76, 0.55);   /* gold accent, muted — matches .tasks-baro-location */
+  padding: 0 2px;
+}
+
+
 /* ── Inventory table ── */
 
 .tasks-baro-table-wrap {

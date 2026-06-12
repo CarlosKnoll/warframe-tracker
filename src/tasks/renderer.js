@@ -1,4 +1,4 @@
-import { t, tOrRaw, tGameMode } from '../i18n.js';
+import { t, tOrRaw, tGameMode, tBaroItem } from '../i18n.js';
 import { state } from './state.js';
 import { toggleTask, addCustomTask, removeCustomTask, toggleCircuitWeapon } from './loader.js';
 
@@ -65,6 +65,8 @@ function stopCountdowns() {
 
 // ─── Baro Ki'teer section ──────────────────────────────────────────────────────
 
+const CATEGORY_ORDER = ['weapon', 'mod', 'resource', 'prime', 'cosmetic', 'decoration', 'other'];
+
 function buildBaroSection(baroData) {
   const section = document.createElement('section');
   section.className = 'tasks-baro';
@@ -116,48 +118,91 @@ function buildBaroSection(baroData) {
     header.appendChild(statusWrap);
     baroCountdownTarget = new Date(expiry);
 
-    // Inventory table
+    // Inventory — grouped by category derived from locale keys
     const inventory = Array.isArray(baroData.inventory) ? baroData.inventory : [];
-    const tableWrap = document.createElement('div');
-    tableWrap.className = 'tasks-baro-table-wrap';
 
-    const table = document.createElement('table');
-    table.className = 'tasks-baro-table';
-
-    const thead = document.createElement('thead');
-    const headRow = document.createElement('tr');
-    [t('tasks.baro.inventory.item'), t('tasks.baro.inventory.ducats'), t('tasks.baro.inventory.credits')].forEach((text, i) => {
-      const th = document.createElement('th');
-      th.textContent = text;
-      if (i > 0) th.className = 'tasks-baro-col-num';
-      headRow.appendChild(th);
-    });
-    thead.appendChild(headRow);
-    table.appendChild(thead);
-
-    const tbody = document.createElement('tbody');
+    // Group entries by category, preserving first-appearance order
+    const grouped = new Map();
     inventory.forEach(entry => {
-      const tr = document.createElement('tr');
-
-      const tdItem = document.createElement('td');
-      tdItem.textContent = entry.item || '—';
-
-      const tdDucats = document.createElement('td');
-      tdDucats.className = 'tasks-baro-col-num';
-      tdDucats.textContent = entry.ducats != null ? entry.ducats.toLocaleString() : '—';
-
-      const tdCredits = document.createElement('td');
-      tdCredits.className = 'tasks-baro-col-num';
-      tdCredits.textContent = entry.credits != null ? entry.credits.toLocaleString() : '—';
-
-      tr.appendChild(tdItem);
-      tr.appendChild(tdDucats);
-      tr.appendChild(tdCredits);
-      tbody.appendChild(tr);
+      const { name, category } = tBaroItem(entry.item);
+      if (!grouped.has(category)) grouped.set(category, []);
+      grouped.get(category).push({ ...entry, displayName: name });
     });
-    table.appendChild(tbody);
-    tableWrap.appendChild(table);
-    section.appendChild(tableWrap);
+
+    // Sort categories by preferred display order
+    const sortedCategories = [...grouped.keys()].sort((a, b) => {
+      const ai = CATEGORY_ORDER.indexOf(a);
+      const bi = CATEGORY_ORDER.indexOf(b);
+      return (ai === -1 ? 999 : ai) - (bi === -1 ? 999 : bi);
+    });
+
+    const inventoryWrap = document.createElement('div');
+    inventoryWrap.className = 'tasks-baro-inventory';
+
+    sortedCategories.forEach(category => {
+      const items = grouped.get(category);
+
+      // Category group: header + bordered table wrap
+      const catGroup = document.createElement('div');
+      catGroup.className = 'tasks-baro-category-group';
+
+      const catHeader = document.createElement('div');
+      catHeader.className = 'tasks-baro-category-header';
+      catHeader.textContent = t(`baro.category.${category}`);
+      catGroup.appendChild(catHeader);
+
+      const tableWrap = document.createElement('div');
+      tableWrap.className = 'tasks-baro-table-wrap';
+
+      const table = document.createElement('table');
+      table.className = 'tasks-baro-table';
+
+      const colgroup = document.createElement('colgroup');
+      [null, '80px', '100px'].forEach(w => {
+        const col = document.createElement('col');
+        if (w) col.style.width = w;
+        colgroup.appendChild(col);
+      });
+      table.appendChild(colgroup);
+
+      const thead = document.createElement('thead');
+      const headRow = document.createElement('tr');
+      [t('tasks.baro.inventory.item'), t('tasks.baro.inventory.ducats'), t('tasks.baro.inventory.credits')].forEach((text, i) => {
+        const th = document.createElement('th');
+        th.textContent = text;
+        if (i > 0) th.className = 'tasks-baro-col-num';
+        headRow.appendChild(th);
+      });
+      thead.appendChild(headRow);
+      table.appendChild(thead);
+
+      const tbody = document.createElement('tbody');
+      items.forEach(entry => {
+        const tr = document.createElement('tr');
+
+        const tdItem = document.createElement('td');
+        tdItem.textContent = entry.displayName || '—';
+
+        const tdDucats = document.createElement('td');
+        tdDucats.className = 'tasks-baro-col-num';
+        tdDucats.textContent = entry.ducats != null ? entry.ducats.toLocaleString() : '—';
+
+        const tdCredits = document.createElement('td');
+        tdCredits.className = 'tasks-baro-col-num';
+        tdCredits.textContent = entry.credits != null ? entry.credits.toLocaleString() : '—';
+
+        tr.appendChild(tdItem);
+        tr.appendChild(tdDucats);
+        tr.appendChild(tdCredits);
+        tbody.appendChild(tr);
+      });
+      table.appendChild(tbody);
+      tableWrap.appendChild(table);
+      catGroup.appendChild(tableWrap);
+      inventoryWrap.appendChild(catGroup);
+    });
+
+    section.appendChild(inventoryWrap);
 
   } else {
     // ── Inactive state ────────────────────────────────────────────────────────
