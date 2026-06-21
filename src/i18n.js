@@ -184,31 +184,101 @@ function buildLocationsMap() {
 async function loadLocale(lang) {
   const version = await fetchManifest();
 
-  const [enStrings, targetStrings] = await Promise.all([
+  const [enResult, targetResult] = await Promise.all([
     fetchLocale('en', version),
-    lang === 'en' ? Promise.resolve({}) : fetchLocale(lang, version),
+    lang === 'en' ? Promise.resolve({ data: {}, fetchedFresh: false }) : fetchLocale(lang, version),
   ]);
 
-  uiStrings = deepMerge(enStrings, targetStrings);
+  uiStrings = deepMerge(enResult.data, targetResult.data);
   leafPathCache = null; // invalidate suffix-search cache for the new tree
 
   locationsMap = buildLocationsMap();
+
+  // Only prune old cached versions once we have PROOF the new version's
+  // data was actually retrieved successfully -- not merely because the
+  // manifest claims it exists. This is the fix for a real race: jsDelivr
+  // (the locale CDN) can lag behind the manifest immediately after a
+  // version bump, so the manifest may report a version whose files
+  // aren't fetchable yet. Pruning eagerly on the manifest's say-so alone
+  // previously deleted the last working cached version before confirming
+  // a replacement was available, leaving the app with no locale data at
+  // all (bare keys rendered) until the CDN caught up.
+  //
+  // en is required for every load; the target language is only required
+  // when it's not 'en' itself (lang === 'en' short-circuits target above).
+  const enConfirmed = enResult.fetchedFresh;
+  const targetConfirmed = lang === 'en' || targetResult.fetchedFresh;
+  if (enConfirmed && targetConfirmed) {
+    pruneStaleLocaleCache(version);
+  }
+}
+
+const LOCALE_CACHE_PREFIX = 'wf-locale:'; // keys look like wf-locale:{lang}:{version}
+
+/**
+ * Removes every cached locale entry whose version segment doesn't match
+ * `currentVersion`. Called from loadLocale() ONLY after the new
+ * version's data has been confirmed fetched successfully for every
+ * language needed this load -- never called just because the manifest
+ * reports a new version, since the CDN may not have propagated that
+ * version's files yet (see loadLocale() for the full reasoning).
+ *
+ * Handles any backlog in one pass, not just "the previous" version --
+ * if several versions piled up for any reason, they all get swept here.
+ *
+ * Treats "latest" as just another version string here -- if we're
+ * pruning at all, it means the current fetch succeeded with a real
+ * version string, so a wf-locale:{lang}:latest entry left over from an
+ * earlier network failure (see the null-version fallback in fetchLocale)
+ * is equally stale and gets swept up too.
+ */
+function pruneStaleLocaleCache(currentVersion) {
+  if (!currentVersion) return; // don't guess at staleness if we don't know what's current
+
+  const staleKeys = [];
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key || !key.startsWith(LOCALE_CACHE_PREFIX)) continue;
+
+    // key shape: wf-locale:{lang}:{version} -- version is everything after
+    // the second colon, since version strings themselves may contain dots
+    // but not colons (e.g. "v0.0.17"), so a simple split is safe here.
+    const version = key.slice(LOCALE_CACHE_PREFIX.length).split(':')[1];
+    if (version !== currentVersion) staleKeys.push(key);
+  }
+
+  for (const key of staleKeys) {
+    try { localStorage.removeItem(key); } catch { /* ignore */ }
+  }
+
+  if (staleKeys.length) {
+    console.info(`[i18n] Pruned ${staleKeys.length} stale locale cache entr${staleKeys.length === 1 ? 'y' : 'ies'}.`);
+  }
 }
 
 const MANIFEST_CACHE_KEY = 'wf-locale-manifest';
-const MANIFEST_TTL_MS    = 60 * 60 * 1000; // 1 hour
 
+/**
+ * Always checks the network for the current manifest version -- no TTL,
+ * by design: the person wants every app startup (Tauri and PWA alike,
+ * since this file is shared 1:1 between them) to know immediately when a
+ * new locale version has shipped, rather than potentially serving a
+ * stale version for up to an hour.
+ *
+ * MANIFEST_CACHE_KEY is still written/read, but purely as an OFFLINE
+ * FALLBACK (see the catch branch below) -- not as a "skip the network"
+ * cache, and NOT as a trigger for cache pruning. Pruning old locale
+ * versions happens in loadLocale(), only AFTER the new version's data
+ * has been successfully fetched -- never here. Pruning based solely on
+ * "the manifest says a new version exists" is unsafe: CDN propagation
+ * (jsDelivr in particular) can lag behind the manifest, so the new
+ * version's files may not be fetchable yet even though the manifest
+ * already reports them. Deleting the old, working cache at that point
+ * leaves the app with nothing to fall back to -- confirmed in practice:
+ * this exact race produced a fully untranslated UI (bare keys
+ * everywhere) when a version bump's manifest update outran jsDelivr.
+ */
 async function fetchManifest() {
-  // Return cached version if still fresh
-  try {
-    const cached = localStorage.getItem(MANIFEST_CACHE_KEY);
-    if (cached) {
-      const { version, fetchedAt } = JSON.parse(cached);
-      if (Date.now() - fetchedAt < MANIFEST_TTL_MS) return version;
-    }
-  } catch { /* fall through */ }
-
-  // Fetch from CDN
   try {
     const res = await fetch(MANIFEST_URL);
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -219,7 +289,7 @@ async function fetchManifest() {
     return localeVersion;
   } catch (err) {
     console.warn('[i18n] Failed to fetch manifest:', err);
-    // Serve stale cached version on network failure rather than breaking
+    // Serve last-known-good cached version on network failure rather than breaking
     try {
       const cached = localStorage.getItem(MANIFEST_CACHE_KEY);
       if (cached) return JSON.parse(cached).version;
@@ -228,12 +298,29 @@ async function fetchManifest() {
   }
 }
 
+/**
+ * Fetches one language's locale data for a given version.
+ *
+ * Returns { data, fetchedFresh } where fetchedFresh is true only when
+ * the network fetch for THIS EXACT version succeeded just now. That flag
+ * is what loadLocale() uses to decide whether it's safe to prune other
+ * cached versions -- never prune based on the manifest alone, only once
+ * we have proof the new version's data actually came back successfully.
+ *
+ * Fallback order on a cache miss + failed network fetch:
+ *   1. Try the network for the exact requested version.
+ *   2. If that fails (e.g. CDN propagation lag right after a version
+ *      bump), fall back to ANY other cached version for this language
+ *      still sitting in localStorage, rather than returning nothing --
+ *      slightly-stale translations beat an entirely untranslated UI.
+ *   3. If nothing at all is cached for this language, return {}.
+ */
 async function fetchLocale(lang, version) {
   const cacheKey = `wf-locale:${lang}:${version ?? 'latest'}`;
 
   try {
     const cached = localStorage.getItem(cacheKey);
-    if (cached) return JSON.parse(cached);
+    if (cached) return { data: JSON.parse(cached), fetchedFresh: false };
   } catch { /* ignore parse errors, fall through to fetch */ }
 
   try {
@@ -244,11 +331,40 @@ async function fetchLocale(lang, version) {
     if (!res.ok) throw new Error(`HTTP ${res.status}`);
     const data = await res.json();
     try { localStorage.setItem(cacheKey, JSON.stringify(data)); } catch { /* storage full, ignore */ }
-    return data;
+    return { data, fetchedFresh: true };
   } catch (err) {
-    console.warn(`[i18n] Failed to fetch locale '${lang}':`, err);
-    return {};
+    console.warn(`[i18n] Failed to fetch locale '${lang}' version '${version}':`, err);
+
+    // Fall back to ANY cached version for this language, even if it's not
+    // the one the manifest just told us about -- e.g. the CDN may not have
+    // finished propagating a brand-new version tag yet. Better to show
+    // slightly outdated translations than none at all.
+    const fallback = findAnyCachedLocale(lang);
+    if (fallback) {
+      console.warn(`[i18n] Falling back to previously cached '${lang}' locale data.`);
+      return { data: fallback, fetchedFresh: false };
+    }
+
+    return { data: {}, fetchedFresh: false };
   }
+}
+
+/**
+ * Scans localStorage for any wf-locale:{lang}:* entry and returns the
+ * first parseable one found. Used only as a last-resort fallback when
+ * the exact requested version can't be fetched and isn't cached.
+ */
+function findAnyCachedLocale(lang) {
+  const prefix = `${LOCALE_CACHE_PREFIX}${lang}:`;
+  for (let i = 0; i < localStorage.length; i++) {
+    const key = localStorage.key(i);
+    if (!key || !key.startsWith(prefix)) continue;
+    try {
+      const cached = localStorage.getItem(key);
+      if (cached) return JSON.parse(cached);
+    } catch { /* skip unparseable entries */ }
+  }
+  return null;
 }
 
 // ─── Language switching ────────────────────────────────────────────────────────
