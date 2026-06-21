@@ -3,13 +3,11 @@
 import { t, tLocation } from '../i18n.js';
 import { tModName, tRarityMod, tCategory } from './renderer.js';
 import { CUSTOM_DROP_SOURCES } from './drop_sources.js';
+import { openModal, closeModal } from '../modal.js';
 
 const BLANK = "data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7";
 
-const modal      = document.getElementById('relicModal');
-const modalTitle = document.getElementById('modalTitle');
 const modalBody  = document.getElementById('modalBody');
-const modalBox   = modal.querySelector('.modal-box');
 
 export function openModModal(mod) {
   const name     = tModName(mod.name);
@@ -56,7 +54,7 @@ export function openModModal(mod) {
     ${mod.isWmCard ? '' : `<div class="modal-item-name">${name}</div>`}
     <div class="modal-market-row">
       <button class="modal-market-btn" data-market-name="${mod.name.replace(/"/g, '&quot;')}" data-market-type="mod">
-        🔍 Market
+        ${t('mode.market')}
       </button>
     </div>
     ${polHtml}
@@ -68,23 +66,19 @@ export function openModModal(mod) {
     ${compatHtml}
   `;
 
-  modalTitle.textContent     = name;
-  modalBody.innerHTML        = `
+  const body = `
     <div class="modal-detail">
       <div class="modal-detail-left">${left}</div>
       <div class="modal-detail-right">${buildDropTable(mod)}</div>
     </div>`;
-  modalBox.dataset.type      = 'mod';
-  modalBox._primeOnClose     = null;
-  modalBox._rebind           = null;
-  modalBox._bindRelicButtons = null;
-  modal.classList.remove('hidden');
+
+  openModal(name, body, 'mod');
 
   // Wire the market button.
   modalBody.querySelectorAll('[data-market-name]').forEach(btn => {
     btn.onclick = (e) => {
       e.stopPropagation();
-      modal.classList.add('hidden');
+      closeModal();
       window.dispatchEvent(new CustomEvent('open-in-market', {
         detail: { name: btn.dataset.marketName, itemType: btn.dataset.marketType },
       }));

@@ -82,7 +82,7 @@ modalClose.onclick = () => closeModal();
 modal.onclick = (e) => { if (e.target === modal) closeModal(); };
 document.addEventListener("keydown", (e) => { if (e.key === "Escape") closeModal(); });
 
-function openModal(title, bodyHTML, type = 'relic', pushCurrent = false) {
+export function openModal(title, bodyHTML, type = 'relic', pushCurrent = false) {
   if (pushCurrent && !modal.classList.contains("hidden")) {
     modalStack.push({
       title: modalTitle.textContent,
