@@ -45,6 +45,7 @@ const EXCLUDED_PRODUCT_CATEGORIES = new Set([
 
 const EXCLUDED_UNIQUE_NAMES = new Set([
   '/Lotus/Powersuits/PowersuitAbilities/Helminth',
+  '/Lotus/Powersuits/SiriusOrion/OrionSuit',
   '/Lotus/Weapons/Tenno/Grimoire/TnDoppelgangerGrimoire',
 ]);
 

@@ -304,7 +304,7 @@ export async function pullFromDrive() {
       driveDownload(SYNC_FILES.vendorState),
     ]);
     if (!localIsAhead) {
-      const wroteAny = await applyRemoteData(ownedRaw, tasksCacheRaw, customDropsRaw);
+      const wroteAny = await applyRemoteData(ownedRaw, tasksCacheRaw, customDropsRaw, vendorStateRaw);
       await setSyncMeta({ ...localMeta, lastModifiedAt: remoteModifiedAt ?? localMeta.lastModifiedAt, lastSyncedAt: new Date().toISOString(), hasPendingPush: false });
       if (wroteAny && _reloadFn) await _reloadFn();
       emit(wroteAny ? 'updated' : 'synced');
@@ -341,18 +341,18 @@ export async function pullFromDrive() {
       const merged = mergeOwned(localOwned, remoteOwned);
       const mergedTasksCache = mergeTasksCache(localTasksCache, remoteTasksCache);
       const mergedCustomDrops = mergeCustomDrops(localCustomDrops, remoteCustomDrops);
-      const mergedVendorState = mergeCustomDrops(localVendorState, remoteVendorState, true);
+      const mergedVendorState = mergeVendorState(localVendorState, remoteVendorState, true);
       await setOwned(merged, { fromSync: true });
       await setTasksCache(mergedTasksCache, { fromSync: true });
       await setCustomDrops(mergedCustomDrops, { fromSync: true });
-      await setVendorState(mergedVendorStates, { fromSync: true });
+      await setVendorState(mergedVendorState, { fromSync: true });
       await _pushToDriveInternal();
       if (_reloadFn) await _reloadFn();
       emit('updated');
       return;
     }
     // choice === 'cloud': fall through to overwrite local
-    const wroteAny = await applyRemoteData(ownedRaw, tasksCacheRaw, customDropsRaw);
+    const wroteAny = await applyRemoteData(ownedRaw, tasksCacheRaw, customDropsRaw, vendorStateRaw);
     await setSyncMeta({ ...localMeta, lastModifiedAt: remoteModifiedAt ?? localMeta.lastModifiedAt, lastSyncedAt: new Date().toISOString(), hasPendingPush: false });
     if (wroteAny && _reloadFn) await _reloadFn();
     emit(wroteAny ? 'updated' : 'synced');
