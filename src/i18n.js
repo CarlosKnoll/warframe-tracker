@@ -7,9 +7,134 @@ const MANIFEST_URL = 'https://raw.githubusercontent.com/CarlosKnoll/warframe-tra
 const LOCALE_CDN_BASE = 'https://cdn.jsdelivr.net/gh/CarlosKnoll/warframe-tracker-locales';
 
 let currentLang = DEFAULT_LANG;
+// uiStrings is now a NESTED object tree (was flat key->string before the
+// 2026-06 locale restructure). Use resolvePath()/t() to read from it --
+// never index it directly with a dotted string, since dots may be a real
+// path (descend) or a literal key segment (e.g. "tabs.rarity.common" stored as
+// one key inside tabs.rarity), and only resolvePath() disambiguates that.
 let uiStrings = {};
-// Derived from loc.* keys in uiStrings after each locale load.
+// Derived from general.game.drops / mission / planet / gameMode / events /
+// syndicate / syndicate.ranks / npc / enemy / general.drops.dropSource
+// after each locale load. Same flat shape and same leaf key names as the
+// pre-restructure locationsMap -- only the locations these are READ FROM
+// changed (see LOCATION_SOURCE_PATHS below), not what's IN the map or how
+// tLocation()/parseDropLocation() consume it.
 let locationsMap = {};
+
+// ─── Path resolution ──────────────────────────────────────────────────────────
+
+/**
+ * Recursively merges `source` into `target` (mutates target's clone, returns
+ * a new object). Needed because uiStrings is now a deep tree: the old
+ * `{ ...enStrings, ...targetStrings }` shallow spread would let a partial
+ * pt.json overwrite an ENTIRE top-level branch from en.json (e.g. losing
+ * every EN-only key under `tabs` just because pt.json's `tabs` branch
+ * doesn't happen to repeat every EN leaf). Arrays and primitives are
+ * replaced outright by source's value; only plain objects merge key-by-key.
+ */
+function deepMerge(base, override) {
+  const result = { ...base };
+  for (const [key, value] of Object.entries(override)) {
+    const baseVal = result[key];
+    if (
+      value !== null && typeof value === 'object' && !Array.isArray(value) &&
+      baseVal !== null && typeof baseVal === 'object' && !Array.isArray(baseVal)
+    ) {
+      result[key] = deepMerge(baseVal, value);
+    } else {
+      result[key] = value;
+    }
+  }
+  return result;
+}
+
+/**
+ * Walks `obj` along `path` (an array of key segments), returning the value
+ * found or undefined. Used internally by resolvePath -- not exported, since
+ * external callers should always go through resolvePath()/t() so the
+ * literal-key / dot-path / suffix-fallback logic stays in one place.
+ */
+function walkSegments(obj, segments) {
+  let cur = obj;
+  for (const seg of segments) {
+    if (cur == null || typeof cur !== 'object') return undefined;
+    cur = cur[seg];
+  }
+  return cur;
+}
+
+/**
+ * Recursively collects every leaf path (as a dot-joined string) and its
+ * value from a nested object tree. Used only for the suffix-fallback search
+ * in resolvePath -- this is an O(n) scan of the whole tree, so it's the
+ * last resort, tried only after exact-key and full-dot-path lookups fail.
+ */
+function collectLeafPaths(obj, prefix, into) {
+  for (const [key, value] of Object.entries(obj)) {
+    const path = prefix ? `${prefix}.${key}` : key;
+    if (value !== null && typeof value === 'object' && !Array.isArray(value)) {
+      collectLeafPaths(value, path, into);
+    } else {
+      into.push([path, value]);
+    }
+  }
+}
+
+let leafPathCache = null; // invalidated on every locale load, see loadLocale()
+
+function getLeafPaths() {
+  if (!leafPathCache) {
+    leafPathCache = [];
+    collectLeafPaths(uiStrings, '', leafPathCache);
+  }
+  return leafPathCache;
+}
+
+/**
+ * Resolves a key to its string value in uiStrings, trying in order:
+ *   1. Literal top-level key (covers old-style single-segment keys, and
+ *      any literal dotted-flat key passed exactly as stored, e.g. a call
+ *      site that does uiStrings-shaped lookup with the EXACT stored key).
+ *   2. Full dot-path descent (e.g. "tabs.vendor.ui.u43.item.syandana" --
+ *      the normal case for real, fully-qualified keys post-restructure).
+ *   3. Suffix fallback: search every leaf path in the whole tree for one
+ *      ending in this exact key (dot-aligned, not a raw substring match).
+ *      - Exactly one match -> return it (lets old short-suffix call sites
+ *        like t('tabs.rarity.common') keep working after the restructure).
+ *      - Multiple matches -> AMBIGUOUS. Do not guess: console.warn listing
+ *        every colliding path, and fall through to "not found" so the
+ *        caller's existing missing-key fallback (return the key itself)
+ *        kicks in instead of silently showing the wrong language string.
+ *      - Zero matches -> not found.
+ * Returns undefined if nothing resolves.
+ */
+function resolvePath(key) {
+  if (Object.prototype.hasOwnProperty.call(uiStrings, key)) {
+    return uiStrings[key];
+  }
+
+  const segments = key.split('.');
+  if (segments.length > 1) {
+    const viaPath = walkSegments(uiStrings, segments);
+    if (typeof viaPath === 'string') return viaPath;
+  }
+
+  const suffix = `.${key}`;
+  const matches = getLeafPaths().filter(
+    ([path]) => path === key || path.endsWith(suffix),
+  );
+  if (matches.length === 1) {
+    return matches[0][1];
+  }
+  if (matches.length > 1) {
+    console.warn(
+      `[i18n] Ambiguous key "${key}" matches ${matches.length} paths: ` +
+        `${matches.map(([p]) => p).join(', ')}. Refusing to guess -- ` +
+        `use a longer/full path at the call site to disambiguate.`,
+    );
+  }
+  return undefined;
+}
 
 // ─── Bootstrap ────────────────────────────────────────────────────────────────
 
@@ -21,6 +146,41 @@ export async function initI18n() {
   applyDomTranslations();
 }
 
+// Where the old flat LOCATION_PREFIXES groups now live in the nested tree.
+// Each entry's leaf keys are merged into the flat locationsMap UNCHANGED --
+// only the read location moved, not the key names within each group, so
+// tLocation()'s keyword-substitution logic needs zero changes.
+const LOCATION_SOURCE_PATHS = [
+  ['general', 'game', 'drops'],       // was the bare "loc.*" prefix
+  ['general', 'game', 'mission'],
+  ['general', 'game', 'quests'],
+  ['general', 'game', 'planet'],
+  ['general', 'game', 'gameMode'],
+  ['general', 'game', 'events'],
+  ['general', 'game', 'syndicate', 'ranks'],  // was "syndicateRank.*"
+  ['general', 'game', 'syndicate'],           // siblings of .ranks -- walked
+                                               // separately below so the
+                                               // nested "ranks" branch isn't
+                                               // double-counted as leaves
+  ['general', 'game', 'npc'],
+  ['general', 'game', 'enemy'],
+  ['general', 'drops', 'dropSource'],
+];
+
+function buildLocationsMap() {
+  const map = {};
+  for (const segments of LOCATION_SOURCE_PATHS) {
+    const node = walkSegments(uiStrings, segments);
+    if (!node || typeof node !== 'object') continue;
+    for (const [k, v] of Object.entries(node)) {
+      // Skip nested sub-groups here (e.g. syndicate.ranks, already walked
+      // as its own entry above) -- only take leaf strings at this level.
+      if (typeof v === 'string') map[k] = v;
+    }
+  }
+  return map;
+}
+
 async function loadLocale(lang) {
   const version = await fetchManifest();
 
@@ -29,19 +189,10 @@ async function loadLocale(lang) {
     lang === 'en' ? Promise.resolve({}) : fetchLocale(lang, version),
   ]);
 
-  uiStrings = { ...enStrings, ...targetStrings };
+  uiStrings = deepMerge(enStrings, targetStrings);
+  leafPathCache = null; // invalidate suffix-search cache for the new tree
 
-  const LOCATION_PREFIXES = ['loc.', 'mission.', 'quests.', 'planet.', 'gameMode.',
-                            'dropSource.', 'events.', 'syndicateRank.', 'syndicate.',
-                            'npc.', 'enemy.'];
-  locationsMap = Object.fromEntries(
-    Object.entries(uiStrings)
-      .filter(([k]) => LOCATION_PREFIXES.some(p => k.startsWith(p)))
-      .map(([k, v]) => {
-        const prefix = LOCATION_PREFIXES.find(p => k.startsWith(p));
-        return [k.slice(prefix.length), v];
-      })
-  );
+  locationsMap = buildLocationsMap();
 }
 
 const MANIFEST_CACHE_KEY = 'wf-locale-manifest';
@@ -151,9 +302,16 @@ export function applyDomTranslations() {
 /**
  * Translate a UI string key. Falls back to the key itself if not found.
  * Supports simple interpolation: t('key', { count: 5 }) replaces {{count}}
+ *
+ * `key` can be a full real path (e.g. "tabs.vendor.ui.u43.item.syandana"),
+ * a literal key as stored (e.g. "tabs.rarity.common" if that's literally how
+ * it's keyed at whatever level it lives), or an old-style short suffix
+ * (e.g. "planner") -- see resolvePath() for the full resolution order and
+ * the ambiguous-suffix warning behavior.
  */
 export function t(key, vars = {}) {
-  let str = uiStrings[key] ?? key;
+  const resolved = resolvePath(key);
+  let str = typeof resolved === 'string' ? resolved : key;
   for (const [k, v] of Object.entries(vars)) {
     str = str.replace(`{{${k}}}`, v);
   }
@@ -162,10 +320,16 @@ export function t(key, vars = {}) {
 
 /**
  * Translate an arcane name. Falls back to original English name.
+ * Old key: "arcane.<Name>". New home: general.game.arcane.<Name>.
+ * Goes through resolvePath (not a direct uiStrings index) so this keeps
+ * working via the suffix-fallback even if the arcane namespace moves
+ * again later -- but the explicit full path is tried first and is the
+ * fast, unambiguous route.
  */
 export function tArcaneName(name) {
   if (currentLang === 'en' || !name) return name;
-  return uiStrings[`arcane.${name}`] ?? name;
+  const resolved = resolvePath(`general.game.arcane.${name}`);
+  return typeof resolved === 'string' ? resolved : name;
 }
 
 /**
@@ -190,7 +354,8 @@ export function tMasteryItemName(name) {
   if (currentLang === 'en' || !name) return name;
 
   // 1. Explicit map — only true exceptions where the base word itself changes
-  const fromMap = uiStrings[`item.${name}`];
+  // Old key: "item.<name>". New home: general.game.arsenal.<name>.
+  const fromMap = resolvePath(`general.game.arsenal.${name}`);
   if (fromMap) return fromMap;
 
   // 2. Mk1-Base -> Base-Mk1
@@ -255,7 +420,7 @@ export function tMasteryItemName(name) {
     if (dualIdx !== -1 && prefixIdx !== -1 && baseIdx !== undefined) {
       const dualWord = TRANSLATED_SWAP[parts[dualIdx]] ?? parts[dualIdx]; // Dual->Duplas, Twin->Gêmeas
       const prefix   = TRANSLATED_SWAP[parts[prefixIdx]] ?? parts[prefixIdx];
-      const basePl   = pluralize(uiStrings[`item.${parts[baseIdx]}`] ?? parts[baseIdx]);
+      const basePl   = pluralize(resolvePath(`general.game.arsenal.${parts[baseIdx]}`) ?? parts[baseIdx]);
       if (prefixIdx < baseIdx) return `${basePl} ${dualWord} ${prefix}`;
       else                     return `${basePl} ${prefix} ${dualWord}`;
     }
@@ -265,7 +430,7 @@ export function tMasteryItemName(name) {
   //    Base resolved through item map first (handles e.g. 'Tenet Flux Rifle').
   if (parts.length >= 2 && CLEAN_SWAP.has(parts[0])) {
     const base = parts.slice(1).join(' ');
-    const translatedBase = uiStrings[`item.${base}`] ?? base;
+    const translatedBase = resolvePath(`general.game.arsenal.${base}`) ?? base;
     return `${translatedBase} ${parts[0]}`;
   }
 
@@ -285,7 +450,7 @@ export function tMasteryItemName(name) {
  */
 export function tRarity(rarity) {
   if (!rarity) return rarity;
-  return t(`rarity.${rarity.toLowerCase()}`) ?? rarity;
+  return t(`tabs.rarity.${rarity.toLowerCase()}`) ?? rarity;
 }
 
 /**
@@ -293,7 +458,7 @@ export function tRarity(rarity) {
  */
 export function tCategory(category) {
   if (!category) return category;
-  return t(`category.${category.toLowerCase().replace(/[^a-z]/g, '_')}`) ?? category;
+  return t(`filters.${category.toLowerCase().replace(/[^a-z]/g, '_')}`) ?? category;
 }
 
 /**
@@ -302,7 +467,7 @@ export function tCategory(category) {
  */
 export function tDropSource(source) {
   if (!source || currentLang === 'en') return source;
-  return t(`dropSource.${source}`) ?? source;
+  return t(`general.drops.dropSource.${source}`) ?? source;
 }
 
 /**
@@ -353,39 +518,39 @@ export function tItemName(itemName) {
 
   // Component part translations
   const partMap = {
-    'Neuroptics':  t('component.neuroptics'),
-    'Chassis':     t('component.chassis'),
-    'Systems':     t('component.systems'),
-    'Carapace':    t('component.carapace'),
-    'Cerebrum':    t('component.cerebrum'),
-    'Wings':       t('component.wings'),
-    'Barrel':      t('component.barrel'),
-    'Receiver':    t('component.receiver'),
-    'Stock':       t('component.stock'),
-    'Blade':       t('component.blade'),
-    'Blades':      t('component.blades'),
-    'Handle':      t('component.handle'),
-    'Grip':        t('component.grip'),
-    'Pouch':       t('component.pouch'),
-    'String':      t('component.string'),
-    'Upper Limb':  t('component.upper_limb'),
-    'Lower Limb':  t('component.lower_limb'),
-    'Guard':       t('component.guard'),
-    'Ornament':    t('component.ornament'),
-    'Hilt':        t('component.hilt'),
-    'Harness':     t('component.harness'),
-    'Stars':       t('component.stars'),
-    'Gauntlet':    t('component.gauntlet'),
-    'Link':        t('component.link'),
-    'Head':        t('component.head'),
-    'Disc':        t('component.disc'),
-    'Glove':       t('component.glove'),
-    'Core':        t('component.core'),
-    'Day Aspect':  t('component.day aspect'),
-    'Night Aspect':t('component.night aspect'),
+    'Neuroptics':  t('general.component.neuroptics'),
+    'Chassis':     t('general.component.chassis'),
+    'Systems':     t('general.component.systems'),
+    'Carapace':    t('general.component.carapace'),
+    'Cerebrum':    t('general.component.cerebrum'),
+    'Wings':       t('general.component.wings'),
+    'Barrel':      t('general.component.barrel'),
+    'Receiver':    t('general.component.receiver'),
+    'Stock':       t('general.component.stock'),
+    'Blade':       t('general.component.blade'),
+    'Blades':      t('general.component.blades'),
+    'Handle':      t('general.component.handle'),
+    'Grip':        t('general.component.grip'),
+    'Pouch':       t('general.component.pouch'),
+    'String':      t('general.component.string'),
+    'Upper Limb':  t('general.component.upper_limb'),
+    'Lower Limb':  t('general.component.lower_limb'),
+    'Guard':       t('general.component.guard'),
+    'Ornament':    t('general.component.ornament'),
+    'Hilt':        t('general.component.hilt'),
+    'Harness':     t('general.component.harness'),
+    'Stars':       t('general.component.stars'),
+    'Gauntlet':    t('general.component.gauntlet'),
+    'Link':        t('general.component.link'),
+    'Head':        t('general.component.head'),
+    'Disc':        t('general.component.disc'),
+    'Glove':       t('general.component.glove'),
+    'Core':        t('general.component.core'),
+    'Day Aspect':  t('general.component.day aspect'),
+    'Night Aspect':t('general.component.night aspect'),
   };
 
-  const blueprint = t('component.blueprint'); // "Diagrama"
+  const blueprint = t('general.component.blueprint'); // "Diagrama"
 
   // Case 1: "ITEM PART Blueprint" — Blueprint moves to front, part translates at end
   // e.g. "Ash Prime Systems Blueprint" → "Diagrama Ash Prime Sistemas"
@@ -422,7 +587,7 @@ export function tItemName(itemName) {
  */
 export function tRelicName(name) {
   if (!name || currentLang === 'en') return name;
-  return name.replace(/^(.+?)\s+Relic$/i, `${t('word.relic')} $1`);
+  return name.replace(/^(.+?)\s+Relic$/i, `${t('general.word.relic')} $1`);
 }
 
 /**
@@ -439,9 +604,10 @@ export function tPrimeName(name) {
     return `${baseLocalized} Duplas Prime`;
   }
   // X Prime -> TranslatedX Prime
+  // Old key: "item.<base>". New home: general.game.arsenal.<base>.
   if (name.endsWith(' Prime')) {
     const base = name.slice(0, -6);
-    const translatedBase = uiStrings[`item.${base}`] ?? base;
+    const translatedBase = resolvePath(`general.game.arsenal.${base}`) ?? base;
     return `${translatedBase} Prime`;
   }
   return name;
@@ -450,18 +616,20 @@ export function tPrimeName(name) {
 /**
  * Translate a prime component part name (Blueprint, Neuroptics, etc.)
  * Falls back to the original name if no mapping exists.
+ * Old key: "component.<slug>". New home: general.component.<slug>.
  */
 export function tComponent(name) {
   if (!name || currentLang === 'en') return name;
-  const key = `component.${name.toLowerCase().replace(/[^a-z]/g, '_')}`;
-  return Object.prototype.hasOwnProperty.call(uiStrings, key) ? uiStrings[key] : name;
+  const slug = name.toLowerCase().replace(/[^a-z]/g, '_');
+  const resolved = resolvePath(`general.component.${slug}`);
+  return typeof resolved === 'string' ? resolved : name;
 }
 
 /**
  * Format a date using the current locale.
  */
 export function formatDate(date, options = { year: 'numeric', month: 'short' }) {
-  if (!date) return t('unknown');
+  if (!date) return t('general.unknown');
   const locale = currentLang === 'pt' ? 'pt-BR' : 'en-US';
   return date.toLocaleDateString(locale, options);
 }
@@ -475,41 +643,45 @@ export function tMission(raw) {
   const cachesSuffix = ' (Caches)';
   const hasCaches = raw.endsWith(cachesSuffix);
   const baseName = hasCaches ? raw.slice(0, -cachesSuffix.length) : raw;
-  const translated = tOrRaw(`mission.${baseName}`, baseName);
-  return hasCaches ? `${translated} ${tOrRaw('mission.caches', '(Caches)')}` : translated;
+  const translated = tOrRaw(`general.game.mission.${baseName}`, baseName);
+  return hasCaches ? `${translated} ${tOrRaw('general.game.mission.caches', '(Caches)')}` : translated;
 }
 
 export function tGameMode(raw) {
   if (!raw) return raw;
-  return tOrRaw(`gameMode.${raw}`, raw);
+  return tOrRaw(`general.game.gameMode.${raw}`, raw);
 }
 
 /**
  * Resolve a Baro Ki'Teer inventory entry's display name and category from locale keys.
  *
- * Key format: "baro.item.<category>.<apiIdentifier>"
- * e.g. "baro.item.mod.Weapon Shotgun Faction Damage Murmurs Expert" → "Primed Cleanse The Murmur"
+ * Old home: top-level uiStrings keys "baro.item.<category>.<apiIdentifier>".
+ * New home: tabs.tasks.ui.baro.item is now its OWN nested object (reached
+ * via a real path), but the keys WITHIN that object are still flat
+ * "<category>.<apiIdentifier>" strings -- verified by hand (2026-06) that
+ * this dictionary's internal shape didn't change, only where it lives.
+ * e.g. tabs.tasks.ui.baro.item["mod.Weapon Shotgun Faction Damage Murmurs Expert"]
+ *      → "Primed Cleanse The Murmur"
  *
  * Returns { name: string, category: string } where:
  *   - name:     localized display name; falls back to the raw API identifier if no key is found
  *   - category: slug from the key path (e.g. "mod", "weapon", "prime"); falls back to "other"
  */
+const BARO_ITEM_PATH = ['tabs', 'tasks', 'ui', 'baro', 'item'];
+
 export function tBaroItem(apiIdentifier) {
-  const prefix = 'baro.item.';
+  const items = walkSegments(uiStrings, BARO_ITEM_PATH);
+  if (items && typeof items === 'object') {
+    for (const [key, value] of Object.entries(items)) {
+      const dotIdx = key.indexOf('.');
+      if (dotIdx === -1) continue;
 
-  for (const [key, value] of Object.entries(uiStrings)) {
-    if (!key.startsWith(prefix)) continue;
+      const category   = key.slice(0, dotIdx);
+      const identifier  = key.slice(dotIdx + 1);
 
-    // rest = "<category>.<apiIdentifier>"
-    const rest   = key.slice(prefix.length);
-    const dotIdx = rest.indexOf('.');
-    if (dotIdx === -1) continue;
-
-    const category   = rest.slice(0, dotIdx);
-    const identifier = rest.slice(dotIdx + 1);
-
-    if (identifier === apiIdentifier) {
-      return { name: value || apiIdentifier, category };
+      if (identifier === apiIdentifier) {
+        return { name: value || apiIdentifier, category };
+      }
     }
   }
 

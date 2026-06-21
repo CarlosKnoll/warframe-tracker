@@ -77,7 +77,7 @@ function buildBaroSection(baroData) {
 
   const title = document.createElement('h2');
   title.className = 'tasks-tier-title tasks-baro-title';
-  title.textContent = t('tasks.baro.title');
+  title.textContent = t('tasks.ui.baro.title');
   header.appendChild(title);
 
   section.appendChild(header);
@@ -86,7 +86,7 @@ function buildBaroSection(baroData) {
     section.classList.add('tasks-baro--unavailable');
     const msg = document.createElement('span');
     msg.className = 'tasks-baro-unavailable';
-    msg.textContent = t('tasks.baro.unavailable');
+    msg.textContent = t('tasks.ui.baro.unavailable');
     section.appendChild(msg);
     return section;
   }
@@ -111,7 +111,7 @@ function buildBaroSection(baroData) {
     // "Leaves in" countdown
     const statusWrap = document.createElement('span');
     statusWrap.className = 'tasks-baro-status';
-    statusWrap.textContent = t('tasks.baro.leaves') + ' ';
+    statusWrap.textContent = t('tasks.ui.baro.leaves') + ' ';
     const cd = document.createElement('span');
     cd.className = 'tasks-baro-countdown tasks-tier-countdown';
     cd.id = 'tasks-baro-countdown';
@@ -150,7 +150,7 @@ function buildBaroSection(baroData) {
 
       const catHeader = document.createElement('div');
       catHeader.className = 'tasks-baro-category-header';
-      catHeader.textContent = t(`baro.category.${category}`);
+      catHeader.textContent = t(`category.${category}`);
       catGroup.appendChild(catHeader);
 
       const tableWrap = document.createElement('div');
@@ -169,7 +169,7 @@ function buildBaroSection(baroData) {
 
       const thead = document.createElement('thead');
       const headRow = document.createElement('tr');
-      [t('tasks.baro.inventory.item'), t('tasks.baro.inventory.ducats'), t('tasks.baro.inventory.credits')].forEach((text, i) => {
+      [t('tasks.baro.ui.inventory.item'), t('general.ducats'), t('general.credits')].forEach((text, i) => {
         const th = document.createElement('th');
         th.textContent = text;
         if (i > 0) th.className = 'tasks-baro-col-num';
@@ -223,9 +223,9 @@ function buildBaroSection(baroData) {
 
     if (departed) {
       // Expiry passed but next activation not yet known (API not refreshed)
-      statusWrap.textContent = t('tasks.baro.departed');
+      statusWrap.textContent = t('tasks.ui.baro.departed');
     } else {
-      statusWrap.textContent = t('tasks.baro.arrives') + ' ';
+      statusWrap.textContent = t('tasks.ui.baro.arrives') + ' ';
       const cd = document.createElement('span');
       cd.className = 'tasks-baro-countdown tasks-tier-countdown';
       cd.id = 'tasks-baro-countdown';
@@ -299,13 +299,13 @@ function buildArchonDesc(archonData) {
 function buildSteelPathDesc(steelData) {
   if (!steelData || !steelData.currentReward) return null;
   const lines = [];
-  const essence = t('tasks.steelpath.essence');
+  const essence = t('tasks.ui.steelpath.essence');
 
   // Rotating weekly reward
   const { name, cost } = steelData.currentReward;
   if (name) {
-    const tName = t(`tasks.steelpath.item.${name}`, {});
-    const label = tName !== `tasks.steelpath.item.${name}` ? tName : name;
+    const tName = t(`tasks.ui.steelpath.item.${name}`, {});
+    const label = tName !== `tasks.ui.steelpath.item.${name}` ? tName : name;
     
     const strong = document.createElement('strong');
     strong.textContent = `${label}${cost != null ? ' · ' + cost + ' ' + essence : ''}`;
@@ -326,8 +326,8 @@ function buildSteelPathDesc(steelData) {
     const relevant = steelData.evergreens.filter(e => EVERGREEN_KEYS.has(e.name));
     if (relevant.length) {
       relevant.forEach(e => {
-        const tName = t(`tasks.steelpath.item.${e.name}`, {});
-        const label = tName !== `tasks.steelpath.item.${e.name}` ? tName : e.name;
+        const tName = t(`tasks.ui.steelpath.item.${e.name}`, {});
+        const label = tName !== `tasks.ui.steelpath.item.${e.name}` ? tName : e.name;
         lines.push(`${label}${e.cost != null ? ' · ' + e.cost + ' ' + essence : ''}`);
       });
     }
@@ -351,13 +351,13 @@ function buildDuviriCircuitDesc(duviriData) {
     const chip = document.createElement('button');
     chip.className = 'tasks-circuit-weapon' + (isObtained ? ' is-obtained' : '');
     chip.textContent = weaponName;
-    chip.title = isObtained ? t('tasks.circuit.weapon.mark_not_obtained') : t('tasks.circuit.weapon.mark_obtained');
+    chip.title = isObtained ? t('tasks.ui.circuit.weapon.mark_not_obtained') : t('tasks.ui.circuit.weapon.mark_obtained');
 
     chip.onclick = async () => {
       await toggleCircuitWeapon(weaponName);
       const nowObtained = state.circuitObtained.includes(weaponName);
       chip.classList.toggle('is-obtained', nowObtained);
-      chip.title = nowObtained ? t('tasks.circuit.weapon.mark_not_obtained') : t('tasks.circuit.weapon.mark_obtained');
+      chip.title = nowObtained ? t('tasks.ui.circuit.weapon.mark_not_obtained') : t('tasks.ui.circuit.weapon.mark_obtained');
     };
 
     wrapper.appendChild(chip);
@@ -375,7 +375,7 @@ function buildDuviriCircuitDesc(duviriData) {
 
 function translateCalendarReward(name) {
    const namespaces = [
-     `tasks.calendar.item.${name}`,
+     `tasks.ui.calendar.item.${name}`,
      `arcane.${name}`,
      `item.${name}`,
    ];
@@ -390,7 +390,7 @@ function buildCalendarDesc(calendarData) {
     if (!calendarData || !Array.isArray(calendarData.days)) return null;
     const lines = [];
  
-    const prizeLabel = t('tasks.calendar.prizes.label');
+    const prizeLabel = t('tasks.ui.calendar.prizes.label');
 
     const strong = document.createElement('strong');
     strong.textContent = prizeLabel;
@@ -401,7 +401,7 @@ function buildCalendarDesc(calendarData) {
       const prizes = day.events.filter(e => e.type === 'Big Prize!' && e.reward);
       if (!prizes.length) continue;
       const options = prizes.map(e => translateCalendarReward(e.reward));
-      lines.push(options.join(` ${t('tasks.calendar.or')} `));
+      lines.push(options.join(` ${t('general.or')} `));
     }
  
     return lines.length ? lines : null;
@@ -424,8 +424,8 @@ function buildArchimedeasDesc(archimedeasData, typeKey) {
 
       if (m.deviation?.key) {
         // deviation name + desc
-        const devName = tOrRaw(`tasks.archimedea.deviation.${m.deviation.key}`, m.deviation.name);
-        const devDesc = tOrRaw(`tasks.archimedea.deviation.${m.deviation.key}.desc`, m.deviation.description);
+        const devName = tOrRaw(`tasks.ui.archimedea.deviation.${m.deviation.key}`, m.deviation.name);
+        const devDesc = tOrRaw(`tasks.ui.archimedea.deviation.${m.deviation.key}.desc`, m.deviation.description);
         missionSpan.appendChild(document.createTextNode(' · ' + devName));
         missionSpan.title = devDesc;
       }
@@ -437,8 +437,8 @@ function buildArchimedeasDesc(archimedeasData, typeKey) {
           const riskSpan = document.createElement('span');
           riskSpan.className = 'tasks-archimedea-risk' + (r.isHard ? ' tasks-archimedea-risk--hard' : '');
           // risk name + desc
-          riskSpan.textContent = (r.isHard ? '⚠ ' : '· ') + tOrRaw(`tasks.archimedea.risk.${r.key}`, r.name);
-          riskSpan.title = tOrRaw(`tasks.archimedea.risk.${r.key}.desc`, r.description);
+          riskSpan.textContent = (r.isHard ? '⚠ ' : '· ') + tOrRaw(`tasks.ui.archimedea.risk.${r.key}`, r.name);
+          riskSpan.title = tOrRaw(`tasks.ui.archimedea.risk.${r.key}.desc`, r.description);
           lines.push(riskSpan);
         });
       }
@@ -448,15 +448,15 @@ function buildArchimedeasDesc(archimedeasData, typeKey) {
   if (Array.isArray(entry.personalModifiers) && entry.personalModifiers.length) {
     const modHeader = document.createElement('strong');
     // static label — stays as t()
-    modHeader.textContent = t('tasks.archimedea.modifiers.label');
+    modHeader.textContent = t('tasks.ui.archimedea.modifiers.label');
     lines.push(modHeader);
 
     entry.personalModifiers.forEach(mod => {
       const modSpan = document.createElement('span');
       modSpan.className = 'tasks-archimedea-modifier';
       // modifier name + desc
-      modSpan.textContent = tOrRaw(`tasks.archimedea.modifier.${mod.key}`, mod.name);
-      modSpan.title = tOrRaw(`tasks.archimedea.modifier.${mod.key}.desc`, mod.description);
+      modSpan.textContent = tOrRaw(`tasks.ui.archimedea.modifier.${mod.key}`, mod.name);
+      modSpan.title = tOrRaw(`tasks.ui.archimedea.modifier.${mod.key}.desc`, mod.description);
       lines.push(modSpan);
     });
   }
@@ -472,7 +472,7 @@ function getLiveLines(task) {
     case 'duviriCycle':             return buildDuviriCircuitDesc(state.duviriCycleData);
     case 'steelPathIncursions': {
         const span = document.createElement('strong');
-        span.textContent = t('tasks.steelpath.incursions.reward');
+        span.textContent = t('tasks.ui.steelpath.incursions.reward');
         return [span];
     }
     case 'calendar':                return buildCalendarDesc(state.calendarData);
@@ -521,7 +521,7 @@ function createTaskItem(task) {
     const badge = document.createElement('span');
     badge.className = 'tasks-pulse-cost';
     const n = task.pulsesCost;
-    badge.textContent = n === 1 ? t('tasks.pulse.cost', { n }) : t('tasks.pulse.cost.plural', { n });
+    badge.textContent = n === 1 ? t('tasks.ui.pulse.cost', { n }) : t('tasks.ui.pulse.cost.plural', { n });
     labelEl.appendChild(badge);
   }
 
@@ -578,7 +578,7 @@ function createAddRow(tier, group) {
 
   const input = document.createElement('input');
   input.type = 'text';
-  input.placeholder = t('tasks.custom.placeholder');
+  input.placeholder = t('tasks.ui.custom.placeholder');
   input.maxLength = 120;
 
   // Group selector — only shown for weekly tier
@@ -587,10 +587,10 @@ function createAddRow(tier, group) {
     select = document.createElement('select');
     const optStd = document.createElement('option');
     optStd.value = 'standard';
-    optStd.textContent = t('tasks.group.standard');
+    optStd.textContent = t('tasks.ui.standard');
     const optArch = document.createElement('option');
     optArch.value = 'archon';
-    optArch.textContent = t('tasks.group.archon');
+    optArch.textContent = t('tasks.ui.archon');
     select.appendChild(optStd);
     select.appendChild(optArch);
     if (group) select.value = group;
@@ -598,7 +598,7 @@ function createAddRow(tier, group) {
 
   const addBtn = document.createElement('button');
   addBtn.className = 'tasks-add-btn';
-  addBtn.textContent = t('tasks.custom.add');
+  addBtn.textContent = t('tasks.ui.custom.add');
 
   const confirm = async () => {
     const label = input.value.trim();
@@ -641,11 +641,11 @@ function buildDailyTier(tasks) {
 
   const title = document.createElement('h2');
   title.className = 'tasks-tier-title';
-  title.textContent = t('tasks.tier.daily');
+  title.textContent = t('tasks.ui.daily');
 
   const resetLabel = document.createElement('span');
   resetLabel.className = 'tasks-tier-reset';
-  resetLabel.textContent = t('tasks.reset.daily') + ' ';
+  resetLabel.textContent = t('tasks.ui.reset') + ' ';
 
   const countdown = document.createElement('span');
   countdown.id = 'tasks-countdown-daily';
@@ -678,11 +678,11 @@ function buildWeeklyTier(tasks) {
 
   const title = document.createElement('h2');
   title.className = 'tasks-tier-title';
-  title.textContent = t('tasks.tier.weekly');
+  title.textContent = t('tasks.ui.weekly');
 
   const resetLabel = document.createElement('span');
   resetLabel.className = 'tasks-tier-reset';
-  resetLabel.textContent = t('tasks.reset.weekly') + ' ';
+  resetLabel.textContent = t('tasks.ui.reset') + ' ';
 
   const countdown = document.createElement('span');
   countdown.id = 'tasks-countdown-weekly';
@@ -718,7 +718,7 @@ function buildWeeklyGroup(groupKey, tasks) {
 
   const groupHeader = document.createElement('div');
   groupHeader.className = 'tasks-group-header';
-  groupHeader.textContent = t(`tasks.group.${groupKey}`);
+  groupHeader.textContent = t(`tasks.ui.${groupKey}`);
   group.appendChild(groupHeader);
 
   const list = document.createElement('div');
@@ -735,7 +735,7 @@ function buildWeeklyGroup(groupKey, tasks) {
     if (pulse.length) {
       const pulseHeader = document.createElement('div');
       pulseHeader.className = 'tasks-subgroup-header';
-      pulseHeader.textContent = t('tasks.subgroup.searchpulse');
+      pulseHeader.textContent = t('tasks.ui.searchpulse');
       list.appendChild(pulseHeader);
 
       pulse.forEach(task => list.appendChild(createTaskItem(task)));

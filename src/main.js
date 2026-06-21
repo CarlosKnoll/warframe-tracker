@@ -27,6 +27,9 @@ let tasksInitialized = false;
 let marketModule = null;
 let marketInitialized = false;
 
+let vendorsModule = null;
+let vendorsInitialized = false;
+
 // ─── Mastery nav group toggle ──────────────────────────────────────────────────
 
 const masteryToggle = document.getElementById('masteryToggle');
@@ -81,6 +84,8 @@ window.addEventListener('langchange', async () => {
     tasksModule.renderTasks();
   } else if (activeMode === 'market' && marketInitialized) {
     marketModule.renderMarket();
+  }else if (activeMode === 'vendors' && vendorsInitialized) {
+    vendorsModule.renderVendors();
   }
 });
 
@@ -162,6 +167,16 @@ document.querySelectorAll("#sidebar button[data-section]").forEach(btn => {
       document.getElementById("settingsSection").classList.add("active");
       const settingsMod = await import('./settings.js');
       await settingsMod.initSettings();
+    } else if (section === 'vendors') {
+      document.getElementById('vendorsSection').classList.add('active');
+      if (!vendorsInitialized) {
+        vendorsModule = await import('./vendors/index.js');
+        const container = document.querySelector('#vendorsSection .vendors-content');
+        await vendorsModule.initVendors(container);
+        vendorsInitialized = true;
+      } else {
+        await vendorsModule.refreshVendors();
+      }
     }
   };
 });
@@ -236,6 +251,7 @@ async function init() {
         else if (section === 'tasks' && tasksInitialized) await tasksModule.initTasks();
         else if (section === 'market' && marketInitialized) marketModule.renderMarket();
         else if (section === 'settings') import('./settings.js').then(m => m.refreshSettings());
+        else if (activeMode === 'vendors' && vendorsInitialized)            await vendorsModule.refreshVendors();
       }
     });
 

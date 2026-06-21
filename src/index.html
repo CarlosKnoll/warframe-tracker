@@ -18,6 +18,7 @@
   <link rel="stylesheet" href="styles/market.css" />
   <link rel="stylesheet" href="styles/settings.css" />
   <link rel="stylesheet" href="styles/sync-conflict.css" />
+  <link rel="stylesheet" href="styles/vendors.css" />
 </head>
 <body>
 
@@ -43,17 +44,17 @@
             <span class="nav-group-arrow">›</span>
           </button>
           <div class="nav-group-items" id="masteryItems">
-            <button class="nav-sub-btn" data-section="mastery-warframes"  data-has-grid="true" data-i18n="mastery.warframes">Warframes</button>
-            <button class="nav-sub-btn" data-section="mastery-primaries" data-has-grid="true" data-i18n="mastery.primaries">Primaries</button>
-            <button class="nav-sub-btn" data-section="mastery-secondaries" data-has-grid="true" data-i18n="mastery.secondaries">Secondaries</button>
-            <button class="nav-sub-btn" data-section="mastery-melees" data-has-grid="true" data-i18n="mastery.melees">Melees</button>
-            <button class="nav-sub-btn" data-section="mastery-robotic" data-has-grid="true" data-i18n="mastery.robotic">Robotic</button>
-            <button class="nav-sub-btn" data-section="mastery-companions" data-has-grid="true" data-i18n="mastery.companions">Companions</button>
-            <button class="nav-sub-btn" data-section="mastery-vehicles" data-has-grid="true" data-i18n="mastery.vehicles">Vehicles</button>
-            <button class="nav-sub-btn" data-section="mastery-archgun" data-has-grid="true" data-i18n="mastery.archgun">Arch-Gun</button>
-            <button class="nav-sub-btn" data-section="mastery-archmelee" data-has-grid="true" data-i18n="mastery.archmelee">Arch-Melee</button>
-            <button class="nav-sub-btn" data-section="mastery-amps" data-has-grid="true" data-i18n="mastery.amps">Amps</button>
-            <button class="nav-sub-btn" data-section="mastery-misc" data-has-grid="true" data-i18n="mastery.misc">Misc</button>
+            <button class="nav-sub-btn" data-section="mastery-warframes"  data-has-grid="true" data-i18n="menus-nav.mode.mastery-div.warframes">Warframes</button>
+            <button class="nav-sub-btn" data-section="mastery-primaries" data-has-grid="true" data-i18n="menus-nav.mode.mastery-div.primaries">Primaries</button>
+            <button class="nav-sub-btn" data-section="mastery-secondaries" data-has-grid="true" data-i18n="menus-nav.mode.mastery-div.secondaries">Secondaries</button>
+            <button class="nav-sub-btn" data-section="mastery-melees" data-has-grid="true" data-i18n="menus-nav.mode.mastery-div.melees">Melees</button>
+            <button class="nav-sub-btn" data-section="mastery-robotic" data-has-grid="true" data-i18n="menus-nav.mode.mastery-div.robotic">Robotic</button>
+            <button class="nav-sub-btn" data-section="mastery-companions" data-has-grid="true" data-i18n="menus-nav.mode.mastery-div.companions">Companions</button>
+            <button class="nav-sub-btn" data-section="mastery-vehicles" data-has-grid="true" data-i18n="menus-nav.mode.mastery-div.vehicles">Vehicles</button>
+            <button class="nav-sub-btn" data-section="mastery-archgun" data-has-grid="true" data-i18n="menus-nav.mode.mastery-div.archgun">Arch-Gun</button>
+            <button class="nav-sub-btn" data-section="mastery-archmelee" data-has-grid="true" data-i18n="menus-nav.mode.mastery-div.archmelee">Arch-Melee</button>
+            <button class="nav-sub-btn" data-section="mastery-amps" data-has-grid="true" data-i18n="menus-nav.mode.mastery-div.amps">Amps</button>
+            <button class="nav-sub-btn" data-section="mastery-misc" data-has-grid="true" data-i18n="menus-nav.mode.mastery-div.misc">Misc</button>
           </div>
         </div>
 
@@ -65,6 +66,9 @@
 
         <!-- Arcanes — direct nav button -->
         <button class="nav-btn" data-section="arcanes" data-has-grid="true" data-i18n="mode.arcanes">Arcanes</button>
+
+        <!-- Vendors — direct nav button -->
+        <button class="nav-btn" data-section="vendors" data-has-grid="false" data-i18n="menus-nav.mode.vendors">Vendors</button>
 
         <!-- Market — direct nav button -->
         <button class="nav-btn" data-section="market" data-has-grid="false" data-i18n="mode.market">Market</button>
@@ -321,6 +325,12 @@
         </div>
         <div class="section-list">
           <div id="masteryList"></div>
+        </div>
+      </div>
+
+      <div id="vendorsSection" class="tracker-section">
+        <div class="vendors-content">
+          <!-- Populated entirely by vendors/renderer.js -->
         </div>
       </div>
 

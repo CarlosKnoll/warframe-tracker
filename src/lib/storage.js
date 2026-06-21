@@ -66,6 +66,21 @@ export async function setCustomDrops(data, { fromSync = false } = {}) {
   }
 }
 
+// ── vendor state ─────────────────────────────────────────────────────────────
+
+export async function getVendorState() {
+  return (await get('vendorState')) ?? {};
+}
+
+export async function setVendorState(data, options = {}) {
+  await set('vendorState', data);
+
+  if (!options.fromSync && !isSyncInFlight()) {
+    await touchModified();
+    schedulePush();
+  }
+}
+
 // ── Image caches (IndexedDB) – not synced ─────────────
 export async function getPrimesImageCache() { return await get('primesImageCache') || {}; }
 export async function setPrimesImageCache(data) { await set('primesImageCache', data); }
