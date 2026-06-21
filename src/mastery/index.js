@@ -68,4 +68,5 @@ export async function refreshMasteryData() {
 }
 
 export { renderMastery };
+export { updateMasteryProgress };
 export { masteryState } from './state.js';

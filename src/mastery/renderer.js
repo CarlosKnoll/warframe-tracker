@@ -238,6 +238,8 @@ function buildCard(item, observer) {
 
     try { await masteryState.saveFunction(); }
     catch (err) { console.error('[mastery/renderer] Save failed:', err); }
+
+    document.dispatchEvent(new CustomEvent('mastery-progress-update'));
   });
 
   // ── Card click → modal ──────────────────────────────────────────────────────

@@ -78,6 +78,7 @@ window.addEventListener('langchange', async () => {
     primesModule.renderPrimes();
   } else if (activeMode.startsWith('mastery-') && masteryInitialized) {
     masteryModule.renderMastery();
+    masteryModule.updateMasteryProgress();
   } else if (activeMode === 'mods' && modsInitialized) {
     modsModule.renderMods();
   } else if (activeMode === 'tasks' && tasksInitialized) {
@@ -246,7 +247,10 @@ async function init() {
         const section = active.dataset.section;
         if (section === 'arcanes' && arcanesInitialized) arcanesModule.renderArcanes();
         else if (section === 'primes' && primesInitialized) primesModule.renderPrimes();
-        else if (section.startsWith('mastery-') && masteryInitialized) masteryModule.renderMastery();
+        else if (section.startsWith('mastery-') && masteryInitialized) {
+          masteryModule.renderMastery();
+          masteryModule.updateMasteryProgress();
+        }
         else if (section === 'mods' && modsInitialized) modsModule.renderMods();
         else if (section === 'tasks' && tasksInitialized) await tasksModule.initTasks();
         else if (section === 'market' && marketInitialized) marketModule.renderMarket();
