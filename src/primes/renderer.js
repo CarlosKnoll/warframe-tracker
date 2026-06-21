@@ -241,8 +241,8 @@ export function renderPrimes() {
     // Status tag
     let statusTag = '';
     if (hasTradeableSet)  statusTag = `<span class="prime-status-tag tradeable">${t('badge.tradeable')}</span>`;
-    else if (isIgnored)   statusTag = `<span class="prime-status-tag ignored">${t('badge.ignored')}</span>`;
-    else if (isOwned)     statusTag = `<span class="prime-status-tag owned">${t('badge.owned')}</span>`;
+    else if (isIgnored)   statusTag = `<span class="prime-status-tag ignored">${t('tabs.badge.ignored')}</span>`;
+    else if (isOwned)     statusTag = `<span class="prime-status-tag owned">${t('tabs.badge.owned')}</span>`;
     else                  statusTag = `<span class="prime-status-tag farming">${t('badge.farming')}</span>`;
 
     // Letter badges
@@ -254,7 +254,7 @@ export function renderPrimes() {
       : '';
     const founderDot = isFounder ? `<span class="prime-dot founder" title="${t('badge.founder')}">F</span>` : '';
     const specialDot = isSpecial ? `<span class="prime-dot special" title="${t('badge.special')}">S</span>` : '';
-    const ignoredDot = isIgnored ? `<span class="prime-dot ignored-dot" title="${t('badge.ignored')}">I</span>` : '';
+    const ignoredDot = isIgnored ? `<span class="prime-dot ignored-dot" title="${t('tabs.badge.ignored')}">I</span>` : '';
 
     const ignoreBtn = (isFounder || isSpecial)
       ? `<button class="prime-ignore-btn" data-unique="${p.uniqueName}" title="${isIgnored ? t('btn.unignore') : t('btn.ignore')}">✕</button>`
@@ -565,10 +565,10 @@ function updatePrimeCardTag(p, card) {
     tag.textContent = t('badge.tradeable');
   } else if (isIgnored) {
     tag.classList.add('ignored');
-    tag.textContent = t('badge.ignored');
+    tag.textContent = t('tabs.badge.ignored');
   } else if (isOwned) {
     tag.classList.add('owned');
-    tag.textContent = t('badge.owned');
+    tag.textContent = t('tabs.badge.owned');
   } else {
     tag.classList.add('farming');
     tag.textContent = t('badge.farming');
