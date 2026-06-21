@@ -43,7 +43,7 @@ export function openModModal(mod) {
     const d = mod.drainDisplay;
     const label = d < 0
       ? `${Math.abs(d)} ${t('mod.label.provides')}`
-      : `${d} ${t('mod.label.capacity')}`;
+      : `${d} ${t('mods.ui.capacity')}`;
     drainHtml = `<p class="mod-modal-drain">${label}</p>`;
   }
 
@@ -96,7 +96,7 @@ export function openModModal(mod) {
 
 function buildDropTable(mod) {
   const noData = `<div class="drop-tables-container">
-    <p class="no-drops">${t('modal.noLocations')}</p>
+    <p class="no-drops">${t('drops.modal.noLocations')}</p>
   </div>`;
 
   // Resolve custom entries: translate locationKey if possible, fall back to locationEn
@@ -150,15 +150,15 @@ function buildDropTable(mod) {
   const html = `
     <div class="drop-tables-container">
       <div class="drop-table-wrapper farmable">
-        <h4>${t('mod.dropSources')} (${rows.length})</h4>
+        <h4>${t('general.dropSources')} (${rows.length})</h4>
         <div class="drop-table-scroll">
           <table class="drop-table">
             <thead><tr>
               ${typeHeader}
-              <th>${t('modal.colLocation')}</th>
-              <th class="rarity">${t('table.colRarity')}</th>
+              <th>${t('drops.modal.colLocation')}</th>
+              <th class="rarity">${t('drops.table.colRarity')}</th>
               <th id="${sortId}" class="sortable-chance" style="cursor:pointer;user-select:none;">
-                ${t('modal.colChance')} <span class="sort-arrow">↓</span>
+                ${t('drops.modal.colChance')} <span class="sort-arrow">↓</span>
               </th>
             </tr></thead>
             <tbody id="${bodyId}">${renderRows(rows)}</tbody>

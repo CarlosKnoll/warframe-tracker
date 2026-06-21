@@ -123,12 +123,12 @@
                 <input
                   id="marketSearch"
                   type="text"
-                  data-i18n-placeholder="search.market.placeholder"
+                  data-i18n-placeholder="search"
                   placeholder="Search Warframe Market..."
                 />
-                <button id="clearMarketSearch" class="clear-search-btn" data-i18n-title="search.clear.title" title="Clear search">✕</button>
+                <button id="clearMarketSearch" class="clear-search-btn" data-i18n-title="clear" title="Clear search">✕</button>
               </div>
-              <button id="marketSearchBtn" class="market-search-btn" data-i18n="market.searchBtn">🔍 Search</button>
+              <button id="marketSearchBtn" class="market-search-btn" data-i18n="search">Search</button>
             </div>
           </div>
         </div>
@@ -138,7 +138,7 @@
         
             <!-- Max orders selector -->
             <div class="market-control-group">
-              <span class="market-control-label" id="marketMaxOrdersLabel" data-i18n="market.maxOrders">Max orders</span>
+              <span class="market-control-label" id="marketMaxOrdersLabel" data-i18n="market.ui.maxOrders">Max orders</span>
               <select class="market-max-orders-select" id="marketMaxOrders">
                 <option value="10" selected>10</option>
                 <option value="30">30</option>
@@ -149,15 +149,15 @@
         
             <!-- Rank filter — hidden until renderer confirms ranked orders exist -->
             <div class="market-control-group rank-group" id="marketRankFilterGroup">
-              <span class="market-control-label" id="marketRankLabel" data-i18n="market.rankLabel">Rank</span>
-              <button class="market-rank-filter-btn active" data-rank-filter="all" data-i18n="market.rank.all">All</button>
-              <button class="market-rank-filter-btn"        data-rank-filter="maxed" data-i18n="market.rank.maxed">Maxed</button>
+              <span class="market-control-label" id="marketRankLabel" data-i18n="market.ui.rankLabel">Rank</span>
+              <button class="market-rank-filter-btn active" data-rank-filter="all" data-i18n="market.ui.rank.all">All</button>
+              <button class="market-rank-filter-btn"        data-rank-filter="maxed" data-i18n="market.ui.rank.maxed">Maxed</button>
             </div>
 
             <!-- Sell / Buy toggle — active class managed by renderer -->
             <div class="market-control-group" id="marketViewToggle">
-              <button class="market-rank-filter-btn active" data-view="sell" data-i18n="market.sell">💰 Sell</button>
-              <button class="market-rank-filter-btn"        data-view="buy"  data-i18n="market.buy">🛒 Buy</button>
+              <button class="market-rank-filter-btn active" data-view="sell" data-i18n="market.ui.sell">Sell</button>
+              <button class="market-rank-filter-btn"        data-view="buy"  data-i18n="market.ui.buy">Buy</button>
             </div>
         
             <!-- Order count — written by renderer, pushed to the right -->
@@ -177,22 +177,22 @@
             <input
               id="search"
               type="text"
-              data-i18n-placeholder="search.arcanes.placeholder"
+              data-i18n-placeholder="search"
               placeholder="Search arcanes..."
             />
-            <button id="clearSearch" class="clear-search-btn" data-i18n-title="search.clear.title" title="Clear search">✕</button>
+            <button id="clearSearch" class="clear-search-btn" data-i18n-title="clear" title="Clear search">✕</button>
           </div>
           <div id="filters">
-            <button data-cat="All" data-i18n="filter.all">All</button>
-            <button data-cat="Warframe" data-i18n="category.warframe">Warframe</button>
-            <button data-cat="Operator" data-i18n="category.operator">Operator</button>
-            <button data-cat="Amp" data-i18n="category.amp">Amp</button>
-            <button data-cat="Tektolyst Artifact" data-i18n="category.tektolyst_artifact">Tektolyst Artifact</button>
-            <button data-cat="Primary" data-i18n="category.primary">Primary</button>
-            <button data-cat="Secondary" data-i18n="category.secondary">Secondary</button>
-            <button data-cat="Melee" data-i18n="category.melee">Melee</button>
-            <button data-cat="Kitgun" data-i18n="category.kitgun">Kitgun</button>
-            <button data-cat="Zaw" data-i18n="category.zaw">Zaw</button>
+            <button data-cat="All" data-i18n="filters.all">All</button>
+            <button data-cat="Warframe" data-i18n="filters.warframe">Warframe</button>
+            <button data-cat="Operator" data-i18n="filters.operator">Operator</button>
+            <button data-cat="Amp" data-i18n="filters.amp">Amp</button>
+            <button data-cat="Tektolyst Artifact" data-i18n="filters.tektolyst_artifact">Tektolyst Artifact</button>
+            <button data-cat="Primary" data-i18n="filters.primary">Primary</button>
+            <button data-cat="Secondary" data-i18n="filters.secondary">Secondary</button>
+            <button data-cat="Melee" data-i18n="filters.melee">Melee</button>
+            <button data-cat="Kitgun" data-i18n="filters.kitgun">Kitgun</button>
+            <button data-cat="Zaw" data-i18n="filters.zaw">Zaw</button>
           </div>
           <div id="dropFilters"></div>
         </div>
@@ -211,7 +211,7 @@
                 data-i18n-placeholder="search"
                 placeholder="Search primes..."
               />
-              <button id="clearPrimeSearch" class="clear-search-btn" data-i18n-title="search.clear.title" title="Clear search">✕</button>
+              <button id="clearPrimeSearch" class="clear-search-btn" data-i18n-title="clear" title="Clear search">✕</button>
             </div>
             <span id="resurgenceCountdown"></span>
           </div>
@@ -261,41 +261,41 @@
             <input
               id="modSearch"
               type="text"
-              data-i18n-placeholder="search.mods.placeholder"
+              data-i18n-placeholder="search"
               placeholder="Search mods..."
             />
             <button id="clearModSearch" class="clear-search-btn"
-              data-i18n-title="search.clear.title" title="Clear search">✕</button>
+              data-i18n-title="clear" title="Clear search">✕</button>
           </div>
       
           <!-- Category filter -->
           <div id="modCategoryFilters">
-            <button data-cat="All"        class="active" data-i18n="filter.all">All</button>
-            <button data-cat="Warframe"   data-i18n="category.warframe">Warframe</button>
-            <button data-cat="Primary"    data-i18n="category.primary">Primary</button>
-            <button data-cat="Secondary"  data-i18n="category.secondary">Secondary</button>
-            <button data-cat="Melee"      data-i18n="category.melee">Melee</button>
-            <button data-cat="Companion"  data-i18n="mod.category.companion">Companion</button>
-            <button data-cat="Archwing"   data-i18n="category.archwing">Archwing</button>
-            <button data-cat="Arch-Gun"   data-i18n="category.arch_gun">Arch-Gun</button>
-            <button data-cat="Arch-Melee" data-i18n="category.arch_melee">Arch-Melee</button>
-            <button data-cat="Aura"       data-i18n="mod.category.aura">Aura</button>
-            <button data-cat="Stance"     data-i18n="mod.category.stance">Stance</button>
-            <button data-cat="Parazon"    data-i18n="mod.category.parazon">Parazon</button>
-            <button data-cat="Misc"       data-i18n="mod.category.misc">Misc</button>
+            <button data-cat="All"        class="active" data-i18n="filters.all">All</button>
+            <button data-cat="Warframe"   data-i18n="filters.warframe">Warframe</button>
+            <button data-cat="Primary"    data-i18n="filters.primary">Primary</button>
+            <button data-cat="Secondary"  data-i18n="filters.secondary">Secondary</button>
+            <button data-cat="Melee"      data-i18n="filters.melee">Melee</button>
+            <button data-cat="Companion"  data-i18n="filters.companion">Companion</button>
+            <button data-cat="Archwing"   data-i18n="filters.archwing">Archwing</button>
+            <button data-cat="Arch-Gun"   data-i18n="filters.arch_gun">Arch-Gun</button>
+            <button data-cat="Arch-Melee" data-i18n="filters.arch_melee">Arch-Melee</button>
+            <button data-cat="Aura"       data-i18n="filters.aura">Aura</button>
+            <button data-cat="Stance"     data-i18n="filters.stance">Stance</button>
+            <button data-cat="Parazon"    data-i18n="filters.parazon">Parazon</button>
+            <button data-cat="Misc"       data-i18n="filters.other">Other</button>
           </div>
       
           <!-- Polarity filter -->
           <div id="modPolarityFilters">
-            <span class="mod-filter-label" data-i18n="mod.filter.polarity">Polarity:</span>
-            <button data-polarity="All"     class="active" data-i18n="filter.all">All</button>
-            <button data-polarity="Madurai" data-i18n="mod.polarity.madurai">Madurai</button>
-            <button data-polarity="Vazarin" data-i18n="mod.polarity.vazarin">Vazarin</button>
-            <button data-polarity="Naramon" data-i18n="mod.polarity.naramon">Naramon</button>
-            <button data-polarity="Zenurik" data-i18n="mod.polarity.zenurik">Zenurik</button>
-            <button data-polarity="Unairu"  data-i18n="mod.polarity.unairu">Unairu</button>
-            <button data-polarity="Penjaga" data-i18n="mod.polarity.penjaga">Penjaga</button>
-            <button data-polarity="Umbra"   data-i18n="mod.polarity.umbra">Umbra</button>
+            <span class="mod-filter-label" data-i18n="mods.ui.polarity">Polarity:</span>
+            <button data-polarity="All"     class="active" data-i18n="filters.all">All</button>
+            <button data-polarity="Madurai" data-i18n="filters.madurai">Madurai</button>
+            <button data-polarity="Vazarin" data-i18n="filters.vazarin">Vazarin</button>
+            <button data-polarity="Naramon" data-i18n="filters.naramon">Naramon</button>
+            <button data-polarity="Zenurik" data-i18n="filters.zenurik">Zenurik</button>
+            <button data-polarity="Unairu"  data-i18n="filters.unairu">Unairu</button>
+            <button data-polarity="Penjaga" data-i18n="filters.penjaga">Penjaga</button>
+            <button data-polarity="Umbra"   data-i18n="filters.umbra">Umbra</button>
           </div>
       
         </div>
@@ -310,8 +310,8 @@
           <div id="masteryToolbar">
             <div id="masteryToolbarTop">
               <div class="search-container">
-                <input id="masterySearch" type="text" data-i18n-placeholder="filters.search" placeholder="Search..." />
-                <button id="clearMasterySearch" class="clear-search-btn" data-i18n-title="filters.clear" title="Clear search">✕</button>
+                <input id="masterySearch" type="text" data-i18n-placeholder="search" placeholder="Search..." />
+                <button id="clearMasterySearch" class="clear-search-btn" data-i18n-title="clear" title="Clear search">✕</button>
               </div>
               <div id="masteryStatusFilter">
                 <button data-status="all" class="active" data-i18n="filters.all">All</button>

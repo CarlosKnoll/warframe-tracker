@@ -179,14 +179,14 @@ export function tCategory(cat) {
     Secondary:    'category.secondary',
     Melee:        'category.melee',
     Warframe:     'category.warframe',
-    Companion:    'mod.category.companion',
+    Companion:    'category.companion',
     'Arch-Gun':   'category.arch_gun',
     'Arch-Melee': 'category.arch_melee',
     Archwing:     'category.archwing',
-    Aura:         'mod.category.aura',
-    Stance:       'mod.category.stance',
-    Parazon:      'mod.category.parazon',
-    Misc:         'mod.category.misc',
+    Aura:         'category.aura',
+    Stance:       'category.stance',
+    Parazon:      'category.parazon',
+    Misc:         'category.other',
   };
   const key = MAP[cat];
   if (!key) return cat;

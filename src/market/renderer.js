@@ -18,7 +18,7 @@ export function renderMarketResults(container, results) {
   currentContainer = container;
 
   if (state.loading) {
-    container.innerHTML = `<div class="market-loading">${t('market.loading')}</div>`;
+    container.innerHTML = `<div class="market-loading">${t('loading.market')}</div>`;
     return;
   }
 
@@ -30,7 +30,7 @@ export function renderMarketResults(container, results) {
   const allOrders = state.allOrders;
   if (!results || !allOrders ||
       (!allOrders.sell?.length && !allOrders.buy?.length)) {
-    container.innerHTML = `<div class="market-empty">${t('market.noResults')}</div>`;
+    container.innerHTML = `<div class="market-empty">${t('noItems')}</div>`;
     return;
   }
 
@@ -39,7 +39,7 @@ export function renderMarketResults(container, results) {
 
   if (allViewOrders.length === 0) {
     container.innerHTML = `<div class="market-empty">${
-      view === 'sell' ? t('market.noSellOrders') : t('market.noBuyOrders')
+      view === 'sell' ? t('market.noSellOrders') : t('market.ui.noBuyOrders')
     }</div>`;
     return;
   }
@@ -85,10 +85,10 @@ export function renderMarketResults(container, results) {
         <div class="market-item-name">${escapeHtml(results.displayName)}</div>
     </div>
     <div class="market-list-header">
-      <span class="sortable ${hdrClass('user')}"     data-sort="user"     >${t('market.colSeller')}${arrow('user')}</span>
-      <span class="sortable ${hdrClass('status')}"   data-sort="status"   >${t('market.colStatus')}${arrow('status')}</span>
-      <span class="sortable ${hdrClass('platinum')}" data-sort="platinum" >${t('market.colPrice')}${arrow('platinum')}</span>
-      <span class="sortable ${hdrClass('quantity')}" data-sort="quantity" >${t('market.colQuantity')}${arrow('quantity')}</span>
+      <span class="sortable ${hdrClass('user')}"     data-sort="user"     >${t('market.ui.colSeller')}${arrow('user')}</span>
+      <span class="sortable ${hdrClass('status')}"   data-sort="status"   >${t('market.ui.colStatus')}${arrow('status')}</span>
+      <span class="sortable ${hdrClass('platinum')}" data-sort="platinum" >${t('market.ui.colPrice')}${arrow('platinum')}</span>
+      <span class="sortable ${hdrClass('quantity')}" data-sort="quantity" >${t('market.ui.colQuantity')}${arrow('quantity')}</span>
       <span></span>
     </div>
     <div class="market-list" id="marketList">
@@ -104,7 +104,7 @@ export function renderMarketResults(container, results) {
     const remaining = sorted.length - visible;
     html += `
       <button class="market-load-more-btn" id="marketLoadMore">
-        ${t('market.loadMore') || 'Load more'} (${remaining} ${t('market.remaining') || 'remaining'})
+        ${t('market.ui.loadMore') || 'Load more'} (${remaining} ${t('market.ui.remaining') || 'remaining'})
       </button>
     `;
   }
@@ -124,7 +124,7 @@ function updateRankFilterVisibility(hasRanks) {
 // Write the order count into the dedicated span in the controls row.
 function updateOrderCount(shown, total) {
   const el = document.getElementById('marketOrderCount');
-  if (el) el.textContent = `${shown} / ${total} ${t('market.orders')}`;
+  if (el) el.textContent = `${shown} / ${total} ${t('market.ui.orders')}`;
 }
 
 // ── Order sorting ─────────────────────────────────────────────────────────────
@@ -167,12 +167,12 @@ function renderOrderRow(order, index, view, globalMaxRank = 0) {
   const isCopied       = copiedStates.has(orderId);
   const statusClass    = order.user?.status === 'ingame' ? 'status-ingame' :
                          order.user?.status === 'online'  ? 'status-online' : 'status-offline';
-  const statusText     = order.user?.status === 'ingame' ? t('market.status.ingame') :
-                         order.user?.status === 'online'  ? t('market.status.online') : t('market.status.offline');
+  const statusText     = order.user?.status === 'ingame' ? t('market.ui.status.ingame') :
+                         order.user?.status === 'online'  ? t('market.ui.status.online') : t('market.ui.status.offline');
   // Show rank label for all orders in rankable item sets (mods/arcanes),
   // including rank 0 (unranked), so users can distinguish listings at a glance.
-  const rankText       = globalMaxRank > 0 ? ` (${t('market.rank')} ${order.rank ?? 0})` : '';
-  const buttonText     = isCopied ? '✓ ' + t('market.copied') : '📋 ' + t('market.copyWhisper');
+  const rankText       = globalMaxRank > 0 ? ` (${t('market.ui.rank')} ${order.rank ?? 0})` : '';
+  const buttonText     = isCopied ? '✓ ' + t('market.ui.copied') : '📋 ' + t('market.ui.copyWhisper');
   const buttonClass    = isCopied ? 'market-whisper-btn copied' : 'market-whisper-btn';
   const buttonDisabled = isCopied ? 'disabled' : '';
 
@@ -187,7 +187,7 @@ function renderOrderRow(order, index, view, globalMaxRank = 0) {
     <div class="market-row" data-order-id="${orderId}">
       <span class="market-seller" title="${escapeHtml(order.user?.name || 'Unknown')}">${escapeHtml(order.user?.name || 'Unknown')}</span>
       <span class="market-status ${statusClass}">${statusText}</span>
-      <span class="market-price">${order.platinum} <span class="market-currency">${t('market.platinum')}${rankText}</span></span>
+      <span class="market-price">${order.platinum} <span class="market-currency">${t('market.ui.platinum')}${rankText}</span></span>
       <span class="market-quantity">${order.quantity}</span>
       <button class="${buttonClass}" data-order-id="${orderId}" ${buttonDisabled}>${buttonText}</button>
     </div>
@@ -257,11 +257,11 @@ function bindEvents(container) {
           renderMarketResults(container, currentResults);
         } catch (err) {
           console.error('Failed to copy:', err);
-          btn.textContent = '✗ ' + t('market.copyFailed');
+          btn.textContent = '✗ ' + t('market.ui.copyFailed');
           btn.classList.add('error');
           setTimeout(() => {
             if (!copiedStates.has(orderId)) {
-              btn.textContent = '📋 ' + t('market.copyWhisper');
+              btn.textContent = '📋 ' + t('market.ui.copyWhisper');
               btn.classList.remove('error');
             }
           }, 2000);

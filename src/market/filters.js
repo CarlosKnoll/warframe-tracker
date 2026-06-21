@@ -112,7 +112,7 @@ function executeSearch() {
 }
 
 function runSearch(slug) {
-  resultsContainer.innerHTML = `<div class="market-loading">${t('market.loading')}</div>`;
+  resultsContainer.innerHTML = `<div class="market-loading">${t('loading.market')}</div>`;
 
   // If 'maxed' is requested but we don't yet know the max rank, fetch 'all' first
   // to discover it, then immediately re-fetch with the known rank.
@@ -121,7 +121,7 @@ function runSearch(slug) {
 
   performSearch(slug, (results, loading, error) => {
     if (loading) {
-      resultsContainer.innerHTML = `<div class="market-loading">${t('market.loading')}</div>`;
+      resultsContainer.innerHTML = `<div class="market-loading">${t('loading.market')}</div>`;
     } else if (error) {
       resultsContainer.innerHTML = `<div class="market-error">${error}</div>`;
     } else if (results) {

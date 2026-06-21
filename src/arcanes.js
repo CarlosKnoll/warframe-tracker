@@ -204,8 +204,8 @@ function updateDropSourceFilters() {
 
   dropFiltersDiv.style.display = "block";
   dropFiltersDiv.innerHTML = `
-    <label>${t('filter.dropSource')}</label>
-    <button data-source="All" class="${activeDropSource === 'All' ? 'active' : ''}">${t('filter.all')}</button>
+    <label>${t('general.dropSources')}</label>
+    <button data-source="All" class="${activeDropSource === 'All' ? 'active' : ''}">${t('filters.all')}</button>
     ${sortedSources.map(source =>
       `<button data-source="${source}" class="${activeDropSource === source ? 'active' : ''}">${tDropSource(source)}</button>`
     ).join('')}
@@ -312,7 +312,7 @@ export function renderArcanes() {
       <div class="arcane-card-name">${displayName}</div>
       <div class="arcane-card-input">
         <button class="arcane-counter-btn" data-action="dec">−</button>
-        <span class="arcane-counter-display" title="${t('label.owned')}">${have}/${totalNeeded}</span>
+        <span class="arcane-counter-display" title="${t('general.owned')}">${have}/${totalNeeded}</span>
         <button class="arcane-counter-btn" data-action="inc">+</button>
       </div>
     `;

@@ -15,7 +15,7 @@ export async function initMarket() {
   resultsContainer = document.getElementById('marketResults');
   if (!resultsContainer) return;
 
-  resultsContainer.innerHTML = `<div class="market-placeholder">${t('market.placeholder')}</div>`;
+  resultsContainer.innerHTML = `<div class="market-placeholder">${t('market.ui.placeholder')}</div>`;
 
   initMarketFilters();
   initialized = true;
@@ -30,7 +30,7 @@ export function renderMarket() {
     renderMarketResults(resultsContainer, state.currentResults);
   } else {
     // No results yet — show or refresh the placeholder text.
-    resultsContainer.innerHTML = `<div class="market-placeholder">${t('market.placeholder')}</div>`;
+    resultsContainer.innerHTML = `<div class="market-placeholder">${t('market.ui.placeholder')}</div>`;
   }
 }
 

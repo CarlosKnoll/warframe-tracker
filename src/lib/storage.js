@@ -1,5 +1,6 @@
 // src/lib/storage.js
 import { get, set, del } from './idb.js';   // changed from 'idb-keyval'
+import { isSyncInFlight, schedulePush } from './sync.js';
 
 const invoke = window.__TAURI__.core.invoke;
 
@@ -25,6 +26,17 @@ export async function getDeviceId() {
     await set('deviceId', id);
   }
   return id;
+}
+
+// Internal helper — stamps lastModifiedAt on every synced write.
+async function touchModified() {
+  const meta = await getSyncMeta();
+
+  await setSyncMeta({
+    ...meta,
+    lastModifiedAt: new Date().toISOString(),
+    hasPendingPush: true,
+  });
 }
 
 // ── Owned data (file) ─────────────────────────────────

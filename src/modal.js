@@ -250,7 +250,7 @@ export function openArcaneModal({ name, rawName, imageUrl, dropInfo, owned, tota
             <span class="arcane-counter-display" id="modalCounterDisplay">${owned}/${totalNeeded}</span>
             <button class="arcane-counter-btn" id="modalIncBtn">+</button>
           </div>
-          <span class="modal-need-label">${t('mastery.ui.label.need')} ${needed}</span>
+          <span class="modal-need-label">${t('general.need')} ${needed}</span>
         </div>
       </div>
       <div class="modal-detail-right">
