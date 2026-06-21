@@ -37,20 +37,26 @@ export function renderMarketResults(container, results) {
   const view = state.currentView; // 'sell' or 'buy'
   const allViewOrders = allOrders[view] ?? [];
 
+  // ── Rank filter visibility & view toggle — decided from actual data, not
+  // query heuristic, and computed BEFORE the empty-orders check below so
+  // they stay correct even when the active view (sell or buy) has zero
+  // orders for this item. Previously these ran after the early return,
+  // which left the toggle stuck on the wrong button and hid the rank
+  // selector entirely for any item with orders on only one side (e.g.
+  // Abating Link, Aegis Gale) — functionality (the click handler / state
+  // change) still worked, but the visual state never caught up.
+  const allBothSides = [...(allOrders.sell ?? []), ...(allOrders.buy ?? [])];
+  const globalMaxRank = allBothSides.reduce((max, o) => Math.max(max, o.rank ?? 0), 0);
+
+  updateRankFilterVisibility(globalMaxRank > 0);
+  updateViewToggle(view);
+
   if (allViewOrders.length === 0) {
     container.innerHTML = `<div class="market-empty">${
       view === 'sell' ? t('market.noSellOrders') : t('market.ui.noBuyOrders')
     }</div>`;
     return;
   }
-
-  // ── Rank filter visibility — decided from actual data, not query heuristic ──
-  // Check both sides so the toggle doesn't flicker when switching sell/buy tab.
-  const allBothSides = [...(allOrders.sell ?? []), ...(allOrders.buy ?? [])];
-  const globalMaxRank = allBothSides.reduce((max, o) => Math.max(max, o.rank ?? 0), 0);
-
-  updateRankFilterVisibility(globalMaxRank > 0);
-  updateViewToggle(view);
 
   // Orders are already rank-filtered server-side; just sort and paginate.
   const sorted    = sortOrders(allViewOrders, state.sort[view]);
@@ -60,7 +66,6 @@ export function renderMarketResults(container, results) {
 
   // Push count into the controls row (lives outside #marketResults).
   updateOrderCount(displayed.length, sorted.length);
-  updateViewToggle(view);
 
   // Rebuild whisper map for displayed orders.
   whisperMessages.clear();
