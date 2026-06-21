@@ -50,7 +50,7 @@ function marketButtonHTML(name, itemType, components = null) {
   return `
     <div class="modal-market-row">
       <button class="modal-market-btn" data-market-name="${escapeAttr(name)}" data-market-type="${itemType}">
-        🔍 ${t('mode.market')}
+        ${t('mode.market')}
       </button>
       ${chips ? `<div class="modal-market-chips">${chips}</div>` : ''}
     </div>
@@ -136,16 +136,16 @@ export function openRelicModal(relicName, rewards, pushCurrent = false, isResurg
   // Left side — prime parts table
   let leftContent;
   if (!rewards || rewards.length === 0) {
-    leftContent = `<p class="no-drops">${t('modal.noRewards')}</p>`;
+    leftContent = `<p class="no-drops">${t('general.drops.modal.noRewards')}</p>`;
   } else {
     const sorted = [...rewards].sort((a, b) => b.chance - a.chance);
     leftContent = `
       <table class="modal-table">
         <thead>
           <tr>
-            <th>${t('modal.colItem')}</th>
-            <th class="rarity">${t('modal.colRarity')}</th>
-            <th>${t('modal.colChance')}</th>
+            <th>${t('general.drops.modal.colItem')}</th>
+            <th class="rarity">${t('general.drops.modal.colRarity')}</th>
+            <th>${t('general.drops.modal.colChance')}</th>
           </tr>
         </thead>
         <tbody>
@@ -166,20 +166,20 @@ export function openRelicModal(relicName, rewards, pushCurrent = false, isResurg
   const locations = state.relicLocationMap.get(rawKey) || [];
   let rightContent;
   if (isResurgence) {
-    rightContent = `<p class="resurgence-location-note">${t('modal.resurgenceSource')}</p>`;
+    rightContent = `<p class="resurgence-location-note">${t('general.drops.modal.resurgenceSource')}</p>`;
   } else {
     if (locations.length === 0) {
-      rightContent = `<p class="no-drops">${t('modal.noLocations')}</p>`;
+      rightContent = `<p class="no-drops">${t('general.drops.modal.noLocations')}</p>`;
     } else {
       rightContent = `
         <table class="modal-table" id="relicLocationTable">
           <thead>
             <tr>
-              <th>${t('modal.colLocation')}</th>
-              <th>${t('modal.colMode')}</th>
-              <th>${t('modal.colRotation')}</th>
+              <th>${t('general.drops.modal.colLocation')}</th>
+              <th>${t('general.drops.modal.colMode')}</th>
+              <th>${t('general.drops.modal.colRotation')}</th>
               <th class="sortable-chance" style="cursor:pointer; user-select:none;">
-                ${t('modal.colChance')} <span class="sort-arrow">↕</span>
+                ${t('general.drops.modal.colChance')} <span class="sort-arrow">↕</span>
               </th>
             </tr>
           </thead>
@@ -244,13 +244,13 @@ export function openArcaneModal({ name, rawName, imageUrl, dropInfo, owned, tota
         <div class="modal-item-name">${name}</div>
         ${marketButtonHTML(rawName || name, 'arcane')}
         <div class="modal-item-counter">
-          <label>${t('label.owned')}</label>
+          <label>${t('mastery.ui.label.owned')}</label>
           <div class="modal-counter-row">
             <button class="arcane-counter-btn" id="modalDecBtn">−</button>
             <span class="arcane-counter-display" id="modalCounterDisplay">${owned}/${totalNeeded}</span>
             <button class="arcane-counter-btn" id="modalIncBtn">+</button>
           </div>
-          <span class="modal-need-label">${t('label.need')} ${needed}</span>
+          <span class="modal-need-label">${t('mastery.ui.label.need')} ${needed}</span>
         </div>
       </div>
       <div class="modal-detail-right">
@@ -333,16 +333,16 @@ export function openMasteryItemModal({ item, imageUrl, onOwnedChange, onMastered
         <div class="modal-prime-components">
           <label class="component ${owned ? 'owned' : ''}" id="masteryModalOwnedLabel">
             <input type="checkbox" id="masteryModalOwned" ${owned ? 'checked' : ''} />
-            <span>${t('mastery.label.owned')}</span>
+            <span>${t('mastery.ui.label.owned')}</span>
           </label>
           <label class="component ${mastered ? 'owned' : ''}" id="masteryModalMasteredLabel">
             <input type="checkbox" id="masteryModalMastered" ${mastered ? 'checked' : ''} />
-            <span>${t('mastery.label.mastered')}</span>
+            <span>${t('mastery.ui.label.mastered')}</span>
           </label>
           ${canSubsume ? `
           <label class="component ${subsumed ? 'owned' : ''}" id="masteryModalSubsumedLabel">
             <input type="checkbox" id="masteryModalSubsumed" ${subsumed ? 'checked' : ''} />
-            <span>${t('mastery.label.subsumed')}</span>
+            <span>${t('mastery.ui.label.subsumed')}</span>
           </label>` : ''}
         </div>
       </div>
@@ -478,7 +478,7 @@ export function openPrimeCardModal(prime, imageUrl, getDropTableHTML, onComponen
             `).join('')}
             <label class="component ${isMastered ? 'owned' : ''}" id="primeModalMasteredLabel">
               <input type="checkbox" id="primeModalMastered" ${isMastered ? 'checked' : ''} />
-              <span>${t('mastery.label.mastered')}</span>
+              <span>${t('mastery.ui.label.mastered')}</span>
             </label>
             ${prime.components.filter(c => !c.isMainItem).map(comp => `
               <label class="component ${comp.isOwned ? 'owned' : ''}">

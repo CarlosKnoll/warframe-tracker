@@ -515,7 +515,7 @@ export function renderMastery() {
     const isMastered = !!masteryMastered[item.uniqueName];
     const statusMatch =
       statusFilter === 'all'                                    ||
-      (statusFilter === 'owned'    && isOwned && !isMastered)   ||
+      (statusFilter === 'owned'    && isOwned )   ||
       (statusFilter === 'mastered' && isMastered)               ||
       (statusFilter === 'missing'  && !isOwned);
 
