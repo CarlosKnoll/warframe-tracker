@@ -26,25 +26,25 @@ export const IMAGE_BASE      = "https://cdn.warframestat.us/img/";
 // ─── Misc section data ────────────────────────────────────────────────────────
 
 export const STARCHART_TRACKS = [
-  { key: 'starchart_normal_nodes',      labelKey: 'mastery.misc.starchart.normal_nodes',     max: 238, xpEach: 63   },
-  { key: 'starchart_normal_junctions',  labelKey: 'mastery.misc.starchart.normal_junctions', max: 13,  xpEach: 1000 },
-  { key: 'starchart_steel_nodes',       labelKey: 'mastery.misc.starchart.steel_nodes',      max: 238, xpEach: 63   },
-  { key: 'starchart_steel_junctions',   labelKey: 'mastery.misc.starchart.steel_junctions',  max: 13,  xpEach: 1000 },
+  { key: 'starchart_normal_nodes',      labelKey: 'mastery.ui.misc.starchart.normal_nodes',     max: 238, xpEach: 63   },
+  { key: 'starchart_normal_junctions',  labelKey: 'mastery.ui.misc.starchart.normal_junctions', max: 13,  xpEach: 1000 },
+  { key: 'starchart_steel_nodes',       labelKey: 'mastery.ui.misc.starchart.steel_nodes',      max: 238, xpEach: 63   },
+  { key: 'starchart_steel_junctions',   labelKey: 'mastery.ui.misc.starchart.steel_junctions',  max: 13,  xpEach: 1000 },
 ];
 
 export const RAILJACK_INTRINSICS = [
-  { key: 'intrinsic_railjack_tactical',    labelKey: 'mastery.misc.railjack.tactical'    },
-  { key: 'intrinsic_railjack_piloting',    labelKey: 'mastery.misc.railjack.piloting'    },
-  { key: 'intrinsic_railjack_gunnery',     labelKey: 'mastery.misc.railjack.gunnery'     },
-  { key: 'intrinsic_railjack_engineering', labelKey: 'mastery.misc.railjack.engineering' },
-  { key: 'intrinsic_railjack_command',     labelKey: 'mastery.misc.railjack.command'     },
+  { key: 'intrinsic_railjack_tactical',    labelKey: 'mastery.ui.misc.railjack.tactical'    },
+  { key: 'intrinsic_railjack_piloting',    labelKey: 'mastery.ui.misc.railjack.piloting'    },
+  { key: 'intrinsic_railjack_gunnery',     labelKey: 'mastery.ui.misc.railjack.gunnery'     },
+  { key: 'intrinsic_railjack_engineering', labelKey: 'mastery.ui.misc.railjack.engineering' },
+  { key: 'intrinsic_railjack_command',     labelKey: 'mastery.ui.misc.railjack.command'     },
 ];
 
 export const DRIFTER_INTRINSICS = [
-  { key: 'intrinsic_drifter_riding',      labelKey: 'mastery.misc.drifter.riding'      },
-  { key: 'intrinsic_drifter_combat',      labelKey: 'mastery.misc.drifter.combat'      },
-  { key: 'intrinsic_drifter_opportunity', labelKey: 'mastery.misc.drifter.opportunity' },
-  { key: 'intrinsic_drifter_endurance',   labelKey: 'mastery.misc.drifter.endurance'   },
+  { key: 'intrinsic_drifter_riding',      labelKey: 'mastery.ui.misc.drifter.riding'      },
+  { key: 'intrinsic_drifter_combat',      labelKey: 'mastery.ui.misc.drifter.combat'      },
+  { key: 'intrinsic_drifter_opportunity', labelKey: 'mastery.ui.misc.drifter.opportunity' },
+  { key: 'intrinsic_drifter_endurance',   labelKey: 'mastery.ui.misc.drifter.endurance'   },
 ];
 
 export const INTRINSIC_XP_PER_RANK = 1500;

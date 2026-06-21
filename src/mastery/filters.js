@@ -81,5 +81,5 @@ export function updateMasteryProgress() {
     return;
   }
 
-  el.textContent = `${masteredCount} / ${totalItems} ${t('mastery.progress.mastered')}`;
+  el.textContent = `${masteredCount} / ${totalItems} ${t('mastery.ui.progress.mastered')}`;
 }

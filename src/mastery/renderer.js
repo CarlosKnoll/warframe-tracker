@@ -97,10 +97,10 @@ function buildBadge(item) {
   const owned    = (masteryState.owned[`${item.uniqueName}_owned`] ?? 0) > 0;
   const ignored  = MASTERY_FOUNDER_ITEMS.has(item.name) && masteryState.ignoredMasteryItems.has(item.uniqueName);
 
-  if (mastered) return `<span class="mastery-badge mastered">${t('mastery.badge.mastered')}</span>`;
-  if (owned)    return `<span class="mastery-badge owned">${t('mastery.badge.owned')}</span>`;
-  if (ignored)  return `<span class="mastery-badge ignored">${t('mastery.badge.ignored')}</span>`;
-  return               `<span class="mastery-badge missing">${t('mastery.badge.missing')}</span>`;
+  if (mastered) return `<span class="mastery-badge mastered">${t('mastery.ui.badge.mastered')}</span>`;
+  if (owned)    return `<span class="mastery-badge owned">${t('mastery.ui.badge.owned')}</span>`;
+  if (ignored)  return `<span class="mastery-badge ignored">${t('mastery.ui.badge.ignored')}</span>`;
+  return               `<span class="mastery-badge missing">${t('mastery.ui.badge.missing')}</span>`;
 }
 
 // ─── Card ──────────────────────────────────────────────────────────────────────
@@ -170,7 +170,7 @@ function buildCard(item, observer) {
   body.className = 'mastery-card-body';
   body.innerHTML = `
     <div class="mastery-card-name">${tMasteryItemName(item.name)}</div>
-    <div class="mastery-card-xp">${(item.masteryPoints ?? 0).toLocaleString()} ${t('mastery.label.xp')}</div>
+    <div class="mastery-card-xp">${(item.masteryPoints ?? 0).toLocaleString()} ${t('mastery.ui.label.xp')}</div>
     ${buildBadge(item)}
   `;
 
@@ -184,7 +184,7 @@ function buildCard(item, observer) {
   ownedBox.type = 'checkbox';
   ownedBox.checked = owned;
   ownedBox.dataset.action = 'owned';
-  ownedLabel.append(ownedBox, document.createTextNode(t('mastery.label.owned')));
+  ownedLabel.append(ownedBox, document.createTextNode(t('mastery.ui.label.owned')));
 
   const masteredLabel = document.createElement('label');
   masteredLabel.className = 'mastery-check';
@@ -192,7 +192,7 @@ function buildCard(item, observer) {
   masteredBox.type = 'checkbox';
   masteredBox.checked = mastered;
   masteredBox.dataset.action = 'mastered';
-  masteredLabel.append(masteredBox, document.createTextNode(t('mastery.label.mastered')));
+  masteredLabel.append(masteredBox, document.createTextNode(t('mastery.ui.label.mastered')));
 
   controls.append(ownedLabel, masteredLabel);
 
@@ -203,7 +203,7 @@ function buildCard(item, observer) {
     subsumedBox.type = 'checkbox';
     subsumedBox.checked = !!masteryState.masteryMastered[`${item.uniqueName}_subsumed`];
     subsumedBox.dataset.action = 'subsumed';
-    subsumedLabel.append(subsumedBox, document.createTextNode(t('mastery.label.subsumed')));
+    subsumedLabel.append(subsumedBox, document.createTextNode(t('mastery.ui.label.subsumed')));
     controls.append(subsumedLabel);
   }
   
@@ -266,7 +266,7 @@ function buildCard(item, observer) {
         const isSpecial = !isFounder && !hasRelicDrops(matchedPrime);
         const compsForModal = matchedPrime.components.map(comp => ({
           ...comp,
-          displayName: comp.isMainItem ? t('label.owned') : tComponent(comp.name),
+          displayName: comp.isMainItem ? t('general.owned') : tComponent(comp.name),
           isOwned: (primesState.owned[comp.uniqueName] ?? 0) > 0,
         }));
 
@@ -441,19 +441,19 @@ function renderMiscSection(list) {
   const starchartRows = STARCHART_TRACKS.map(track =>
     buildTrackerRow(track.key, t(track.labelKey), track.max, track.xpEach)
   );
-  container.appendChild(buildTrackerGroup(t('mastery.misc.starchart.heading'), starchartRows));
+  container.appendChild(buildTrackerGroup(t('mastery.ui.misc.starchart.heading'), starchartRows));
 
   // ── Railjack Intrinsics ──
   const railjackRows = RAILJACK_INTRINSICS.map(({ key, labelKey }) =>
     buildTrackerRow(key, t(labelKey), INTRINSIC_MAX_RANK, INTRINSIC_XP_PER_RANK)
   );
-  container.appendChild(buildTrackerGroup(t('mastery.misc.railjack.heading'), railjackRows));
+  container.appendChild(buildTrackerGroup(t('mastery.ui.misc.railjack.heading'), railjackRows));
 
   // ── Drifter Intrinsics ──
   const drifterRows = DRIFTER_INTRINSICS.map(({ key, labelKey }) =>
     buildTrackerRow(key, t(labelKey), INTRINSIC_MAX_RANK, INTRINSIC_XP_PER_RANK)
   );
-  container.appendChild(buildTrackerGroup(t('mastery.misc.drifter.heading'), drifterRows));
+  container.appendChild(buildTrackerGroup(t('mastery.ui.misc.drifter.heading'), drifterRows));
 
   list.appendChild(container);
 }
@@ -538,7 +538,7 @@ export function renderMastery() {
   });
 
   if (sectionItems.length === 0) {
-    list.innerHTML = `<p class="mastery-empty">${t('mastery.label.noItems')}</p>`;
+    list.innerHTML = `<p class="mastery-empty">${t('feedback.noItems')}</p>`;
     return;
   }
 
