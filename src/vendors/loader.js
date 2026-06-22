@@ -12,7 +12,7 @@ export async function loadVendorState() {
   const stored = await getVendorState();
   state.vendorState = stored || {};
   if (!state.selectedVendorId && VENDORS.length) {
-    state.selectedVendorId = VENDORS[0].id;
+    state.selectedVendorId = VENDORS[VENDORS.length - 1].id;
   }
   return state.vendorState;
 }

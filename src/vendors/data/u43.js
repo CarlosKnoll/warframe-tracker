@@ -1,5 +1,5 @@
-// src/vendors/data/sirius-and-orion.js
-// Sirius and Orion vendor — Update 43.0
+// src/vendors/data/u43.js
+// Hunhow vendor — Update 43.0
 //
 // Two currencies: Emerald Talent (emerald) and Crimson Talent (crimson).
 // Warframe: Sirius & Orion — 4 parts, mode-toggle supported.

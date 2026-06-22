@@ -16,7 +16,8 @@ import {
   dismissAcquisitionPanel,
 } from './loader.js';
 import { getWarframeMode } from './schema.js';
-import { t, tArcaneName } from '../i18n.js';
+import { t, tArcaneName, resolveWeaponName } from '../i18n.js';
+import { nokko } from './data/u40.js';
 
 // ─── Container ──────────────────────────────────────────────────────
 
@@ -45,16 +46,21 @@ export async function renderVendors() {
 const CATEGORY_KEY_MAP = {
   warframe: 'filters.warframe',
   weapons:  'category.weapon',
+  mods: 'menus-nav.mode.mods',
   arcanes:  'menus-nav.mode.arcanes',
   cosmetics: 'category.cosmetics',
   decorations: 'category.decorations',
   others:   'category.misc',
+  standing: 'category.standing'
 };
 function _tCategory(catId) {
   return t(CATEGORY_KEY_MAP[catId] ?? `tabs.vendor.ui.category.${catId}`);
 }
 
 const VENDOR_LOCALE_GROUP = {
+  nokko: 'u40',
+  roathe: 'u41',
+  zorba: 'u42',
   hunhow: 'u43',
 };
 
@@ -70,6 +76,9 @@ const SLOT_COMPONENT_MAP = {
   systems:    'general.component.systems',
   handle:     'general.component.handle',
   blade:      'general.component.blade',
+  barrel:     'general.component.barrel',
+  receiver:   'general.component.receiver',
+  stock:      'general.component.stock',
 };
 function _tSlot(slot) {
   return t(SLOT_COMPONENT_MAP[slot] ?? `tabs.vendor.ui.slot.${slot}`);
@@ -82,7 +91,7 @@ function _tPartName(item, vendor) {
   const parent = vendor.parents.find(p => p.id === resolvedParentId);
   if (!parent) return t('tabs.vendor.ui.unknown_part');
   const parentName = parent.type === 'weapon'
-    ? t(`general.game.arsenal.${parent.name}`)
+    ? resolveWeaponName(parent.name)
     : t(`tabs.vendor.ui.${_vendorLocaleGroup(vendor)}.warframe`);
   return `${parentName} ${_tSlot(item.slot)}`;
 }

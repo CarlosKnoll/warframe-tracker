@@ -837,3 +837,8 @@ export function parseDropLocation(location) {
 
   return { planet, mission, gameMode, rotation };
 }
+
+export function resolveWeaponName(name) {
+  const tr = t(`general.game.arsenal.${name}`);
+  return tr.includes('general.game.arsenal') ? name : tr;
+}

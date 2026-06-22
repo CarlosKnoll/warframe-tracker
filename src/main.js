@@ -268,9 +268,7 @@ async function init() {
       const currentWindow = getCurrentWindow();
       const unlisten = await currentWindow.listen('tauri://close-requested', async () => {
         unlisten();
-        console.log("Flushing pending pushes before close...");
         await flushPush();
-        console.log('flush done');
         await window.__TAURI__.process.exit(0);
       });
     } catch {
