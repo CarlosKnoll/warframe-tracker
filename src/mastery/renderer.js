@@ -214,8 +214,6 @@ function buildCard(item, observer) {
     const action = e.target.dataset.action;
     if (!action) return;
 
-    const now = new Date().toISOString().slice(0, 10);
-
     if (action === 'owned') {
       if (e.target.checked) masteryState.owned[`${item.uniqueName}_owned`] = 1;
       else delete masteryState.owned[`${item.uniqueName}_owned`];
@@ -223,13 +221,13 @@ function buildCard(item, observer) {
     }
 
     if (action === 'mastered') {
-      if (e.target.checked) masteryState.masteryMastered[item.uniqueName] = { since: now };
+      if (e.target.checked) masteryState.masteryMastered[item.uniqueName] = 1;
       else delete masteryState.masteryMastered[item.uniqueName];
       card.classList.toggle('mastered', e.target.checked);
     }
 
     if (action === 'subsumed') {
-      if (e.target.checked) masteryState.masteryMastered[`${item.uniqueName}_subsumed`] = { since: now };
+      if (e.target.checked) masteryState.masteryMastered[`${item.uniqueName}_subsumed`] = 1;
       else delete masteryState.masteryMastered[`${item.uniqueName}_subsumed`];
     }
 
@@ -272,7 +270,6 @@ function buildCard(item, observer) {
           isOwned: (primesState.owned[comp.uniqueName] ?? 0) > 0,
         }));
 
-        const now = new Date().toISOString().slice(0, 10);
         openPrimeCardModal(
           { ...matchedPrime, components: compsForModal, isSpecial },
           resolvedImg,
@@ -282,7 +279,7 @@ function buildCard(item, observer) {
             try { await primesState.saveFunction(); } catch (err) { console.error('Save failed:', err); }
           },
           async (uniqueName, checked) => {
-            if (checked) masteryState.masteryMastered[uniqueName] = { since: now };
+            if (checked) masteryState.masteryMastered[uniqueName] = 1;
             else delete masteryState.masteryMastered[uniqueName];
             card.classList.toggle('mastered', checked);
             const badge = body.querySelector('.mastery-badge');
@@ -299,8 +296,6 @@ function buildCard(item, observer) {
     }
 
     // Non-prime → mastery modal with component drop data fetched from API
-    const now = new Date().toISOString().slice(0, 10);
-
     openMasteryItemModal({
       item,
       imageUrl: resolvedImg,
@@ -316,7 +311,7 @@ function buildCard(item, observer) {
         document.dispatchEvent(new CustomEvent('mastery-progress-update'));
       },
       onMasteredChange: async (checked) => {
-        if (checked) masteryState.masteryMastered[item.uniqueName] = { since: now };
+        if (checked) masteryState.masteryMastered[item.uniqueName] = 1;
         else delete masteryState.masteryMastered[item.uniqueName];
         card.classList.toggle('mastered', checked);
         const badge = body.querySelector('.mastery-badge');
@@ -327,7 +322,7 @@ function buildCard(item, observer) {
         document.dispatchEvent(new CustomEvent('mastery-progress-update'));
       },
       onSubsumedChange: async (checked) => {
-        if (checked) masteryState.masteryMastered[`${item.uniqueName}_subsumed`] = { since: now };
+        if (checked) masteryState.masteryMastered[`${item.uniqueName}_subsumed`] = 1;
         else delete masteryState.masteryMastered[`${item.uniqueName}_subsumed`];
         const subsumedBox = controls.querySelector('[data-action="subsumed"]');
         if (subsumedBox) subsumedBox.checked = checked;

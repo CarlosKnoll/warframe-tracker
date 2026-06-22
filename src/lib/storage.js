@@ -39,15 +39,31 @@ async function touchModified() {
   });
 }
 
+// Converts legacy { since: "..." } entries (or stray NaN/0/null from the old
+// buggy merge) into the current binary 1/absent scheme. Safe to call on any
+// masteryMastered object regardless of which scheme produced it.
+function normalizeMasteryMastered(raw) {
+  if (!raw || typeof raw !== 'object') return {};
+  const out = {};
+  for (const [k, v] of Object.entries(raw)) {
+    if (v && typeof v === 'object') out[k] = 1;
+    else if (Number(v) === 1) out[k] = 1;
+  }
+  return out;
+}
+
 // ── Owned data (file) ─────────────────────────────────
 export async function getOwned() {
   return await invoke('load_owned');
 }
 
 export async function setOwned(data, { fromSync = false } = {}) {
+  if (data?.masteryMastered) {
+    data = { ...data, masteryMastered: normalizeMasteryMastered(data.masteryMastered) };
+  }
   await invoke('save_owned', { data });
-  if (!fromSync) {
-    const { schedulePush } = await import('./sync.js');
+  if (!fromSync && !isSyncInFlight()) {
+    await touchModified();
     schedulePush();
   }
 }
@@ -59,8 +75,8 @@ export async function getTasksCache() {
 
 export async function setTasksCache(data, { fromSync = false } = {}) {
   await invoke('save_tasks_cache', { data });
-  if (!fromSync) {
-    const { schedulePush } = await import('./sync.js');
+  if (!fromSync && !isSyncInFlight()) {
+    await touchModified();
     schedulePush();
   }
 }
@@ -72,8 +88,8 @@ export async function getCustomDrops() {
 
 export async function setCustomDrops(data, { fromSync = false } = {}) {
   await invoke('save_custom_drops', { data: JSON.stringify(data) });
-  if (!fromSync) {
-    const { schedulePush } = await import('./sync.js');
+  if (!fromSync && !isSyncInFlight()) {
+    await touchModified();
     schedulePush();
   }
 }

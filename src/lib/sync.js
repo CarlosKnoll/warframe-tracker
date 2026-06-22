@@ -238,9 +238,9 @@ function mergeOwned(local, remote) {
   const allMasteryKeys = new Set([...Object.keys(local?.masteryMastered ?? {}), ...Object.keys(remote?.masteryMastered ?? {})]);
   const mergedMastery = {};
   for (const key of allMasteryKeys) {
-    const l = local?.masteryMastered?.[key] ?? 0;
-    const r = remote?.masteryMastered?.[key] ?? 0;
-    mergedMastery[key] = Math.max(Number(l), Number(r));
+    const l = local?.masteryMastered?.[key];
+    const r = remote?.masteryMastered?.[key];
+    if (l || r) mergedMastery[key] = 1;
   }
   return {
     owned: mergedOwned,
