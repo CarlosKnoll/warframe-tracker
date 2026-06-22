@@ -1,7 +1,7 @@
 // src/vendors/renderer.js
 // Renders the vendor tracking UI: vendor subtabs, item list, planner panel.
 
-import { VENDORS } from './registry.js';
+import { VENDORS, VENDOR_LOCALE_GROUP, CATEGORY_KEY_MAP, SLOT_COMPONENT_MAP  } from './registry.js';
 import { state, selectVendor } from './state.js';
 import {
   loadVendorState,
@@ -17,7 +17,6 @@ import {
 } from './loader.js';
 import { getWarframeMode } from './schema.js';
 import { t, tArcaneName, resolveWeaponName } from '../i18n.js';
-import { nokko } from './data/u40.js';
 
 // ─── Container ──────────────────────────────────────────────────────
 
@@ -43,43 +42,15 @@ export async function renderVendors() {
 // ─── Helpers ────────────────────────────────────────────────────────
 
 // Category labels: reuse existing locale keys where they already exist.
-const CATEGORY_KEY_MAP = {
-  warframe: 'filters.warframe',
-  weapons:  'category.weapon',
-  mods: 'menus-nav.mode.mods',
-  arcanes:  'menus-nav.mode.arcanes',
-  cosmetics: 'category.cosmetics',
-  decorations: 'category.decorations',
-  others:   'category.misc',
-  standing: 'category.standing'
-};
+
 function _tCategory(catId) {
   return t(CATEGORY_KEY_MAP[catId] ?? `tabs.vendor.ui.category.${catId}`);
 }
-
-const VENDOR_LOCALE_GROUP = {
-  nokko: 'u40',
-  roathe: 'u41',
-  zorba: 'u42',
-  hunhow: 'u43',
-};
 
 function _vendorLocaleGroup(vendor) {
   return VENDOR_LOCALE_GROUP[vendor.id] ?? vendor.id;
 }
 
-// Slot labels: map slot ids to component.* keys where they exist.
-const SLOT_COMPONENT_MAP = {
-  blueprint:  'general.component.blueprint',
-  neuroptics: 'general.component.neuroptics',
-  chassis:    'general.component.chassis',
-  systems:    'general.component.systems',
-  handle:     'general.component.handle',
-  blade:      'general.component.blade',
-  barrel:     'general.component.barrel',
-  receiver:   'general.component.receiver',
-  stock:      'general.component.stock',
-};
 function _tSlot(slot) {
   return t(SLOT_COMPONENT_MAP[slot] ?? `tabs.vendor.ui.slot.${slot}`);
 }
