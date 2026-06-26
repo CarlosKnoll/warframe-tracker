@@ -796,12 +796,12 @@ export function tBaroItem(apiIdentifier) {
       const identifier  = key.slice(dotIdx + 1);
 
       if (identifier === apiIdentifier) {
-        return { name: value || apiIdentifier, category };
+        return { name: value || apiIdentifier, category, missing: !value };
       }
     }
   }
 
-  return { name: apiIdentifier, category: 'other' };
+  return { name: apiIdentifier, category: 'other', missing: true };
 }
 
 export function parseDropLocation(location) {

@@ -242,7 +242,7 @@ export async function fetchWorldstate() {
     state.baroData = state.worldstateCache[getCacheKey('baro')].data;
   } else {
     try {
-      const data = await fetchJson(`${BASE}/${lang}/voidTrader`);
+      const data = await fetchJson(`${BASE}/en/voidTrader`);
       state.baroData = data;
       let baroValidUntil = dailyExpiry;
       if (data?.activation && data?.expiry) {

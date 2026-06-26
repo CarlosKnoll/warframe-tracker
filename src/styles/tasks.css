@@ -457,6 +457,10 @@
   color: rgba(255, 255, 255, 0.3);   /* keep header colour consistent */
 }
 
+.tasks-baro-category-group tr.tasks-baro-missing-locale td:first-child {
+  color: var(--color-danger, #e54d4d);
+}
+
 .tasks-baro-category-group[data-category="weapon"] tr:not(.is-mastered) td:first-child {
   font-weight: 700;
   color: #c9a84c;

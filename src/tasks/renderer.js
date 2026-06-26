@@ -125,9 +125,9 @@ function buildBaroSection(baroData) {
     // Group entries by category, preserving first-appearance order
     const grouped = new Map();
     inventory.forEach(entry => {
-      const { name, category } = tBaroItem(entry.item);
+      const { name, category, missing } = tBaroItem(entry.item);
       if (!grouped.has(category)) grouped.set(category, []);
-      grouped.get(category).push({ ...entry, displayName: name });
+      grouped.get(category).push({ ...entry, displayName: name, isMissingLocale: missing });
     });
 
     // Sort categories by preferred display order
@@ -169,7 +169,7 @@ function buildBaroSection(baroData) {
 
       const thead = document.createElement('thead');
       const headRow = document.createElement('tr');
-      [t('tasks.baro.ui.inventory.item'), t('general.ducats'), t('general.credits')].forEach((text, i) => {
+      [t('general.item'), t('general.ducats'), t('general.credits')].forEach((text, i) => {
         const th = document.createElement('th');
         th.textContent = text;
         if (i > 0) th.className = 'tasks-baro-col-num';
@@ -191,6 +191,7 @@ function buildBaroSection(baroData) {
 
         const tdItem = document.createElement('td');
         tdItem.textContent = entry.displayName || '—';
+        if (entry.isMissingLocale) tr.classList.add('tasks-baro-missing-locale');
 
         const tdDucats = document.createElement('td');
         tdDucats.className = 'tasks-baro-col-num';
