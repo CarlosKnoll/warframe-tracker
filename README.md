@@ -1,7 +1,7 @@
 # Warframe Tracker
 A native Windows desktop companion app for Warframe, built with **Tauri v2** (Rust backend + vanilla JS frontend). It covers mastery, primes, mods, arcanes, vendors, daily/weekly tasks, and Warframe Market price lookups, with optional cross-device sync via Google Drive.
 
-There is also a [PWA version](https://github.com/CarlosKnoll/warframe-tracker-web) available at https://warframe-tracker.pages.dev/, fully compatible from the user-data perspective.
+There is also a PWA version available at https://warframe-tracker.pages.dev/, fully compatible from the user-data perspective.
 
 ## Features
 
