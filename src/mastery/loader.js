@@ -47,6 +47,7 @@ const EXCLUDED_UNIQUE_NAMES = new Set([
   '/Lotus/Powersuits/PowersuitAbilities/Helminth',
   '/Lotus/Powersuits/SiriusOrion/OrionSuit',
   '/Lotus/Weapons/Tenno/Grimoire/TnDoppelgangerGrimoire',
+  '/Lotus/Types/JadeShadowsPart2Mission/Enemies/Ground/Elites/JS2MCorruptedBossMinigun',
 ]);
 
 // ─── Normalization ─────────────────────────────────────────────────────────────
