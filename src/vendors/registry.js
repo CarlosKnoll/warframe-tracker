@@ -3,6 +3,7 @@
 // the array.  The renderer iterates this list to build vendor subtabs.
 // To add a new vendor: import its file and append to VENDORS.  Nothing else.
 
+import { narin } from './data/u44.js';
 import { siriusAndOrion } from './data/u43.js';
 import { follie } from './data/u42.js';
 import { uriel } from './data/u41.js';
@@ -14,6 +15,7 @@ export const VENDORS = [
   uriel,
   follie,
   siriusAndOrion,
+  narin,
   // futureVendor,
 ];
 
@@ -22,6 +24,7 @@ export const VENDOR_LOCALE_GROUP = {
   roathe: 'u41',
   zorba: 'u42',
   hunhow: 'u43',
+  melica: 'u44',
 };
 
 export const CATEGORY_KEY_MAP = {
@@ -36,13 +39,24 @@ export const CATEGORY_KEY_MAP = {
 };
 
 export const SLOT_COMPONENT_MAP = {
-  blueprint:  'general.component.blueprint',
-  neuroptics: 'general.component.neuroptics',
-  chassis:    'general.component.chassis',
-  systems:    'general.component.systems',
-  handle:     'general.component.handle',
-  blade:      'general.component.blade',
-  barrel:     'general.component.barrel',
-  receiver:   'general.component.receiver',
-  stock:      'general.component.stock',
+  blueprint:    'general.component.blueprint',
+  neuroptics:   'general.component.neuroptics',
+  chassis:      'general.component.chassis',
+  systems:      'general.component.systems',
+  handle:       'general.component.handle',
+  blade:        'general.component.blade',
+  barrel:       'general.component.barrel',
+  receiver:     'general.component.receiver',
+  stock:        'general.component.stock',
+  "upper-limb": 'general.component.upper_limb',
+  "lower-limb": 'general.component.lower_limb',
+  string:       'general.component.string',
+  grip:         'general.component.grip',
+
+  // AKimbos
+  barrel1:      'general.component.barrel',
+  barrel2:      'general.component.barrel',
+  receiver1:    'general.component.receiver',
+  receiver2:    'general.component.receiver',
+  link:         'general.component.link',
 };
