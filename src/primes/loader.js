@@ -3,6 +3,9 @@
 import { state, RELICS_DROP_URL, MISSION_REWARDS_URL, PRIME_URLS, VAULT_TRADER_URL, RELICS_ITEMS_URL } from './state.js';
 import { PART_ORDER } from './renderer.js';
 
+const VALID_PARTS = ["Blueprint", "Helmet", "Cerebrum", "Harness", "Chassis", "Carapace", "Wings",
+  "Systems", "Barrel", "LowerLimb", "Stars", "Receiver", "UpperLimb", "Blade", "Stock", "Grip", 
+  "Handle", "Pouch", "Hilt", "Gauntlet", "String", "Link", "Guard", "Boot", "Head"];
 
 export async function loadPrimes() {
   try {
@@ -74,24 +77,60 @@ export async function loadPrimes() {
       console.error("Error loading mission rewards data:", missionsResult.reason);
     }
 
-    // ── Process relics → relicRewardsMap ─────────────────────────────────────
+    // ── Process relics → relicRewardsMap + componentRelicsMap ─────────────────────────────────────
     state.relicRewardsMap = new Map();
+    state.componentRelicsMap = new Map();
     if (relicsResult.status === 'fulfilled') {
-      const intactRelics = (relicsResult.value.relics || []).filter(r => r.state === 'Intact');
+      const intactRelics = (relicsResult.value.relics || [])
+        .filter(r => r.state === 'Intact');
+
       intactRelics.forEach(relic => {
-        const normalizedName = `${relic.tier} ${relic.relicName} Relic`.toLowerCase();
-        if (relic.rewards && Array.isArray(relic.rewards)) {
-          const rewardsWithRarity = relic.rewards.map(reward => {
-            // Common: ~25.33%, Uncommon: ~11%, Rare: ~2%
-            let rarity = 'Common';
-            if (reward.chance <= 3) rarity = 'Rare';
-            else if (reward.chance <= 12) rarity = 'Uncommon';
-            return { itemName: reward.itemName, rarity, chance: reward.chance };
-          });
-          state.relicRewardsMap.set(normalizedName, rewardsWithRarity);
-          if (relic.uniqueName) {
-            state.relicUniqueNameMap.set(relic.uniqueName, normalizedName);
+        const normalizedName =
+          `${relic.tier} ${relic.relicName} Relic`.toLowerCase();
+
+        if (!relic.rewards || !Array.isArray(relic.rewards)) return;
+
+        const rewardsWithRarity = relic.rewards.map(reward => {
+          // Common: ~25.33%, Uncommon: ~11%, Rare: ~2%
+          let rarity = 'Common';
+
+          if (reward.chance <= 3) {
+            rarity = 'Rare';
+          } else if (reward.chance <= 12) {
+            rarity = 'Uncommon';
           }
+
+          const rewardName = reward.itemName?.trim();
+
+          if (rewardName) {
+            const componentKey = rewardName.toLowerCase();
+
+            if (!state.componentRelicsMap.has(componentKey)) {
+              state.componentRelicsMap.set(componentKey, []);
+            }
+
+            state.componentRelicsMap.get(componentKey).push({
+              location: normalizedName,
+              type: rewardName,
+              chance: reward.chance,
+              rarity
+            });
+          }
+
+          return {
+            itemName: rewardName,
+            rarity,
+            chance: reward.chance
+          };
+        });
+
+        state.relicRewardsMap.set(normalizedName, rewardsWithRarity);
+
+        if (relic.uniqueName) {
+          state.relicUniqueNameMap.set(
+            relic.uniqueName,
+            normalizedName
+          );
         }
       });
     } else {
@@ -132,67 +171,53 @@ export async function loadPrimes() {
 }
 
 function checkPrimeVaultStatus(item, farmableRelics) {
-  if (item.components && Array.isArray(item.components)) {
-    let hasFarmableRelic = false;
-    let hasAnyRelic = false;
-    let allRelicsFromBuiltPrimes = true;
-    let hasResurgenceRelic = false;
-
-    for (const comp of item.components) {
-      const isBuiltPrime = comp.name && comp.name.includes("Prime") && comp.drops && comp.drops.some(d => d.location && d.location.toLowerCase().includes('relic'));
-      if (isBuiltPrime) continue;
-
-      if (comp.drops && comp.drops.length > 0) {
-        const hasRelicDrop = comp.drops.some(d => d.location && d.location.toLowerCase().includes('relic'));
-        if (hasRelicDrop) allRelicsFromBuiltPrimes = false;
-
-        for (const drop of comp.drops) {
-          if (drop.location && drop.location.toLowerCase().includes('relic')) {
-            const normalizedRelic = normalizeRelicName(drop.location);
-            if (!normalizedRelic) continue;
-
-            hasAnyRelic = true;
-            const relicLower = normalizedRelic.toLowerCase();
-
-            if (isRelicActive(relicLower, farmableRelics)) {
-              hasFarmableRelic = true;
-              break;
-            } else if (state.resurgenceRelics.has(relicLower)) { // ← add this
-              hasResurgenceRelic = true;
-            }
-          }
-        }
-      }
-      if (hasFarmableRelic) break;
-    }
-
-    if (!hasAnyRelic && allRelicsFromBuiltPrimes) {
-      for (const comp of item.components) {
-        const isBuiltPrime = comp.name && comp.name.includes("Prime") && comp.drops && comp.drops.some(d => d.location && d.location.toLowerCase().includes('relic'));
-        if (!isBuiltPrime) continue;
-        for (const drop of comp.drops) {
-          if (drop.location && drop.location.toLowerCase().includes('relic')) {
-            const normalizedRelic = normalizeRelicName(drop.location);
-            if (!normalizedRelic) continue;
-            hasAnyRelic = true;
-            const relicLower = normalizedRelic.toLowerCase();
-            if (isRelicActive(normalizedRelic.toLowerCase(), farmableRelics)) {
-              hasFarmableRelic = true;
-            } else if (state.resurgenceRelics.has(relicLower)) {
-              hasResurgenceRelic = true;
-            }
-          }
-        }
-        if (hasFarmableRelic) break;
-      }
-    }
-
-    return { 
-      vaulted: !hasFarmableRelic && hasAnyRelic,
-      resurgence: !hasFarmableRelic && hasResurgenceRelic };
+  if (!item?.components || !Array.isArray(item.components)) {
+    return { vaulted: true, resurgence: false };
   }
 
-  return { vaulted: true };
+  let hasFarmableRelic = false;
+  let hasAnyRelic = false;
+  let hasResurgenceRelic = false;
+
+  for (const comp of item.components) {
+    const componentName = VALID_PARTS.find(part =>
+      comp.uniqueName?.includes(part)
+    );
+
+    if (!componentName) continue;
+
+    const drops = getComponentDrops(item, componentName);
+
+    if (!drops.length) continue;
+
+    hasAnyRelic = true;
+
+    for (const drop of drops) {
+      if (!drop.location) continue;
+
+      const normalizedRelic = normalizeRelicName(drop.location);
+
+      if (!normalizedRelic) continue;
+
+      const relicLower = normalizedRelic.toLowerCase();
+
+      if (isRelicActive(relicLower, farmableRelics)) {
+        hasFarmableRelic = true;
+        break;
+      }
+
+      if (state.resurgenceRelics.has(relicLower)) {
+        hasResurgenceRelic = true;
+      }
+    }
+
+    if (hasFarmableRelic) break;
+  }
+
+  return {
+    vaulted: !hasFarmableRelic && hasAnyRelic,
+    resurgence: !hasFarmableRelic && hasResurgenceRelic
+  };
 }
 
 function isRelicActive(relicName, activeRelics) {
@@ -211,6 +236,61 @@ function isRelicActive(relicName, activeRelics) {
   if (activeRelics.has(noSpaces)) return true;
 
   return false;
+}
+
+function getComponentDrops(item, componentName) {
+  if (!item?.name || !componentName || !state.componentRelicsMap) {
+    return [];
+  }
+
+  // Some component names in the item API differ from the names
+  // used by relic rewards.
+  //
+  // Warframe:
+  //   Helmet → Neuroptics
+  //
+  // Example:
+  //   Ash Prime + Helmet
+  //   must search for:
+  //   Ash Prime Neuroptics
+  const rewardComponentName =
+    componentName === "Helmet"
+      ? "Neuroptics"
+      : componentName;
+
+  let searchName
+  searchName =
+    `${item.name} ${rewardComponentName}`.trim().toLowerCase();
+
+  // exceptional treatment for bow limbs.
+  searchName = searchName.replace('lowerlimb', 'lower limb')
+                         .replace('upperlimb', 'upper limb');
+
+  const drops = [];
+
+  for (const [rewardName, relicDrops] of state.componentRelicsMap) {
+    const rewardLower = rewardName.toLowerCase();
+
+    if (
+      rewardLower === searchName ||
+      rewardLower === `${searchName} blueprint`
+    ) {
+      drops.push(...relicDrops);
+    }
+  }
+
+  // Deduplicate identical relic entries.
+  const seen = new Set();
+
+  return drops.filter(drop => {
+    const key =
+      `${drop.location}|${drop.type}|${drop.chance}|${drop.rarity}`;
+
+    if (seen.has(key)) return false;
+
+    seen.add(key);
+    return true;
+  });
 }
 
 function extractPrimeComponents(item, vaultStatus, farmableRelics) {
@@ -237,58 +317,131 @@ function extractPrimeComponents(item, vaultStatus, farmableRelics) {
 
   if (item.components && Array.isArray(item.components)) {
     item.components.forEach(comp => {
-      if (comp.name && EXCLUDED_COMPONENTS.some(ex => comp.name.includes(ex))) return;
 
-      const baseKey = comp.uniqueName || `${item.uniqueName}_${comp.name}`;
-      const isBuiltPrime = comp.name && comp.name.includes("Prime") && comp.drops && comp.drops.some(d => d.location && d.location.toLowerCase().includes('relic'));
+      // Resolve the old component name from the new uniqueName.
+      //
+      // Example:
+      // /Lotus/.../PrimeArchwingSystemsComponent
+      // → Systems
+      let componentName;
+      componentName = VALID_PARTS.find(part =>
+        comp.uniqueName?.includes(part)
+      );
+    
+      // Hardcode override for Corufell Barrel/Stock until it gets fixed upstream.
+      if(comp.uniqueName?.includes("CorufellPrimeBarrel")) {
+        componentName = 'Stock'
+      }
 
-      // How many copies of this component are needed
-      const copies = comp.itemCount && comp.itemCount > 1 ? comp.itemCount : (isBuiltPrime ? null : 1);
+      // Not a component we display.
+      // Example:
+      // /Lotus/Types/Items/MiscItems/OrokinCell
+      if (!componentName) return;
 
-      // Deduplicate genuine duplicates (same key already seen, no itemCount > 1, not a builtPrime)
+      if (
+        EXCLUDED_COMPONENTS.some(ex =>
+          componentName.includes(ex)
+        )
+      ) {
+        return;
+      }
+
+      const baseKey =
+        comp.uniqueName ||
+        `${item.uniqueName}_${componentName}`;
+
+      // Reconstruct the drops that existed in the old API.
+      const drops = getComponentDrops(item, componentName);
+
+      // A component is considered a built Prime when its uniqueName
+      // identifies it as a Prime component and it has relic drops.
+      const isBuiltPrime =
+        comp.uniqueName?.includes("Prime") &&
+        drops.some(d =>
+          d.location &&
+          d.location.toLowerCase().includes("relic")
+        );
+
+      // How many copies of this component are needed.
+      const copies =
+        comp.itemCount && comp.itemCount > 1
+          ? comp.itemCount
+          : (isBuiltPrime ? null : 1);
+
+      // Deduplicate genuine duplicates.
       if (copies === 1 && seen.has(baseKey)) return;
 
-      // Find the next available indexed key
+      // Find the next available indexed key.
       let compKey = baseKey;
       let index = 1;
+
       while (seen.has(compKey)) {
         compKey = `${baseKey}_${index++}`;
       }
+
       seen.add(compKey);
 
-      let compStatus = { vaulted: vaultStatus.vaulted };
-      if (comp.drops && comp.drops.length > 0) {
-        compStatus = checkPrimeVaultStatus({ components: [comp] }, farmableRelics);
+      // Since the component no longer contains its own drop data,
+      // use the reconstructed drops to determine its vault status.
+      let compStatus = {
+        vaulted: vaultStatus.vaulted
+      };
+
+      if (drops.length > 0) {
+        compStatus = checkPrimeVaultStatus(
+          {
+            ...item,
+            components: [comp]
+          },
+          farmableRelics
+        );
       }
 
-      // Push once for the current iteration (skip warframe blueprints)
-      if (!(comp.name === "Blueprint" && isWarframeCategory && components.length > 1)) {
+      // Helmet → Neuroptics special case.
+      const displayName =
+        componentName === "Helmet"
+          ? "Neuroptics"
+          : componentName;
+
+      // Push once for the current iteration.
+      // Skip Warframe/Archwing/Sentinel blueprints as before.
+      if (
+        !(
+          componentName === "Blueprint" &&
+          isWarframeCategory &&
+          components.length > 1
+        )
+      ) {
         components.push({
-          name: comp.name || "Component",
+          name: displayName,
           uniqueName: compKey,
           vaulted: compStatus.vaulted,
           isMainItem: false,
-          isBuiltPrime: isBuiltPrime || false,
-          drops: comp.drops || []
+          isBuiltPrime: isBuiltPrime,
+          drops
         });
       }
 
-      // If itemCount > 1, push additional copies with indexed keys
+      // If itemCount > 1, push additional copies.
       const totalCopies = copies ?? 1;
+
       for (let i = 1; i < totalCopies; i++) {
         let extraKey = baseKey;
         let ei = 1;
+
         while (seen.has(extraKey)) {
           extraKey = `${baseKey}_${ei++}`;
         }
+
         seen.add(extraKey);
+
         components.push({
-          name: comp.name || "Component",
+          name: displayName,
           uniqueName: extraKey,
           vaulted: compStatus.vaulted,
           isMainItem: false,
-          isBuiltPrime: isBuiltPrime || false,
-          drops: comp.drops || []
+          isBuiltPrime: isBuiltPrime,
+          drops
         });
       }
     });
@@ -297,9 +450,14 @@ function extractPrimeComponents(item, vaultStatus, farmableRelics) {
   components.sort((a, b) => {
     if (a.isMainItem) return -1;
     if (b.isMainItem) return 1;
+
     const aOrder = PART_ORDER[a.name] ?? 99;
     const bOrder = PART_ORDER[b.name] ?? 99;
-    if (aOrder !== bOrder) return aOrder - bOrder;
+
+    if (aOrder !== bOrder) {
+      return aOrder - bOrder;
+    }
+
     return a.name.localeCompare(b.name);
   });
 

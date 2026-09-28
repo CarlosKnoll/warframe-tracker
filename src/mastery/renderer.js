@@ -12,6 +12,11 @@ import { state as primesState } from '../primes/state.js';
 import { buildDropTableForPrime, hasRelicDrops } from '../primes/renderer.js';
 import { loadPrimes } from '../primes/loader.js';
 
+// Hardcoded overrides if any item is miscategorized in WFCD / DE endpoints
+const SECTION_OVERRIDES = {
+  '/Lotus/Weapons/Tenno/Archwing/Melee/PrimeCorufell/PrimeCorufellScytheWeapon': 'Melee', // Corufell Prime is miscategorized as Arch-Melee instead of Melee
+};
+
 // ─── Image cache ───────────────────────────────────────────────────────────────
 
 const FALLBACK = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Crect width='80' height='80' fill='%23151b2b'/%3E%3Ctext x='40' y='44' text-anchor='middle' font-size='28' fill='%23334'%3E✦%3C/text%3E%3C/svg%3E";
@@ -491,10 +496,12 @@ export function renderMastery() {
   };
 
   const activeSectionValue = SECTION_MAP[activeSection] ?? activeSection;
-
+  
   const sectionItems = items.filter(item => {
+    const effectiveSection = SECTION_OVERRIDES[item.uniqueName] ?? item.section;
+
     const sectionMatch = Array.isArray(activeSectionValue)
-      ? activeSectionValue.includes(item.section)
+      ? activeSectionValue.includes(effectiveSection)
       : item.section === activeSectionValue;
 
     const q = searchText.toLowerCase();

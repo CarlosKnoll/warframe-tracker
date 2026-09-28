@@ -16,6 +16,7 @@ export const state = {
   resurgenceRelics: new Set(), // lowercase relic names currently in Varzia's shop
   resurgenceExpiry: null,       // ISO date string from vaultTrader API / cache
   relicUniqueNameMap: new Map(), // uniqueName → "lith a11 relic" (display key)
+  componentRelicsMap: new Map(), // component uniqueName → [relic names]
 };
 
 export const FOUNDER_ITEMS = ["Excalibur Prime", "Lato Prime", "Skana Prime"];

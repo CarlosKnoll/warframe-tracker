@@ -145,22 +145,31 @@ const RARITY_ORDER = {
 
 export function hasRelicDrops(prime) {
   if (!prime.components || prime.components.length === 0) return false;
-  for (const comp of prime.components) {
-    const isBuiltPrime = comp.name && comp.name.includes("Prime") && comp.drops &&
-      comp.drops.some(d => d.location && d.location.toLowerCase().includes('relic'));
-    if (isBuiltPrime) continue;
-    if (comp.drops && comp.drops.length > 0) {
-      for (const drop of comp.drops) {
-        if (drop.location && drop.location.toLowerCase().includes('relic')) return true;
-      }
-    }
-  }
-  return false;
+
+  return prime.components.some(comp =>
+    Array.isArray(comp.drops) &&
+    comp.drops.some(drop =>
+      drop.location &&
+      drop.location.toLowerCase().includes('relic')
+    )
+  );
 }
 
 // Export for use in mastery renderer (prime cards in mastery tab reuse this drop table)
 export function buildDropTableForPrime(prime, isSpecial = false) {
   return buildDropTable(prime, isSpecial);
+}
+
+function formatRelicDisplayName(name) {
+  if (!name) return '';
+
+  return name
+    .split(/\s+/)
+    .map(word => {
+      if (!word) return word;
+      return word.charAt(0).toUpperCase() + word.slice(1).toLowerCase();
+    })
+    .join(' ');
 }
 
 // ─── Main render ──────────────────────────────────────────────────────────────
@@ -377,7 +386,6 @@ function buildDropTable(prime, isSpecial = false) {
 
   uniqueComponents.forEach(comp => {
     if (!comp.drops || comp.drops.length === 0) return;
-    if (comp.isBuiltPrime) return;
 
     const relicData = new Map();
 
@@ -459,7 +467,7 @@ function buildDropTable(prime, isSpecial = false) {
             ${rows.map(row => `
               <tr class="${row.isOwned ? 'part-owned' : ''}">
                 <td class="part-name">${row.partName}</td>
-                <td><button class="relic-btn ${row.isResurgence ? 'resurgence-relic' : ''}" data-relic="${row.relicName}" data-resurgence="${row.isResurgence}"> ${tRelicName(row.relicName)} </button></td>
+                <td><button class="relic-btn ${row.isResurgence ? 'resurgence-relic' : ''}" data-relic="${row.relicName}" data-resurgence="${row.isResurgence}"> ${formatRelicDisplayName(tRelicName(row.relicName))} </button></td>
                 <td class="rarity rarity-${row.rarity.toLowerCase()}">${tRarity(row.rarity)}</td>
               </tr>
             `).join('')}
