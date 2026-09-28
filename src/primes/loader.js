@@ -4,7 +4,7 @@ import { state, RELICS_DROP_URL, MISSION_REWARDS_URL, PRIME_URLS, VAULT_TRADER_U
 import { PART_ORDER } from './renderer.js';
 
 const VALID_PARTS = ["Blueprint", "Helmet", "Cerebrum", "Harness", "Chassis", "Carapace", "Wings",
-  "Systems", "Barrel", "LowerLimb", "Stars", "Receiver", "UpperLimb", "Blade", "Stock", "Grip", 
+  "Systems", "Barrel", "Lower Limb", "Stars", "Receiver", "Upper Limb", "Blade", "Stock", "Grip", 
   "Handle", "Pouch", "Hilt", "Gauntlet", "String", "Link", "Guard", "Boot", "Head"];
 
 export async function loadPrimes() {
@@ -324,6 +324,12 @@ function extractPrimeComponents(item, vaultStatus, farmableRelics) {
       // /Lotus/.../PrimeArchwingSystemsComponent
       // → Systems
       let componentName;
+
+      if (comp.uniqueName?.includes('UpperLimb') || comp.uniqueName?.includes('UpperLimb')){
+        comp.uniqueName = comp.uniqueName.replace('LowerLimb', 'Lower Limb')
+                                         .replace('UpperLimb', 'Upper Limb')
+      };
+
       componentName = VALID_PARTS.find(part =>
         comp.uniqueName?.includes(part)
       );
