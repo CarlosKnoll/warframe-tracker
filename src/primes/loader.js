@@ -325,7 +325,7 @@ function extractPrimeComponents(item, vaultStatus, farmableRelics) {
       // → Systems
       let componentName;
 
-      if (comp.uniqueName?.includes('UpperLimb') || comp.uniqueName?.includes('UpperLimb')){
+      if (comp.uniqueName?.includes('UpperLimb') || comp.uniqueName?.includes('LowerLimb')){
         comp.uniqueName = comp.uniqueName.replace('LowerLimb', 'Lower Limb')
                                          .replace('UpperLimb', 'Upper Limb')
       };
