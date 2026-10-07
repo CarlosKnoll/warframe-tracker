@@ -5,8 +5,9 @@
 #tasksSection .tasks-content {
   display: flex;
   flex-direction: column;
-  gap: 24px;
-  padding: 20px 24px 32px;
+  align-items: stretch;
+  gap: 12px;
+  padding: 0 0 32px;              /* no top/side padding: the dock sits flush at the top; */
   overflow-y: auto;
   flex: 1;
 }
@@ -92,6 +93,11 @@
   text-transform: uppercase;
   color: rgba(180, 142, 173, 0.65);   /* b48ead — purple accent, muted */
   padding: 8px 0 4px 2px;
+}
+
+/* Cryobell variant — same frost blue as the badge */
+.tasks-subgroup-header--cryobell {
+  color: rgba(136, 192, 208, 0.7);
 }
 
 /* ─── Task item ──────────────────────────────────────────────────────────────── */
@@ -211,6 +217,25 @@
   color: #b48ead;
   border: 1px solid rgba(180, 142, 173, 0.35);
   flex-shrink: 0;
+}
+
+/* ─── Static reward badge (Cryobell) ─────────────────────────────────────────── */
+
+.tasks-badge {
+  font-size: 0.6rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  padding: 1px 5px;
+  border-radius: 3px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.tasks-badge--cryobell {
+  background: rgba(136, 192, 208, 0.12);
+  color: #88c0d0;
+  border: 1px solid rgba(136, 192, 208, 0.35);
 }
 
 /* ─── Live enrichment lines ──────────────────────────────────────────────────── */
@@ -531,3 +556,153 @@
   border-color: rgba(255, 255, 255, 0.15);
   text-decoration-color: rgba(163, 190, 140, 0.7);
 }
+
+/* ─── Standalone cards (Add task, Baro): full-width collapsible ─────────────── */
+
+.tasks-card {
+  min-width: 0;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+}
+
+.tasks-card-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  margin-bottom: 0;
+  user-select: none;
+}
+.tasks-card-header[role="button"] { cursor: pointer; }
+.tasks-card-header[role="button"]:hover { background: rgba(255, 255, 255, 0.03); }
+.tasks-card-header:focus-visible { outline: 1px solid rgba(201, 168, 76, 0.6); outline-offset: -1px; }
+
+.tasks-card-chevron {
+  font-size: 0.7rem;
+  color: rgba(255, 255, 255, 0.4);
+  transform: rotate(-90deg);
+  transition: transform 0.15s;
+}
+.tasks-card.is-open > .tasks-card-header .tasks-card-chevron { transform: none; }
+
+.tasks-card:not(.is-open) > .tasks-card-body { display: none; }
+.tasks-card-body { padding: 4px 12px 12px; }
+
+.tasks-baro > .tasks-baro-unavailable { padding: 0 12px 10px; }
+
+.tasks-card--add .tasks-add-row { margin: 0; padding: 0; border-top: none; }
+.tasks-card--add .tasks-add-row input[type="text"],
+.tasks-card--add .tasks-add-row select { min-width: 0; }
+
+/* ─── Counts ────────────────────────────────────────────────────────────────── */
+
+.tasks-count {
+  font-size: 0.72rem;
+  font-variant-numeric: tabular-nums;
+  color: rgba(255, 255, 255, 0.55);
+}
+.tasks-count.is-complete { color: #a3be8c; }
+
+/* ─── Dock ──────────────────────────────────────────────────────────────────── */
+
+.tasks-dock {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  padding: 12px 24px;
+  background: rgba(18, 22, 32, 0.92);   /* swap for your page background colour */
+  backdrop-filter: blur(6px);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.tasks-dock-btn {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1 1 auto;
+  padding: 8px 12px;
+  font: inherit;
+  color: #e5e9f0;
+  text-align: left;
+  cursor: pointer;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  transition: background 0.15s, border-color 0.15s;
+}
+.tasks-dock-btn:hover { background: rgba(255, 255, 255, 0.05); }
+.tasks-dock-btn:focus-visible { outline: 1px solid rgba(201, 168, 76, 0.6); outline-offset: -1px; }
+.tasks-dock-btn.is-active {
+  background: rgba(201, 168, 76, 0.08);
+  border-color: rgba(201, 168, 76, 0.45);
+  position: relative;
+  z-index: 1;
+}
+
+.tasks-dock-meta {
+  margin-left: auto;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* Archon: title segment + two shard segments in one pill */
+.tasks-dock-group { display: flex; flex: 2 1 auto; }
+.tasks-dock-group > .tasks-dock-btn { flex: 0 0 auto; border-radius: 0; }
+.tasks-dock-group > .tasks-dock-btn:first-child { flex: 1 1 auto; border-radius: 8px 0 0 8px; }
+.tasks-dock-group > .tasks-dock-btn:last-child  { border-radius: 0 8px 8px 0; }
+.tasks-dock-group > .tasks-dock-btn + .tasks-dock-btn { margin-left: -1px; }
+
+.tasks-dock-chip::before,
+.tasks-block-header--guaranteed::before,
+.tasks-block-header--potential::before {
+  content: '';
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+.tasks-dock-chip--guaranteed::before,
+.tasks-block-header--guaranteed::before { background: #a3be8c; }
+.tasks-dock-chip--potential::before,
+.tasks-block-header--potential::before  { background: #ebcb8b; }
+
+/* ─── Board: open blocks stacked top to bottom ──────────────────────────────── */
+
+.tasks-board {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.tasks-board.is-empty { display: none; }
+
+.tasks-block {
+  display: none;
+  padding: 0 12px 12px;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+}
+.tasks-block.is-open { display: block; }
+
+.tasks-block-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 0 8px;
+}
+.tasks-block-header .tasks-count { margin-left: auto; }
+
+.tasks-block-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+/* ─── Collapsible row details ───────────────────────────────────────────────── */
+
+.tasks-item { padding: 6px 10px; }

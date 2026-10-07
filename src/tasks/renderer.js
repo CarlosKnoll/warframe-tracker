@@ -3,6 +3,69 @@ import { state } from './state.js';
 import { toggleTask, addCustomTask, removeCustomTask, toggleCircuitWeapon } from './loader.js';
 import { getOwned } from '../lib/storage.js';
 
+// ─── Bucket resolvers for archon shards ───────────────────────────────────────────────────────────
+
+export function calendarHasShard(cal) {
+  if (!Array.isArray(cal?.days)) return null;   // null = unknown (fetch failed)
+  return cal.days.some(d => d.events?.some(e => /ArchonCrystal/.test(e.uniqueName ?? '')));
+}
+
+export function shardBucket(task) {
+  if (task.custom) return task.shards ?? null;          // custom: user's choice
+  if (task.shards === 'dynamic') {
+    const has = calendarHasShard(state.calendarData);
+    return has === null ? 'potential' : has ? 'guaranteed' : null;  // null = standard list
+  }
+  return task.shards ?? null;
+}
+
+// ─── Per-device UI state ───────────────────────────────────────────────────────
+// Deliberately localStorage, NOT storage.js — anything going through storage.js is synced.
+const UI_KEY = 'tasksUi';
+
+function readUi() {
+  try {
+    const v = JSON.parse(localStorage.getItem(UI_KEY));
+    return v && typeof v === 'object' ? v : {};
+  } catch { return {}; }
+}
+
+function getUi(key, fallback = false) {
+  const v = readUi()[key];
+  return v === undefined ? fallback : v;
+}
+
+function setUi(key, value) {
+  const ui = readUi();
+  ui[key] = value;
+  try { localStorage.setItem(UI_KEY, JSON.stringify(ui)); } catch { /* blocked/full — ignore */ }
+}
+
+// Weekly bucket: 'guaranteed' | 'potential' | null (null = standard list).
+// Custom archon tasks created before the destination selector have no `shards`.
+function weeklyBucket(task) {
+  const b = shardBucket(task);
+  if (b) return b;
+  return task.custom && task.group === 'archon' ? 'guaranteed' : null;
+}
+
+function scopeTasks(scope) {
+  const all = state.tasks;
+  if (scope === 'daily')  return all.filter(x => x.tier === 'daily');
+  if (scope === 'weekly') return all.filter(x => x.tier === 'weekly' && !weeklyBucket(x));
+  return all.filter(x => x.tier === 'weekly' && weeklyBucket(x) === scope); // guaranteed | potential
+}
+
+// Recomputes every [data-count] badge from state — call after any check/uncheck/remove.
+function refreshCounts() {
+  document.querySelectorAll('#tasksSection [data-count]').forEach(el => {
+    const list = scopeTasks(el.dataset.count);
+    const done = list.filter(x => x.checked).length;
+    el.textContent = `${done}/${list.length}`;
+    el.classList.toggle('is-complete', list.length > 0 && done === list.length);
+  });
+}
+
 // ─── Countdown timer ───────────────────────────────────────────────────────────
 
 let countdownInterval   = null;
@@ -70,10 +133,10 @@ const CATEGORY_ORDER = ['weapon', 'mod', 'resource', 'prime', 'cosmetic', 'decor
 
 function buildBaroSection(baroData) {
   const section = document.createElement('section');
-  section.className = 'tasks-baro';
+  section.className = 'tasks-baro tasks-card tasks-card--wide';
 
   const header = document.createElement('div');
-  header.className = 'tasks-baro-header';
+  header.className = 'tasks-baro-header tasks-card-header';
 
   const title = document.createElement('h2');
   title.className = 'tasks-tier-title tasks-baro-title';
@@ -212,7 +275,9 @@ function buildBaroSection(baroData) {
       inventoryWrap.appendChild(catGroup);
     });
 
+    inventoryWrap.classList.add('tasks-card-body');
     section.appendChild(inventoryWrap);
+    makeCollapsible(section, header, 'baro');
 
   } else {
     // ── Inactive state ────────────────────────────────────────────────────────
@@ -502,6 +567,7 @@ function createTaskItem(task) {
     await toggleTask(task.id);
     item.classList.toggle('is-done', task.checked);
     checkbox.setAttribute('aria-pressed', String(task.checked));
+    refreshCounts();
   };
 
   const checkmark = document.createElement('span');
@@ -526,6 +592,16 @@ function createTaskItem(task) {
     labelEl.appendChild(badge);
   }
 
+  // Static reward badge (e.g. Cryobell on Icebind)
+  if (task.badge) {
+    const key = `tabs.tasks.ui.badge.${task.badge}`;
+    const text = t(key);
+    const badge = document.createElement('span');
+    badge.className = `tasks-badge tasks-badge--${task.badge}`;
+    badge.textContent = text !== key ? text : task.badge.charAt(0).toUpperCase() + task.badge.slice(1);
+    labelEl.appendChild(badge);
+  }
+
   // Static description
   if (desc && desc !== task.descKey) {
     const descEl = document.createElement('span');
@@ -540,16 +616,11 @@ function createTaskItem(task) {
     const liveEl = document.createElement('div');
     liveEl.className = 'tasks-item-live';
     liveLines.forEach(line => {
-        const p = document.createElement('span');
-        p.className = 'tasks-item-live-line';
-
-        if (line instanceof Node) {
-            p.appendChild(line);
-        } else {
-            p.textContent = line;
-        }
-
-        liveEl.appendChild(p);
+      const p = document.createElement('span');
+      p.className = 'tasks-item-live-line';
+      if (line instanceof Node) p.appendChild(line);
+      else p.textContent = line;
+      liveEl.appendChild(p);
     });
     textCol.appendChild(liveEl);
   }
@@ -566,6 +637,7 @@ function createTaskItem(task) {
     removeBtn.onclick = async () => {
       await removeCustomTask(task.id);
       item.remove();
+      refreshCounts();
     };
     item.appendChild(removeBtn);
   }
@@ -573,182 +645,280 @@ function createTaskItem(task) {
   return item;
 }
 
-function createAddRow(tier, group) {
+// ─── Add-task card ─────────────────────────────────────────────────────────────
+
+const ADD_DESTINATIONS = [
+  { value: 'daily',             tier: 'daily',  group: null,       shards: null,         card: 'daily',
+    label: () => t('tasks.ui.daily') },
+  { value: 'weekly:standard',   tier: 'weekly', group: 'standard', shards: null,         card: 'weekly',
+    label: () => `${t('tasks.ui.weekly')} · ${t('tasks.ui.standard')}` },
+  { value: 'weekly:guaranteed', tier: 'weekly', group: 'archon',   shards: 'guaranteed', card: 'archon',
+    label: () => t('tabs.tasks.ui.shards.guaranteed') },
+  { value: 'weekly:potential',  tier: 'weekly', group: 'archon',   shards: 'potential',  card: 'archon',
+    label: () => t('tabs.tasks.ui.shards.potential') },
+];
+
+function buildAddCard() {
+  const card = document.createElement('section');
+  card.className = 'tasks-card tasks-card--add';
+
+  const header = document.createElement('div');
+  const titleEl = document.createElement('span');
+  titleEl.className = 'tasks-tier-title';
+  titleEl.textContent = t('tabs.tasks.ui.custom.add');
+  header.appendChild(titleEl);
+
+  const body = document.createElement('div');
+  body.className = 'tasks-card-body';
+
   const row = document.createElement('div');
   row.className = 'tasks-add-row';
 
   const input = document.createElement('input');
   input.type = 'text';
-  input.placeholder = t('tasks.ui.custom.placeholder');
+  input.placeholder = t('tabs.tasks.ui.custom.placeholder');
   input.maxLength = 120;
 
-  // Group selector — only shown for weekly tier
-  let select = null;
-  if (tier === 'weekly') {
-    select = document.createElement('select');
-    const optStd = document.createElement('option');
-    optStd.value = 'standard';
-    optStd.textContent = t('tasks.ui.standard');
-    const optArch = document.createElement('option');
-    optArch.value = 'archon';
-    optArch.textContent = t('tasks.ui.archon');
-    select.appendChild(optStd);
-    select.appendChild(optArch);
-    if (group) select.value = group;
-  }
+  const select = document.createElement('select');
+  select.setAttribute('aria-label', t('tabs.tasks.ui.custom.group.select'));
+  ADD_DESTINATIONS.forEach(d => {
+    const opt = document.createElement('option');
+    opt.value = d.value;
+    opt.textContent = d.label();
+    select.appendChild(opt);
+  });
+  const lastDest = getUi('addDest', null);
+  if (ADD_DESTINATIONS.some(d => d.value === lastDest)) select.value = lastDest;
 
   const addBtn = document.createElement('button');
   addBtn.className = 'tasks-add-btn';
-  addBtn.textContent = t('tasks.ui.custom.add');
+  addBtn.textContent = t('tabs.tasks.ui.custom.add');
 
   const confirm = async () => {
     const label = input.value.trim();
     if (!label) return;
-    const resolvedGroup = select ? select.value : group;
-    const newTask = await addCustomTask(label, tier, resolvedGroup);
+    const dest = ADD_DESTINATIONS.find(d => d.value === select.value);
+    if (!dest) return;
 
-    // Find the correct list to insert into
-    const targetGroup = resolvedGroup || 'none';
-    const listId = `tasks-list-${tier}-${targetGroup}`;
-    const list = document.getElementById(listId) || document.getElementById(`tasks-list-${tier}`);
-    if (list) {
-      const newItem = createTaskItem(newTask);
-      // Insert before the add-row container's parent separator, or just append
-      list.insertBefore(newItem, list.querySelector('.tasks-add-row') || null);
-    }
-
-    input.value = '';
+    await addCustomTask(label, dest.tier, dest.group, dest.shards);
+    setUi('addDest', dest.value);
+    // open the block the task landed in so it is visible
+    const blockId = dest.shards ?? (dest.tier === 'daily' ? 'daily' : 'weekly');
+    setUi(`card:${blockId}`, true);
+    await renderTasks();
+    revealBlock(blockId);
   };
 
   addBtn.onclick = confirm;
   input.onkeydown = e => { if (e.key === 'Enter') confirm(); };
 
-  row.appendChild(input);
-  if (select) row.appendChild(select);
-  row.appendChild(addBtn);
-
-  return row;
+  row.append(input, select, addBtn);
+  body.appendChild(row);
+  card.append(header, body);
+  makeCollapsible(card, header, 'add');
+  return card;
 }
 
-// ─── Tier builders ─────────────────────────────────────────────────────────────
+// ─── Card builders ─────────────────────────────────────────────────────────────
 
-function buildDailyTier(tasks) {
-  const tier = document.createElement('section');
-  tier.className = 'tasks-tier';
+function makeCollapsible(card, header, id, defaultOpen = false) {
+  const key = `card:${id}`;
+  const open = getUi(key, defaultOpen);
 
-  // Header
-  const header = document.createElement('div');
-  header.className = 'tasks-tier-header';
+  card.classList.add('tasks-card');
+  card.classList.toggle('is-open', open);
 
-  const title = document.createElement('h2');
-  title.className = 'tasks-tier-title';
-  title.textContent = t('tasks.ui.daily');
+  header.classList.add('tasks-card-header');
+  header.setAttribute('role', 'button');
+  header.tabIndex = 0;
+  header.setAttribute('aria-expanded', String(open));
 
-  const resetLabel = document.createElement('span');
-  resetLabel.className = 'tasks-tier-reset';
-  resetLabel.textContent = t('tasks.ui.reset') + ' ';
+  const chevron = document.createElement('span');
+  chevron.className = 'tasks-card-chevron';
+  chevron.setAttribute('aria-hidden', 'true');
+  chevron.textContent = '▾';
+  header.prepend(chevron);
+
+  const toggle = () => {
+    const nowOpen = card.classList.toggle('is-open');
+    header.setAttribute('aria-expanded', String(nowOpen));
+    setUi(key, nowOpen);
+  };
+  header.addEventListener('click', toggle);
+  header.addEventListener('keydown', e => {
+    if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggle(); }
+  });
+}
+
+function buildCountEl(scope) {
+  const el = document.createElement('span');
+  el.className = 'tasks-count';
+  el.dataset.count = scope;
+  return el;
+}
+
+function buildResetEl(countdownId) {
+  const reset = document.createElement('span');
+  reset.className = 'tasks-tier-reset';
+  reset.textContent = t('tasks.ui.reset') + ' ';
 
   const countdown = document.createElement('span');
-  countdown.id = 'tasks-countdown-daily';
+  countdown.id = countdownId;
   countdown.className = 'tasks-tier-countdown';
-  resetLabel.appendChild(countdown);
-
-  header.appendChild(title);
-  header.appendChild(resetLabel);
-  tier.appendChild(header);
-
-  // Body
-  const body = document.createElement('div');
-  body.className = 'tasks-tier-body';
-  body.id = 'tasks-list-daily';
-
-  tasks.forEach(task => body.appendChild(createTaskItem(task)));
-  body.appendChild(createAddRow('daily', null));
-
-  tier.appendChild(body);
-  return tier;
+  reset.appendChild(countdown);
+  return reset;
 }
 
-function buildWeeklyTier(tasks) {
-  const tier = document.createElement('section');
-  tier.className = 'tasks-tier';
+// ─── Dock + board ──────────────────────────────────────────────────────────────
+// Dock: permanent toggle buttons that never move.
+// Board: the open blocks, flowed into one column per open block (see syncDock).
 
-  // Header
-  const header = document.createElement('div');
-  header.className = 'tasks-tier-header';
+const isBlockOpen = id => getUi(`card:${id}`, false);
 
-  const title = document.createElement('h2');
-  title.className = 'tasks-tier-title';
-  title.textContent = t('tasks.ui.weekly');
-
-  const resetLabel = document.createElement('span');
-  resetLabel.className = 'tasks-tier-reset';
-  resetLabel.textContent = t('tasks.ui.reset') + ' ';
-
-  const countdown = document.createElement('span');
-  countdown.id = 'tasks-countdown-weekly';
-  countdown.className = 'tasks-tier-countdown';
-  resetLabel.appendChild(countdown);
-
-  header.appendChild(title);
-  header.appendChild(resetLabel);
-  tier.appendChild(header);
-
-  // Body — two groups: standard and archon
-  const body = document.createElement('div');
-  body.className = 'tasks-tier-body';
-
-  const standard = tasks.filter(task => task.group === 'standard');
-  const archon   = tasks.filter(task => task.group === 'archon');
-
-  // Standard group
-  const stdGroup = buildWeeklyGroup('standard', standard);
-  body.appendChild(stdGroup);
-
-  // Archon group
-  const archGroup = buildWeeklyGroup('archon', archon);
-  body.appendChild(archGroup);
-
-  tier.appendChild(body);
-  return tier;
+function setBlockOpen(id, open) {
+  setUi(`card:${id}`, open);
+  document.querySelector(`#tasksSection .tasks-block[data-block="${id}"]`)
+    ?.classList.toggle('is-open', open);
 }
 
-function buildWeeklyGroup(groupKey, tasks) {
-  const group = document.createElement('div');
-  group.className = 'tasks-group';
+// Scrolls a freshly opened block into view, leaving room for the sticky dock.
+function revealBlock(id) {
+  const block = document.querySelector(`#tasksSection .tasks-block[data-block="${id}"]`);
+  if (!block) return;
+  const dock = document.querySelector('#tasksSection .tasks-dock');
+  block.style.scrollMarginTop = `${(dock?.offsetHeight ?? 0) + 12}px`;
+  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  block.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest' });
+}
 
-  const groupHeader = document.createElement('div');
-  groupHeader.className = 'tasks-group-header';
-  groupHeader.textContent = t(`tasks.ui.${groupKey}`);
-  group.appendChild(groupHeader);
+// Opens all given blocks if none is open, otherwise closes them all.
+function toggleBlocks(ids) {
+  const open = !ids.some(isBlockOpen);
+  ids.forEach(id => setBlockOpen(id, open));
+  syncDock();
+  if (open) revealBlock(ids[0]);
+}
 
-  const list = document.createElement('div');
-  list.className = 'tasks-group-list';
-  list.id = `tasks-list-weekly-${groupKey}`;
+function syncDock() {
+  document.querySelectorAll('#tasksSection [data-dock]').forEach(btn => {
+    const active = btn.dataset.dock.split(',').some(isBlockOpen);
+    btn.classList.toggle('is-active', active);
+    btn.setAttribute('aria-pressed', String(active));
+  });
 
-  // For archon group, separate search-pulse subgroup
-  if (groupKey === 'archon') {
-    const nonPulse = tasks.filter(task => task.subgroup !== 'searchpulse');
-    const pulse    = tasks.filter(task => task.subgroup === 'searchpulse');
+  const board = document.querySelector('#tasksSection .tasks-board');
+  if (!board) return;
+  board.classList.toggle('is-empty', !board.querySelector('.tasks-block.is-open'));
+}
 
-    nonPulse.forEach(task => list.appendChild(createTaskItem(task)));
+function buildDockButton(ids, title, meta = [], extraClass = '') {
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = `tasks-dock-btn ${extraClass}`.trim();
+  btn.dataset.dock = ids.join(',');
+  btn.onclick = () => toggleBlocks(ids);
 
-    if (pulse.length) {
-      const pulseHeader = document.createElement('div');
-      pulseHeader.className = 'tasks-subgroup-header';
-      pulseHeader.textContent = t('tasks.ui.searchpulse');
-      list.appendChild(pulseHeader);
-
-      pulse.forEach(task => list.appendChild(createTaskItem(task)));
-    }
-  } else {
-    tasks.forEach(task => list.appendChild(createTaskItem(task)));
+  if (title) {
+    const titleEl = document.createElement('span');
+    titleEl.className = 'tasks-tier-title';
+    titleEl.textContent = title;
+    btn.appendChild(titleEl);
   }
+  if (meta.length) {
+    const metaEl = document.createElement('span');
+    metaEl.className = 'tasks-dock-meta';
+    meta.forEach(el => metaEl.appendChild(el));
+    btn.appendChild(metaEl);
+  }
+  return btn;
+}
 
-  list.appendChild(createAddRow('weekly', groupKey));
-  group.appendChild(list);
+function buildDock() {
+  const dock = document.createElement('div');
+  dock.className = 'tasks-dock';
 
-  return group;
+  const daily  = buildDockButton(['daily'],  t('tasks.ui.daily'),
+    [buildCountEl('daily'),  buildResetEl('tasks-countdown-daily')]);
+  const weekly = buildDockButton(['weekly'], t('tasks.ui.weekly'),
+    [buildCountEl('weekly'), buildResetEl('tasks-countdown-weekly')]);
+
+  const archon = document.createElement('div');
+  archon.className = 'tasks-dock-group';
+  archon.appendChild(buildDockButton(['guaranteed', 'potential'], t('tasks.ui.archon')));
+  ['guaranteed', 'potential'].forEach(bucket => {
+    const chip = buildDockButton([bucket], null, [buildCountEl(bucket)],
+      `tasks-dock-chip tasks-dock-chip--${bucket}`);
+    const label = t(`tabs.tasks.ui.shards.${bucket}`);
+    chip.title = label;
+    chip.setAttribute('aria-label', label);
+    archon.appendChild(chip);
+  });
+
+  dock.append(daily, weekly, archon);
+  return dock;
+}
+
+function buildBlockHeader(title, scope, extraClass = '') {
+  const header = document.createElement('div');
+  header.className = `tasks-block-header ${extraClass}`.trim();
+
+  const titleEl = document.createElement('span');
+  titleEl.className = 'tasks-tier-title';
+  titleEl.textContent = title;
+
+  header.append(titleEl, buildCountEl(scope));
+  return header;
+}
+
+function buildBlock(id, header, body) {
+  const block = document.createElement('section');
+  block.className = 'tasks-block' + (isBlockOpen(id) ? ' is-open' : '');
+  block.dataset.block = id;
+  body.classList.add('tasks-block-body');
+  block.append(header, body);
+  return block;
+}
+
+function buildSimpleBlock(id, title, tasks) {
+  const body = document.createElement('div');
+  tasks.forEach(task => body.appendChild(createTaskItem(task)));
+  return buildBlock(id, buildBlockHeader(title, id), body);
+}
+
+function buildShardBlock(bucket, tasks) {
+  const body = document.createElement('div');
+
+  const SUBGROUPS = ['searchpulse', 'cryobell'];
+  tasks.filter(task => !SUBGROUPS.includes(task.subgroup))
+       .forEach(task => body.appendChild(createTaskItem(task)));
+
+  SUBGROUPS.forEach(sub => {
+    const items = tasks.filter(task => task.subgroup === sub);
+    if (!items.length) return;
+    const subHeader = document.createElement('div');
+    subHeader.className = `tasks-subgroup-header tasks-subgroup-header--${sub}`;
+    subHeader.textContent = sub === 'cryobell'
+      ? t('tabs.tasks.ui.cryobell.header', { n: 3 })
+      : t('tabs.tasks.ui.searchpulse');
+    body.appendChild(subHeader);
+    items.forEach(task => body.appendChild(createTaskItem(task)));
+  });
+
+  const header = buildBlockHeader(
+    t(`tabs.tasks.ui.shards.${bucket}`), bucket, `tasks-block-header--${bucket}`);
+  return buildBlock(bucket, header, body);
+}
+
+function buildBoard(daily, weekly) {
+  const board = document.createElement('div');
+  board.className = 'tasks-board';
+  board.append(
+    buildSimpleBlock('daily',  t('tasks.ui.daily'),  daily),
+    buildSimpleBlock('weekly', t('tasks.ui.weekly'), weekly.filter(task => !weeklyBucket(task))),
+    buildShardBlock('guaranteed', weekly.filter(task => weeklyBucket(task) === 'guaranteed')),
+    buildShardBlock('potential',  weekly.filter(task => weeklyBucket(task) === 'potential')),
+  );
+  return board;
 }
 
 // ─── Public render ─────────────────────────────────────────────────────────────
@@ -766,9 +936,14 @@ export async function renderTasks() {
   const daily  = state.tasks.filter(task => task.tier === 'daily');
   const weekly = state.tasks.filter(task => task.tier === 'weekly');
 
-  container.appendChild(buildDailyTier(daily));
-  container.appendChild(buildWeeklyTier(weekly));
-  container.appendChild(buildBaroSection(state.baroData));
+  container.append(
+    buildDock(),
+    buildBoard(daily, weekly),
+    buildAddCard(),
+    buildBaroSection(state.baroData),
+  );
 
+  refreshCounts();
+  syncDock();
   startCountdowns();
 }

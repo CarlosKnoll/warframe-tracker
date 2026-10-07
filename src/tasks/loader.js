@@ -304,7 +304,7 @@ export async function saveTasksCache({ fromSync = false } = {}) {
   }
 }
 
-export async function addCustomTask(customLabel, tier, group = null) {
+export async function addCustomTask(customLabel, tier, group = null, shards = null) {
   const newTask = {
     id: `custom.${Date.now()}`,
     tier,
