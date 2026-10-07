@@ -40,14 +40,17 @@ async function touchModified() {
 }
 
 // Converts legacy { since: "..." } entries (or stray NaN/0/null from the old
-// buggy merge) into the current binary 1/absent scheme. Safe to call on any
-// masteryMastered object regardless of which scheme produced it.
+// buggy merge) into the current scheme. Safe to call on any masteryMastered
+// object regardless of which scheme produced it.
+// Values: 1 = mastered flag; any positive number is kept as-is because the
+// Misc tracker stores counters here (starchart nodes, intrinsic ranks).
 function normalizeMasteryMastered(raw) {
   if (!raw || typeof raw !== 'object') return {};
   const out = {};
   for (const [k, v] of Object.entries(raw)) {
-    if (v && typeof v === 'object') out[k] = 1;
-    else if (Number(v) === 1) out[k] = 1;
+    if (v && typeof v === 'object') { out[k] = 1; continue; }
+    const n = Number(v);
+    if (Number.isFinite(n) && n > 0) out[k] = n;
   }
   return out;
 }

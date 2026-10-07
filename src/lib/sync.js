@@ -238,9 +238,10 @@ function mergeOwned(local, remote) {
   const allMasteryKeys = new Set([...Object.keys(local?.masteryMastered ?? {}), ...Object.keys(remote?.masteryMastered ?? {})]);
   const mergedMastery = {};
   for (const key of allMasteryKeys) {
-    const l = local?.masteryMastered?.[key];
-    const r = remote?.masteryMastered?.[key];
-    if (l || r) mergedMastery[key] = 1;
+    // max-wins: 0/1 mastery flags behave as presence-wins, Misc counters (>1) keep the highest value
+    const asNum = v => (v && typeof v === 'object') ? 1 : (Number.isFinite(Number(v)) ? Number(v) : 0);
+    const val = Math.max(asNum(local?.masteryMastered?.[key]), asNum(remote?.masteryMastered?.[key]));
+    if (val > 0) mergedMastery[key] = val;
   }
   return {
     owned: mergedOwned,
@@ -369,19 +370,33 @@ async function _pushToDriveInternal() {
   const now = new Date().toISOString();
   const syncMetaPayload = { lastModifiedAt: now, deviceId: meta.deviceId };
   const tasksCacheForUpload = tasksCache ? (({ worldstateCache: _, ...rest }) => rest)(tasksCache) : null;
+  const ownedJson       = owned               ? JSON.stringify(owned)               : null;
+  const tasksCacheJson  = tasksCacheForUpload ? JSON.stringify(tasksCacheForUpload) : null;
+  const customDropsJson = customDrops         ? JSON.stringify(customDrops)         : null;
+  const vendorStateJson = vendorState != null ? JSON.stringify(vendorState)         : null;
   await Promise.all([
-    owned ? driveUpload(SYNC_FILES.owned, JSON.stringify(owned)) : Promise.resolve(),
-    tasksCacheForUpload ? driveUpload(SYNC_FILES.tasksCache, JSON.stringify(tasksCacheForUpload)) : Promise.resolve(),
-    customDrops ? driveUpload(SYNC_FILES.customDrops, JSON.stringify(customDrops)) : Promise.resolve(),
-    vendorState != null
-      ? driveUpload(
-          SYNC_FILES.vendorState, 
-          JSON.stringify(vendorState)
-        )
-      : Promise.resolve(),
+    ownedJson       ? driveUpload(SYNC_FILES.owned, ownedJson)             : Promise.resolve(),
+    tasksCacheJson  ? driveUpload(SYNC_FILES.tasksCache, tasksCacheJson)   : Promise.resolve(),
+    customDropsJson ? driveUpload(SYNC_FILES.customDrops, customDropsJson) : Promise.resolve(),
+    vendorStateJson ? driveUpload(SYNC_FILES.vendorState, vendorStateJson) : Promise.resolve(),
     driveUpload(SYNC_FILES.syncMeta, JSON.stringify(syncMetaPayload)),
   ]);
-  await setSyncMeta({ ...meta, lastModifiedAt: now, lastSyncedAt: now, hasPendingPush: false });
+
+  // storage.js skips touchModified()/schedulePush() while a sync is in flight, so any
+  // edit made during the upload above was neither uploaded nor flagged as pending.
+  // Compare what is stored now with what was just uploaded and re-arm if it differs.
+  const [ownedNow, tasksCacheNow, customDropsNow, vendorStateNow] = await Promise.all([
+    getOwned(), getTasksCache(), getCustomDrops(), getVendorState(),
+  ]);
+  const stripWorldstate = tc => (tc ? JSON.stringify((({ worldstateCache: _, ...rest }) => rest)(tc)) : null);
+  const changedDuringPush =
+    (ownedNow ? JSON.stringify(ownedNow) : null)                 !== ownedJson ||
+    stripWorldstate(tasksCacheNow)                                !== tasksCacheJson ||
+    (customDropsNow ? JSON.stringify(customDropsNow) : null)     !== customDropsJson ||
+    (vendorStateNow != null ? JSON.stringify(vendorStateNow) : null) !== vendorStateJson;
+
+  await setSyncMeta({ ...meta, lastModifiedAt: now, lastSyncedAt: now, hasPendingPush: changedDuringPush });
+  if (changedDuringPush) schedulePush();
   emit('synced');
 }
 
