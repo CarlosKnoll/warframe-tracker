@@ -1,23 +1,14 @@
-import { t, tOrRaw, tGameMode, tBaroItem } from '../i18n.js';
+import { t, tOrRaw, tBaroItem } from '../i18n.js';
 import { state } from './state.js';
-import { toggleTask, addCustomTask, removeCustomTask, toggleCircuitWeapon } from './loader.js';
+import { addCustomTask } from './loader.js';
 import { getOwned } from '../lib/storage.js';
+import { initIcons, preloadIcons } from '../lib/icons.js';
+import { calendarHasShard, shardBucket, toneOf, categoryOf, formatCountdown, resetTargetFor, taskLabel } from './helpers.js';
+import { openTaskModal } from './modal.js';
+import { createTaskIcon, collectTaskIconKeys } from './rewards/resolve.js';
 
-// ─── Bucket resolvers for archon shards ───────────────────────────────────────────────────────────
-
-export function calendarHasShard(cal) {
-  if (!Array.isArray(cal?.days)) return null;   // null = unknown (fetch failed)
-  return cal.days.some(d => d.events?.some(e => /ArchonCrystal/.test(e.uniqueName ?? '')));
-}
-
-export function shardBucket(task) {
-  if (task.custom) return task.shards ?? null;          // custom: user's choice
-  if (task.shards === 'dynamic') {
-    const has = calendarHasShard(state.calendarData);
-    return has === null ? 'potential' : has ? 'guaranteed' : null;  // null = standard list
-  }
-  return task.shards ?? null;
-}
+// Logic lives in helpers.js now; re-exported so existing importers keep working.
+export { calendarHasShard, shardBucket, toneOf };
 
 // ─── Per-device UI state ───────────────────────────────────────────────────────
 // Deliberately localStorage, NOT storage.js — anything going through storage.js is synced.
@@ -41,25 +32,10 @@ function setUi(key, value) {
   try { localStorage.setItem(UI_KEY, JSON.stringify(ui)); } catch { /* blocked/full — ignore */ }
 }
 
-// Weekly bucket: 'guaranteed' | 'potential' | null (null = standard list).
-// Custom archon tasks created before the destination selector have no `shards`.
-function weeklyBucket(task) {
-  const b = shardBucket(task);
-  if (b) return b;
-  return task.custom && task.group === 'archon' ? 'guaranteed' : null;
-}
-
-function scopeTasks(scope) {
-  const all = state.tasks;
-  if (scope === 'daily')  return all.filter(x => x.tier === 'daily');
-  if (scope === 'weekly') return all.filter(x => x.tier === 'weekly' && !weeklyBucket(x));
-  return all.filter(x => x.tier === 'weekly' && weeklyBucket(x) === scope); // guaranteed | potential
-}
-
 // Recomputes every [data-count] badge from state — call after any check/uncheck/remove.
 function refreshCounts() {
   document.querySelectorAll('#tasksSection [data-count]').forEach(el => {
-    const list = scopeTasks(el.dataset.count);
+    const list = state.tasks.filter(task => categoryOf(task) === el.dataset.count);
     const done = list.filter(x => x.checked).length;
     el.textContent = `${done}/${list.length}`;
     el.classList.toggle('is-complete', list.length > 0 && done === list.length);
@@ -71,47 +47,12 @@ function refreshCounts() {
 let countdownInterval   = null;
 let baroCountdownTarget = null;   // Date object set by buildBaroSection, ticked by startCountdowns
 
-function getNextDailyReset() {
-  const now = new Date();
-  const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 1));
-  return next;
-}
-
-function getNextWeeklyReset() {
-  const now = new Date();
-  const day = now.getUTCDay(); // 0=Sun … 6=Sat
-  const daysUntilMonday = day === 0 ? 1 : 8 - day;
-  const next = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + daysUntilMonday));
-  return next;
-}
-
-function formatCountdown(targetDate) {
-  const diff = targetDate - Date.now();
-  if (diff <= 0) return '00:00:00';
-
-  const totalSeconds = Math.floor(diff / 1000);
-  const days    = Math.floor(totalSeconds / 86400);
-  const hours   = Math.floor((totalSeconds % 86400) / 3600);
-  const minutes = Math.floor((totalSeconds % 3600) / 60);
-  const seconds = totalSeconds % 60;
-
-  const hh = String(hours).padStart(2, '0');
-  const mm = String(minutes).padStart(2, '0');
-  const ss = String(seconds).padStart(2, '0');
-
-  return days > 0 ? `${days}d ${hh}:${mm}:${ss}` : `${hh}:${mm}:${ss}`;
-}
-
 function startCountdowns() {
-  const dailyTarget  = getNextDailyReset();
-  const weeklyTarget = getNextWeeklyReset();
-
   function tick() {
-    const dailyEl  = document.getElementById('tasks-countdown-daily');
-    const weeklyEl = document.getElementById('tasks-countdown-weekly');
-    const baroEl   = document.getElementById('tasks-baro-countdown');
-    if (dailyEl)  dailyEl.textContent  = formatCountdown(dailyTarget);
-    if (weeklyEl) weeklyEl.textContent = formatCountdown(weeklyTarget);
+    document.querySelectorAll('#tasksSection [data-reset-at]').forEach(el => {
+      el.textContent = formatCountdown(Number(el.dataset.resetAt));
+    });
+    const baroEl = document.getElementById('tasks-baro-countdown');
     if (baroEl && baroCountdownTarget) baroEl.textContent = formatCountdown(baroCountdownTarget);
   }
 
@@ -128,6 +69,64 @@ function stopCountdowns() {
 }
 
 // ─── Baro Ki'teer section ──────────────────────────────────────────────────────
+
+function buildItemsTable(items) {
+  const tableWrap = document.createElement('div');
+  tableWrap.className = 'tasks-baro-table-wrap';
+
+  const table = document.createElement('table');
+  table.className = 'tasks-baro-table';
+
+  const colgroup = document.createElement('colgroup');
+  [null, '80px', '100px'].forEach(w => {
+    const col = document.createElement('col');
+    if (w) col.style.width = w;
+    colgroup.appendChild(col);
+  });
+  table.appendChild(colgroup);
+
+  const thead = document.createElement('thead');
+  const headRow = document.createElement('tr');
+  [t('general.item'), t('general.ducats'), t('general.credits')].forEach((text, i) => {
+    const th = document.createElement('th');
+    th.textContent = text;
+    if (i > 0) th.className = 'tasks-baro-col-num';
+    headRow.appendChild(th);
+  });
+  thead.appendChild(headRow);
+  table.appendChild(thead);
+
+  const tbody = document.createElement('tbody');
+  items.forEach(entry => {
+    const tr = document.createElement('tr');
+
+    const normalizedName = entry.uniqueName?.replace('/StoreItems/', '/');
+    const isMastered = entry.category === 'weapon' &&
+      normalizedName &&
+      state.masteredSet.has(normalizedName);
+    if (isMastered) tr.classList.add('is-mastered');
+
+    const tdItem = document.createElement('td');
+    tdItem.textContent = entry.displayName || '—';
+    if (entry.isNewItem) tr.classList.add('tasks-baro-missing-locale');
+
+    const tdDucats = document.createElement('td');
+    tdDucats.className = 'tasks-baro-col-num';
+    tdDucats.textContent = entry.ducats != null ? entry.ducats.toLocaleString() : '—';
+
+    const tdCredits = document.createElement('td');
+    tdCredits.className = 'tasks-baro-col-num';
+    tdCredits.textContent = entry.credits != null ? entry.credits.toLocaleString() : '—';
+
+    tr.appendChild(tdItem);
+    tr.appendChild(tdDucats);
+    tr.appendChild(tdCredits);
+    tbody.appendChild(tr);
+  });
+  table.appendChild(tbody);
+  tableWrap.appendChild(table);
+  return tableWrap;
+}
 
 const CATEGORY_ORDER = ['weapon', 'mod', 'resource', 'prime', 'cosmetic', 'decoration', 'other'];
 
@@ -149,7 +148,7 @@ function buildBaroSection(baroData) {
     section.classList.add('tasks-baro--unavailable');
     const msg = document.createElement('span');
     msg.className = 'tasks-baro-unavailable';
-    msg.textContent = t('tasks.ui.baro.unavailable');
+    msg.textContent = t('tasks.baro.unavailable');
     section.appendChild(msg);
     return section;
   }
@@ -174,7 +173,7 @@ function buildBaroSection(baroData) {
     // "Leaves in" countdown
     const statusWrap = document.createElement('span');
     statusWrap.className = 'tasks-baro-status';
-    statusWrap.textContent = t('tasks.ui.baro.leaves') + ' ';
+    statusWrap.textContent = t('tabs.tasks.ui.baro.leaves') + ' ';
     const cd = document.createElement('span');
     cd.className = 'tasks-baro-countdown tasks-tier-countdown';
     cd.id = 'tasks-baro-countdown';
@@ -184,13 +183,16 @@ function buildBaroSection(baroData) {
 
     // Inventory — grouped by category derived from locale keys
     const inventory = Array.isArray(baroData.inventory) ? baroData.inventory : [];
+    const newItemIds = new Set(state.baroNewItemsSnapshot?.identifiers ?? []);
 
     // Group entries by category, preserving first-appearance order
+    const newItems = [];
     const grouped = new Map();
     inventory.forEach(entry => {
       const { name, category, missing } = tBaroItem(entry.item);
+      if (missing) { newItems.push({ ...entry, displayName: name, isNewItem: true }); return;}
       if (!grouped.has(category)) grouped.set(category, []);
-      grouped.get(category).push({ ...entry, displayName: name, isMissingLocale: missing });
+      grouped.get(category).push({ ...entry, displayName: name, category, isNewItem: newItemIds.has(entry.item) });
     });
 
     // Sort categories by preferred display order
@@ -203,10 +205,23 @@ function buildBaroSection(baroData) {
     const inventoryWrap = document.createElement('div');
     inventoryWrap.className = 'tasks-baro-inventory';
 
+    if (newItems.length) {
+      const newGroup = document.createElement('div');
+      newGroup.className = 'tasks-baro-category-group tasks-baro-new-group';
+      newGroup.dataset.category = 'new';
+
+      const newHeader = document.createElement('div');
+      newHeader.className = 'tasks-baro-category-header';
+      newHeader.textContent = t('tabs.tasks.ui.baro.newItems');
+      newGroup.appendChild(newHeader);
+
+      newGroup.appendChild(buildItemsTable(newItems));
+      inventoryWrap.appendChild(newGroup);
+    }
+
     sortedCategories.forEach(category => {
       const items = grouped.get(category);
 
-      // Category group: header + bordered table wrap
       const catGroup = document.createElement('div');
       catGroup.className = 'tasks-baro-category-group';
       catGroup.dataset.category = category;
@@ -216,69 +231,13 @@ function buildBaroSection(baroData) {
       catHeader.textContent = t(`category.${category}`);
       catGroup.appendChild(catHeader);
 
-      const tableWrap = document.createElement('div');
-      tableWrap.className = 'tasks-baro-table-wrap';
-
-      const table = document.createElement('table');
-      table.className = 'tasks-baro-table';
-
-      const colgroup = document.createElement('colgroup');
-      [null, '80px', '100px'].forEach(w => {
-        const col = document.createElement('col');
-        if (w) col.style.width = w;
-        colgroup.appendChild(col);
-      });
-      table.appendChild(colgroup);
-
-      const thead = document.createElement('thead');
-      const headRow = document.createElement('tr');
-      [t('general.item'), t('general.ducats'), t('general.credits')].forEach((text, i) => {
-        const th = document.createElement('th');
-        th.textContent = text;
-        if (i > 0) th.className = 'tasks-baro-col-num';
-        headRow.appendChild(th);
-      });
-      thead.appendChild(headRow);
-      table.appendChild(thead);
-
-      const tbody = document.createElement('tbody');
-      items.forEach(entry => {
-        const tr = document.createElement('tr');
-
-        const normalizedName = entry.uniqueName?.replace('/StoreItems/', '/');
-        const isMastered = category === 'weapon' &&
-          normalizedName &&
-          state.masteredSet.has(normalizedName);
-
-        if (isMastered) tr.classList.add('is-mastered');
-
-        const tdItem = document.createElement('td');
-        tdItem.textContent = entry.displayName || '—';
-        if (entry.isMissingLocale) tr.classList.add('tasks-baro-missing-locale');
-
-        const tdDucats = document.createElement('td');
-        tdDucats.className = 'tasks-baro-col-num';
-        tdDucats.textContent = entry.ducats != null ? entry.ducats.toLocaleString() : '—';
-
-        const tdCredits = document.createElement('td');
-        tdCredits.className = 'tasks-baro-col-num';
-        tdCredits.textContent = entry.credits != null ? entry.credits.toLocaleString() : '—';
-
-        tr.appendChild(tdItem);
-        tr.appendChild(tdDucats);
-        tr.appendChild(tdCredits);
-        tbody.appendChild(tr);
-      });
-      table.appendChild(tbody);
-      tableWrap.appendChild(table);
-      catGroup.appendChild(tableWrap);
+      catGroup.appendChild(buildItemsTable(items));
       inventoryWrap.appendChild(catGroup);
     });
 
     inventoryWrap.classList.add('tasks-card-body');
     section.appendChild(inventoryWrap);
     makeCollapsible(section, header, 'baro');
-
   } else {
     // ── Inactive state ────────────────────────────────────────────────────────
     section.classList.add('tasks-baro--inactive');
@@ -289,9 +248,9 @@ function buildBaroSection(baroData) {
 
     if (departed) {
       // Expiry passed but next activation not yet known (API not refreshed)
-      statusWrap.textContent = t('tasks.ui.baro.departed');
+      statusWrap.textContent = t('tabs.tasks.ui.baro.departed');
     } else {
-      statusWrap.textContent = t('tasks.ui.baro.arrives') + ' ';
+      statusWrap.textContent = t('tabs.tasks.ui.baro.arrives') + ' ';
       const cd = document.createElement('span');
       cd.className = 'tasks-baro-countdown tasks-tier-countdown';
       cd.id = 'tasks-baro-countdown';
@@ -305,356 +264,16 @@ function buildBaroSection(baroData) {
   return section;
 }
 
-// ─── Live data enrichment ──────────────────────────────────────────────────────
-
-function buildSortieDesc(sortieData) {
-  if (!sortieData) return null;
-
-  const lines = [];
-
-  if (Array.isArray(sortieData.variants)) {
-    sortieData.variants.forEach(v => {
-      const node     = v.node || '';
-      const type     = tGameMode(v.missionType || '');
-      const modifier = v.modifier || '';
-
-      if (node || type) {
-        const span = document.createElement('span');
-
-        // Bold node + type
-        const strong = document.createElement('strong');
-        strong.textContent = `${node} — ${type}`;
-        span.appendChild(strong);
-
-        // Normal modifier
-        if (modifier) {
-          span.appendChild(document.createTextNode(' · ' + modifier));
-        }
-
-        lines.push(span);
-      }
-    });
-  }
-
-  return lines.length ? lines : null;
-}
-
-function buildArchonDesc(archonData) {
-  if (!archonData) return null;
-  const lines = [];
-
-  if (Array.isArray(archonData.missions)) {
-    archonData.missions.forEach(m => {
-      const node = m.node || '';
-      const type = tGameMode(m.type || '');
-      if (node || type) {
-        const span = document.createElement('span');
-
-        // Bold node + type
-        const strong = document.createElement('strong');
-        strong.textContent = `${node} — ${type}`;
-        span.appendChild(strong);
-
-        lines.push(span);
-      }
-    });
-  }
-  return lines.length ? lines : null;
-}
-
-function buildSteelPathDesc(steelData) {
-  if (!steelData || !steelData.currentReward) return null;
-  const lines = [];
-  const essence = t('tasks.ui.steelpath.essence');
-
-  // Rotating weekly reward
-  const { name, cost } = steelData.currentReward;
-  if (name) {
-    const tName = t(`tasks.ui.steelpath.item.${name}`, {});
-    const label = tName !== `tasks.ui.steelpath.item.${name}` ? tName : name;
-    
-    const strong = document.createElement('strong');
-    strong.textContent = `${label}${cost != null ? ' · ' + cost + ' ' + essence : ''}`;
-    lines.push(strong);
-  }
-
-  // Selected evergreen wares
-  const EVERGREEN_KEYS = new Set([
-    'Veiled Riven Cipher',
-    '10k Kuva',
-    'Primary Arcane Adapter',
-    'Secondary Arcane Adapter',
-    'Relic Pack',
-    'Stance Forma Blueprint',
-  ]);
-
-  if (Array.isArray(steelData.evergreens)) {
-    const relevant = steelData.evergreens.filter(e => EVERGREEN_KEYS.has(e.name));
-    if (relevant.length) {
-      relevant.forEach(e => {
-        const tName = t(`tasks.ui.steelpath.item.${e.name}`, {});
-        const label = tName !== `tasks.ui.steelpath.item.${e.name}` ? tName : e.name;
-        lines.push(`${label}${e.cost != null ? ' · ' + e.cost + ' ' + essence : ''}`);
-      });
-    }
-  }
-
-  return lines.length ? lines : null;
-}
-
-function buildDuviriCircuitDesc(duviriData) {
-  if (!duviriData || !Array.isArray(duviriData.choices)) return null;
-
-  const hard = duviriData.choices.find(c => c.category === 'hard');
-  if (!hard || !Array.isArray(hard.choices) || hard.choices.length === 0) return null;
-
-  const wrapper = document.createElement('span');
-  wrapper.className = 'tasks-circuit-weapons';
-
-  hard.choices.forEach((weaponName, i) => {
-    const isObtained = state.circuitObtained.includes(weaponName);
-
-    const chip = document.createElement('button');
-    chip.className = 'tasks-circuit-weapon' + (isObtained ? ' is-obtained' : '');
-    chip.textContent = weaponName;
-    chip.title = isObtained ? t('tasks.ui.circuit.weapon.mark_not_obtained') : t('tasks.ui.circuit.weapon.mark_obtained');
-
-    chip.onclick = async () => {
-      await toggleCircuitWeapon(weaponName);
-      const nowObtained = state.circuitObtained.includes(weaponName);
-      chip.classList.toggle('is-obtained', nowObtained);
-      chip.title = nowObtained ? t('tasks.ui.circuit.weapon.mark_not_obtained') : t('tasks.ui.circuit.weapon.mark_obtained');
-    };
-
-    wrapper.appendChild(chip);
-
-    if (i < hard.choices.length - 1) {
-      const sep = document.createElement('span');
-      sep.className = 'tasks-circuit-sep';
-      sep.textContent = '·';
-      wrapper.appendChild(sep);
-    }
-  });
-
-  return [wrapper];
-}
-
-function translateCalendarReward(name) {
-   const namespaces = [
-     `tasks.ui.calendar.item.${name}`,
-     `arcane.${name}`,
-     `item.${name}`,
-   ];
-   for (const key of namespaces) {
-     const result = t(key);
-     if (result !== key) return result;
-   }
-   return name;
-}
-
-function buildCalendarDesc(calendarData) {
-    if (!calendarData || !Array.isArray(calendarData.days)) return null;
-    const lines = [];
- 
-    const prizeLabel = t('tasks.ui.calendar.prizes.label');
-
-    const strong = document.createElement('strong');
-    strong.textContent = prizeLabel;
-
-    lines.push(strong);
- 
-    for (const day of calendarData.days) {
-      const prizes = day.events.filter(e => e.type === 'Big Prize!' && e.reward);
-      if (!prizes.length) continue;
-      const options = prizes.map(e => translateCalendarReward(e.reward));
-      lines.push(options.join(` ${t('general.or')} `));
-    }
- 
-    return lines.length ? lines : null;
-}
-
-function buildArchimedeasDesc(archimedeasData, typeKey) {
-  if (!Array.isArray(archimedeasData)) return null;
-
-  const entry = archimedeasData.find(e => e.typeKey === typeKey);
-  if (!entry) return null;
-
-  const lines = [];
-
-  if (Array.isArray(entry.missions)) {
-    entry.missions.forEach(m => {
-      const missionSpan = document.createElement('span');
-      const strong = document.createElement('strong');
-      strong.textContent = tGameMode(m.missionType);
-      missionSpan.appendChild(strong);
-
-      if (m.deviation?.key) {
-        // deviation name + desc
-        const devName = tOrRaw(`tasks.ui.archimedea.deviation.${m.deviation.key}`, m.deviation.name);
-        const devDesc = tOrRaw(`tasks.ui.archimedea.deviation.${m.deviation.key}.desc`, m.deviation.description);
-        missionSpan.appendChild(document.createTextNode(' · ' + devName));
-        missionSpan.title = devDesc;
-      }
-
-      lines.push(missionSpan);
-
-      if (Array.isArray(m.risks)) {
-        m.risks.forEach(r => {
-          const riskSpan = document.createElement('span');
-          riskSpan.className = 'tasks-archimedea-risk' + (r.isHard ? ' tasks-archimedea-risk--hard' : '');
-          // risk name + desc
-          riskSpan.textContent = (r.isHard ? '⚠ ' : '· ') + tOrRaw(`tasks.ui.archimedea.risk.${r.key}`, r.name);
-          riskSpan.title = tOrRaw(`tasks.ui.archimedea.risk.${r.key}.desc`, r.description);
-          lines.push(riskSpan);
-        });
-      }
-    });
-  }
-
-  if (Array.isArray(entry.personalModifiers) && entry.personalModifiers.length) {
-    const modHeader = document.createElement('strong');
-    // static label — stays as t()
-    modHeader.textContent = t('tasks.ui.archimedea.modifiers.label');
-    lines.push(modHeader);
-
-    entry.personalModifiers.forEach(mod => {
-      const modSpan = document.createElement('span');
-      modSpan.className = 'tasks-archimedea-modifier';
-      // modifier name + desc
-      modSpan.textContent = tOrRaw(`tasks.ui.archimedea.modifier.${mod.key}`, mod.name);
-      modSpan.title = tOrRaw(`tasks.ui.archimedea.modifier.${mod.key}.desc`, mod.description);
-      lines.push(modSpan);
-    });
-  }
-
-  return lines.length ? lines : null;
-}
-
-function getLiveLines(task) {
-  switch (task.liveData) {
-    case 'sortie':                  return buildSortieDesc(state.sortieData);
-    case 'archonHunt':              return buildArchonDesc(state.archonHuntData);
-    case 'steelPath':               return buildSteelPathDesc(state.steelPathData);
-    case 'duviriCycle':             return buildDuviriCircuitDesc(state.duviriCycleData);
-    case 'steelPathIncursions': {
-        const span = document.createElement('strong');
-        span.textContent = t('tasks.ui.steelpath.incursions.reward');
-        return [span];
-    }
-    case 'calendar':                return buildCalendarDesc(state.calendarData);
-    case 'archimedea.deepa':        return buildArchimedeasDesc(state.archimedeasData, 'C T_ L A B');
-    case 'archimedea.temporala':    return buildArchimedeasDesc(state.archimedeasData, 'C T_ H E X');
-    default:                        return null;
-  }
-}
-
-// ─── DOM helpers ───────────────────────────────────────────────────────────────
-
-function createTaskItem(task) {
-  const label = task.custom ? task.customLabel : t(task.labelKey);
-  const desc  = task.custom ? null : t(task.descKey);
-
-  const item = document.createElement('div');
-  item.className = 'tasks-item' + (task.checked ? ' is-done' : '');
-  item.dataset.taskId = task.id;
-
-  // Checkbox button
-  const checkbox = document.createElement('button');
-  checkbox.className = 'tasks-checkbox';
-  checkbox.setAttribute('aria-label', label);
-  checkbox.setAttribute('aria-pressed', String(task.checked));
-  checkbox.onclick = async () => {
-    await toggleTask(task.id);
-    item.classList.toggle('is-done', task.checked);
-    checkbox.setAttribute('aria-pressed', String(task.checked));
-    refreshCounts();
-  };
-
-  const checkmark = document.createElement('span');
-  checkmark.className = 'tasks-checkmark';
-  checkbox.appendChild(checkmark);
-
-  // Text column
-  const textCol = document.createElement('div');
-  textCol.className = 'tasks-item-text';
-
-  const labelEl = document.createElement('span');
-  labelEl.className = 'tasks-item-label';
-  labelEl.textContent = label;
-  textCol.appendChild(labelEl);
-
-  // Pulse cost badge (search pulse sub-items)
-  if (task.pulsesCost != null) {
-    const badge = document.createElement('span');
-    badge.className = 'tasks-pulse-cost';
-    const n = task.pulsesCost;
-    badge.textContent = n === 1 ? t('tasks.ui.pulse.cost', { n }) : t('tasks.ui.pulse.cost.plural', { n });
-    labelEl.appendChild(badge);
-  }
-
-  // Static reward badge (e.g. Cryobell on Icebind)
-  if (task.badge) {
-    const key = `tabs.tasks.ui.badge.${task.badge}`;
-    const text = t(key);
-    const badge = document.createElement('span');
-    badge.className = `tasks-badge tasks-badge--${task.badge}`;
-    badge.textContent = text !== key ? text : task.badge.charAt(0).toUpperCase() + task.badge.slice(1);
-    labelEl.appendChild(badge);
-  }
-
-  // Static description
-  if (desc && desc !== task.descKey) {
-    const descEl = document.createElement('span');
-    descEl.className = 'tasks-item-desc';
-    descEl.textContent = desc;
-    textCol.appendChild(descEl);
-  }
-
-  // Live enrichment lines
-  const liveLines = getLiveLines(task);
-  if (liveLines) {
-    const liveEl = document.createElement('div');
-    liveEl.className = 'tasks-item-live';
-    liveLines.forEach(line => {
-      const p = document.createElement('span');
-      p.className = 'tasks-item-live-line';
-      if (line instanceof Node) p.appendChild(line);
-      else p.textContent = line;
-      liveEl.appendChild(p);
-    });
-    textCol.appendChild(liveEl);
-  }
-
-  item.appendChild(checkbox);
-  item.appendChild(textCol);
-
-  // Remove button for custom tasks
-  if (task.custom) {
-    const removeBtn = document.createElement('button');
-    removeBtn.className = 'tasks-item-remove';
-    removeBtn.textContent = '✕';
-    removeBtn.title = 'Remove task';
-    removeBtn.onclick = async () => {
-      await removeCustomTask(task.id);
-      item.remove();
-      refreshCounts();
-    };
-    item.appendChild(removeBtn);
-  }
-
-  return item;
-}
-
 // ─── Add-task card ─────────────────────────────────────────────────────────────
 
 const ADD_DESTINATIONS = [
-  { value: 'daily',             tier: 'daily',  group: null,       shards: null,         card: 'daily',
+  { value: 'daily',             tier: 'daily',  group: null,       shards: null,
     label: () => t('tasks.ui.daily') },
-  { value: 'weekly:standard',   tier: 'weekly', group: 'standard', shards: null,         card: 'weekly',
+  { value: 'weekly:standard',   tier: 'weekly', group: 'standard', shards: null,
     label: () => `${t('tasks.ui.weekly')} · ${t('tasks.ui.standard')}` },
-  { value: 'weekly:guaranteed', tier: 'weekly', group: 'archon',   shards: 'guaranteed', card: 'archon',
+  { value: 'weekly:guaranteed', tier: 'weekly', group: 'archon',   shards: 'guaranteed',
     label: () => t('tabs.tasks.ui.shards.guaranteed') },
-  { value: 'weekly:potential',  tier: 'weekly', group: 'archon',   shards: 'potential',  card: 'archon',
+  { value: 'weekly:potential',  tier: 'weekly', group: 'archon',   shards: 'potential',
     label: () => t('tabs.tasks.ui.shards.potential') },
 ];
 
@@ -700,13 +319,14 @@ function buildAddCard() {
     const dest = ADD_DESTINATIONS.find(d => d.value === select.value);
     if (!dest) return;
 
-    await addCustomTask(label, dest.tier, dest.group, dest.shards);
+    const newTask = await addCustomTask(label, dest.tier, dest.group, dest.shards);
     setUi('addDest', dest.value);
-    // open the block the task landed in so it is visible
-    const blockId = dest.shards ?? (dest.tier === 'daily' ? 'daily' : 'weekly');
-    setUi(`card:${blockId}`, true);
     await renderTasks();
-    revealBlock(blockId);
+
+    // bring the new tile into view
+    const tile = document.querySelector(`#tasksSection .tasks-tile-wrap[data-task-id="${newTask.id}"]`);
+    const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    tile?.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest' });
   };
 
   addBtn.onclick = confirm;
@@ -719,7 +339,7 @@ function buildAddCard() {
   return card;
 }
 
-// ─── Card builders ─────────────────────────────────────────────────────────────
+// ─── Collapsible cards (Add task, Baro) ────────────────────────────────────────
 
 function makeCollapsible(card, header, id, defaultOpen = false) {
   const key = `card:${id}`;
@@ -757,173 +377,155 @@ function buildCountEl(scope) {
   return el;
 }
 
-function buildResetEl(countdownId) {
-  const reset = document.createElement('span');
-  reset.className = 'tasks-tier-reset';
-  reset.textContent = t('tasks.ui.reset') + ' ';
+// ─── Tiles ─────────────────────────────────────────────────────────────────────
 
-  const countdown = document.createElement('span');
-  countdown.id = countdownId;
-  countdown.className = 'tasks-tier-countdown';
+// Fixed display order for built-ins (matches the layout sketch). Custom tasks follow.
+const CARD_ORDER = [
+  'daily.forma', 'daily.sortie', 'daily.steelpath',
+  'weekly.acrithis', 'weekly.yonta', 'weekly.circuit', 'weekly.ironwake', 'weekly.teshin',
+  'weekly.calendar', 'weekly.archonhunt', 'weekly.bird3', 'weekly.netracells',
+  'weekly.elitedeepa', 'weekly.elitetemporala', 'weekly.icebind', 'weekly.descendia',
+];
+
+const CATEGORY_RANK = { daily: 0, weekly: 1, archon: 2 };
+
+function orderedTasks() {
+  const rank = new Map(CARD_ORDER.map((id, i) => [id, i]));
+  const builtIns = state.tasks
+    .filter(task => rank.has(task.id))
+    .sort((a, b) => rank.get(a.id) - rank.get(b.id));
+  // custom tasks, plus any built-in added in a later version but not yet in CARD_ORDER
+  const others = state.tasks
+    .filter(task => !rank.has(task.id))
+    .sort((a, b) => CATEGORY_RANK[categoryOf(a)] - CATEGORY_RANK[categoryOf(b)]);   // stable: creation order within a category
+  return [...builtIns, ...others];
+}
+
+function makeSpan(className, text) {
+  const el = document.createElement('span');
+  el.className = className;
+  if (text != null) el.textContent = text;
+  return el;
+}
+
+// Small extra line under the name for tasks whose current reward is the point of the card.
+function buildTileExtra(task) {
+  if (task.liveData === 'steelPath') {                    // Teshin: this week's rotating reward
+    const name = state.steelPathData?.currentReward?.name;
+    if (!name) return null;
+    const key = `tabs.tasks.ui.steelpath.item.${name}`;
+    const tName = t(key, {});
+    return makeSpan('tasks-tile-extra', tName !== key ? tName : name);
+  }
+
+  if (task.liveData === 'duviriCycle') {                  // Circuit: this week's incarnon weapons
+    const choices = state.duviriCycleData?.choices;
+    const hard = Array.isArray(choices) ? choices.find(c => c.category === 'hard') : null;
+    if (!Array.isArray(hard?.choices) || !hard.choices.length) return null;
+
+    const extra = makeSpan('tasks-tile-extra tasks-tile-extra--weapons');
+    hard.choices.forEach((weaponName, i) => {
+      if (i > 0) extra.appendChild(document.createTextNode(', '));
+      const chip = makeSpan('tasks-tile-weapon' + (state.circuitObtained.includes(weaponName) ? ' is-obtained' : ''), weaponName);
+      extra.appendChild(chip);
+    });
+    return extra;
+  }
+
+  return null;
+}
+
+function buildTile(task) {
+  const wrap = document.createElement('div');
+  wrap.className = 'tasks-tile-wrap';
+  wrap.dataset.taskId = task.id;
+
+  const tile = document.createElement('button');
+  tile.type = 'button';
+  tile.className = `tasks-tile tasks-tone--${toneOf(task)}` + (task.checked ? ' is-done' : '');
+  tile.setAttribute('aria-haspopup', 'dialog');
+
+  const head = makeSpan('tasks-tile-head');
+  head.appendChild(createTaskIcon(task, { className: 'tasks-tile-icon' }));
+  head.appendChild(makeSpan('tasks-tile-name', taskLabel(task)));
+  // The faded look is visual only — say it out loud for screen readers too.
+  if (task.checked) head.appendChild(makeSpan('tasks-sr-only', ' ' + tOrRaw('tabs.tasks.ui.modal.done', '(completed)')));
+  tile.appendChild(head);
+
+  const extra = buildTileExtra(task);
+  if (extra) tile.appendChild(extra);
+
+  const reset = makeSpan('tasks-tile-reset', t('tasks.ui.reset') + ' ');
+  const countdown = makeSpan('tasks-tile-countdown');
+  const target = resetTargetFor(task);
+  if (target !== null) {
+    countdown.dataset.resetAt = String(target);
+    countdown.textContent = formatCountdown(target);
+  } else {
+    countdown.textContent = '—';
+  }
   reset.appendChild(countdown);
-  return reset;
+  tile.appendChild(reset);
+
+  tile.onclick = () => openTaskModal(task, { onClose: () => refreshTile(task.id) });
+
+  wrap.appendChild(tile);
+  return wrap;
 }
 
-// ─── Dock + board ──────────────────────────────────────────────────────────────
-// Dock: permanent toggle buttons that never move.
-// Board: the open blocks, flowed into one column per open block (see syncDock).
-
-const isBlockOpen = id => getUi(`card:${id}`, false);
-
-function setBlockOpen(id, open) {
-  setUi(`card:${id}`, open);
-  document.querySelector(`#tasksSection .tasks-block[data-block="${id}"]`)
-    ?.classList.toggle('is-open', open);
+// A freshly created <img> blinks for a frame while the browser decodes it, even from cache.
+// So when a tile is rebuilt, the icon element that is already on screen moves into the new tile
+// (as long as it still shows the same icon). This also keeps a cycling icon on the same frame.
+function carryIcon(oldWrap, newWrap) {
+  const oldIcon = oldWrap?.querySelector('.tasks-tile-icon');
+  const newIcon = newWrap?.querySelector('.tasks-tile-icon');
+  if (oldIcon && newIcon && oldIcon.dataset.wfKey === newIcon.dataset.wfKey) newIcon.replaceWith(oldIcon);
 }
 
-// Scrolls a freshly opened block into view, leaving room for the sticky dock.
-function revealBlock(id) {
-  const block = document.querySelector(`#tasksSection .tasks-block[data-block="${id}"]`);
-  if (!block) return;
-  const dock = document.querySelector('#tasksSection .tasks-dock');
-  block.style.scrollMarginTop = `${(dock?.offsetHeight ?? 0) + 12}px`;
-  const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-  block.scrollIntoView({ behavior: reduceMotion ? 'auto' : 'smooth', block: 'nearest' });
-}
+// Rebuilds one tile in place after its modal closes (check state, Circuit weapons, removal).
+function refreshTile(taskId) {
+  const wrap = document.querySelector(`#tasksSection .tasks-tile-wrap[data-task-id="${taskId}"]`);
+  if (!wrap) return;   // a full re-render already replaced the grid
 
-// Opens all given blocks if none is open, otherwise closes them all.
-function toggleBlocks(ids) {
-  const open = !ids.some(isBlockOpen);
-  ids.forEach(id => setBlockOpen(id, open));
-  syncDock();
-  if (open) revealBlock(ids[0]);
-}
-
-function syncDock() {
-  document.querySelectorAll('#tasksSection [data-dock]').forEach(btn => {
-    const active = btn.dataset.dock.split(',').some(isBlockOpen);
-    btn.classList.toggle('is-active', active);
-    btn.setAttribute('aria-pressed', String(active));
-  });
-
-  const board = document.querySelector('#tasksSection .tasks-board');
-  if (!board) return;
-  board.classList.toggle('is-empty', !board.querySelector('.tasks-block.is-open'));
-}
-
-function buildDockButton(ids, title, meta = [], extraClass = '') {
-  const btn = document.createElement('button');
-  btn.type = 'button';
-  btn.className = `tasks-dock-btn ${extraClass}`.trim();
-  btn.dataset.dock = ids.join(',');
-  btn.onclick = () => toggleBlocks(ids);
-
-  if (title) {
-    const titleEl = document.createElement('span');
-    titleEl.className = 'tasks-tier-title';
-    titleEl.textContent = title;
-    btn.appendChild(titleEl);
+  const task = state.tasks.find(x => x.id === taskId);
+  if (!task) {
+    wrap.remove();     // custom task removed from the modal
+  } else {
+    const fresh = buildTile(task);
+    carryIcon(wrap, fresh);
+    wrap.replaceWith(fresh);
+    fresh.querySelector('.tasks-tile')?.focus();
   }
-  if (meta.length) {
-    const metaEl = document.createElement('span');
-    metaEl.className = 'tasks-dock-meta';
-    meta.forEach(el => metaEl.appendChild(el));
-    btn.appendChild(metaEl);
-  }
-  return btn;
+  refreshCounts();
 }
 
-function buildDock() {
-  const dock = document.createElement('div');
-  dock.className = 'tasks-dock';
+function buildLegend() {
+  const legend = document.createElement('div');
+  legend.className = 'tasks-legend';
 
-  const daily  = buildDockButton(['daily'],  t('tasks.ui.daily'),
-    [buildCountEl('daily'),  buildResetEl('tasks-countdown-daily')]);
-  const weekly = buildDockButton(['weekly'], t('tasks.ui.weekly'),
-    [buildCountEl('weekly'), buildResetEl('tasks-countdown-weekly')]);
-
-  const archon = document.createElement('div');
-  archon.className = 'tasks-dock-group';
-  archon.appendChild(buildDockButton(['guaranteed', 'potential'], t('tasks.ui.archon')));
-  ['guaranteed', 'potential'].forEach(bucket => {
-    const chip = buildDockButton([bucket], null, [buildCountEl(bucket)],
-      `tasks-dock-chip tasks-dock-chip--${bucket}`);
-    const label = t(`tabs.tasks.ui.shards.${bucket}`);
-    chip.title = label;
-    chip.setAttribute('aria-label', label);
-    archon.appendChild(chip);
+  [['daily', 'tasks.ui.daily'], ['weekly', 'tasks.ui.weekly'], ['archon', 'tasks.ui.archon']].forEach(([cat, key]) => {
+    const item = document.createElement('span');
+    item.className = `tasks-legend-item tasks-tone--${cat}`;
+    item.append(makeSpan('tasks-legend-swatch'), makeSpan('tasks-legend-name', t(key)), buildCountEl(cat));
+    legend.appendChild(item);
   });
 
-  dock.append(daily, weekly, archon);
-  return dock;
+  return legend;
 }
 
-function buildBlockHeader(title, scope, extraClass = '') {
-  const header = document.createElement('div');
-  header.className = `tasks-block-header ${extraClass}`.trim();
-
-  const titleEl = document.createElement('span');
-  titleEl.className = 'tasks-tier-title';
-  titleEl.textContent = title;
-
-  header.append(titleEl, buildCountEl(scope));
-  return header;
-}
-
-function buildBlock(id, header, body) {
-  const block = document.createElement('section');
-  block.className = 'tasks-block' + (isBlockOpen(id) ? ' is-open' : '');
-  block.dataset.block = id;
-  body.classList.add('tasks-block-body');
-  block.append(header, body);
-  return block;
-}
-
-function buildSimpleBlock(id, title, tasks) {
-  const body = document.createElement('div');
-  tasks.forEach(task => body.appendChild(createTaskItem(task)));
-  return buildBlock(id, buildBlockHeader(title, id), body);
-}
-
-function buildShardBlock(bucket, tasks) {
-  const body = document.createElement('div');
-
-  const SUBGROUPS = ['searchpulse', 'cryobell'];
-  tasks.filter(task => !SUBGROUPS.includes(task.subgroup))
-       .forEach(task => body.appendChild(createTaskItem(task)));
-
-  SUBGROUPS.forEach(sub => {
-    const items = tasks.filter(task => task.subgroup === sub);
-    if (!items.length) return;
-    const subHeader = document.createElement('div');
-    subHeader.className = `tasks-subgroup-header tasks-subgroup-header--${sub}`;
-    subHeader.textContent = sub === 'cryobell'
-      ? t('tabs.tasks.ui.cryobell.header', { n: 3 })
-      : t('tabs.tasks.ui.searchpulse');
-    body.appendChild(subHeader);
-    items.forEach(task => body.appendChild(createTaskItem(task)));
-  });
-
-  const header = buildBlockHeader(
-    t(`tabs.tasks.ui.shards.${bucket}`), bucket, `tasks-block-header--${bucket}`);
-  return buildBlock(bucket, header, body);
-}
-
-function buildBoard(daily, weekly) {
-  const board = document.createElement('div');
-  board.className = 'tasks-board';
-  board.append(
-    buildSimpleBlock('daily',  t('tasks.ui.daily'),  daily),
-    buildSimpleBlock('weekly', t('tasks.ui.weekly'), weekly.filter(task => !weeklyBucket(task))),
-    buildShardBlock('guaranteed', weekly.filter(task => weeklyBucket(task) === 'guaranteed')),
-    buildShardBlock('potential',  weekly.filter(task => weeklyBucket(task) === 'potential')),
-  );
-  return board;
+function buildGrid() {
+  const grid = document.createElement('div');
+  grid.className = 'tasks-grid';
+  orderedTasks().forEach(task => grid.appendChild(buildTile(task)));
+  return grid;
 }
 
 // ─── Public render ─────────────────────────────────────────────────────────────
 
 export async function renderTasks() {
+  initIcons();   // non-blocking: tiles show a placeholder until the icon manifest is ready
+  preloadIcons(collectTaskIconKeys());   // background: load + decode every icon the modals will need (once)
+
   const owned = await getOwned();
   state.masteredSet = new Set(Object.keys(owned?.masteryMastered ?? {}));
 
@@ -931,19 +533,21 @@ export async function renderTasks() {
 
   const container = document.querySelector('#tasksSection .tasks-content');
   if (!container) return;
+
+  // keep the icons already on screen (see carryIcon) — a full re-render would otherwise make them all blink
+  const previous = new Map([...container.querySelectorAll('.tasks-tile-wrap')].map(w => [w.dataset.taskId, w]));
+  const grid = buildGrid();
+  grid.querySelectorAll('.tasks-tile-wrap').forEach(w => carryIcon(previous.get(w.dataset.taskId), w));
+
   container.innerHTML = '';
 
-  const daily  = state.tasks.filter(task => task.tier === 'daily');
-  const weekly = state.tasks.filter(task => task.tier === 'weekly');
-
   container.append(
-    buildDock(),
-    buildBoard(daily, weekly),
+    buildLegend(),
+    grid,
     buildAddCard(),
     buildBaroSection(state.baroData),
   );
 
   refreshCounts();
-  syncDock();
   startCountdowns();
 }

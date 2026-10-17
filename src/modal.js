@@ -130,6 +130,15 @@ export function closeModal() {
   modalStack.length = 0;
 }
 
+// Opens the shared modal with a DOM-built body, for content that carries live event
+// handlers (e.g. the Tasks modal). `build(container)` fills the body element;
+// `onClose` fires once, when the modal is fully closed — the same hook primes use.
+export function openElementModal({ title, type, build, onClose = null }) {
+  openModal(title, '', type, false);
+  modalBox._primeOnClose = onClose;
+  build(modalBody);
+}
+
 // ─── Relic Modal ───────────────────────────────────────────────────────────────
 
 export function openRelicModal(relicName, rewards, pushCurrent = false, isResurgence = false) {
