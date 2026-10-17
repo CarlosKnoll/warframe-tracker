@@ -37,6 +37,7 @@ export const ICON_RULES = [
   // formas (Omni Forma uses the aura-forma picture)
   [/umbra forma/i,             () => 'reward.umbra-forma'],
   [/omni forma|aura forma/i,   () => 'reward.aura-forma'],
+  [/stance forma/i,            () => 'reward.stance-forma'],
   [/\bforma\b/i,               () => 'reward.forma'],
 
   // boosters BEFORE credits/resources
