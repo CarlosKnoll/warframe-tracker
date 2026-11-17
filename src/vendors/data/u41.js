@@ -1,155 +1,72 @@
 // src/vendors/data/u41.js
-// Roathe vendor — Update 41.0
-//
-// Currency: Maphica.
-// Warframe: Uriel — 4 parts.
-// Weapons: Vinquibus (5 parts), Galariak Prime (3 parts), Sagek Prime (3 parts).
-// Cosmetics: unique items.
-// Arcanes: 9 arcanes, 21 copies each, flat cost per copy.
+// roathe - Roathe (U41)
 
-/** @type {import('../schema.js').Vendor} */
-export const uriel = {
-  id:          'roathe',
-  updateLabel: 'U41.0',
+import { vendor, currency, parent, part, unique, stock, arcane, either } from '../define.js';
+
+// Controls each item renders (every item must declare its own actions).
+const ALL = ['bought', 'drop', 'owned'];   // collectible: buyable, droppable or already owned
+const BD  = ['bought', 'drop'];            // arcanes: counted, bought or dropped
+const BO  = ['bought', 'owned'];
+
+export default vendor({
+  id:            'roathe',
+  since:         '41.0',
+  badge:         'U41',
+  family:        'update',
+  title:         'Roathe',          // English fallback; translations come from the locale files
+  localeGroup:   'u41',
+  missionMinutes: 13,                  // default minutes per mission (editable per vendor in the planner)
+  // runModel: 'parallel',             // 'sequential' if each currency needs its own missions
 
   currencies: [
-    { id: 'maphica', iconKey: 'maphica' },
+    currency('maphica', 'Maphica'),
   ],
 
-  categories: [
-    { id: 'warframe',     sortOrder: 0 },
-    { id: 'weapons',      sortOrder: 1 },
-    { id: 'arcanes',      sortOrder: 2 },
-    { id: 'others',       sortOrder: 3 },
-  ],
+  categories: ['warframe', 'weapons', 'arcanes', 'others'],
 
   parents: [
-    {
-      id:         'warframe-main',
-      vendorId:   'roathe',
-      categoryId: 'warframe',
-      name:       'Uriel',
-      type:       'warframe',
-      partIds:    ['wf-blueprint', 'wf-neuroptics', 'wf-chassis', 'wf-systems'],
-    },
-    {
-      id:         'weapon-vinquibus',
-      vendorId:   'roathe',
-      categoryId: 'weapons',
-      name:       'Vinquibus',
-      type:       'weapon',
-      partIds:    ['vinquibus-blueprint', 'vinquibus-barrel', 'vinquibus-blade', 'vinquibus-receiver', 'vinquibus-stock'],
-    },
-    {
-      id:         'weapon-galariak',
-      vendorId:   'roathe',
-      categoryId: 'weapons',
-      name:       'Galariak Prime',
-      type:       'weapon',
-      partIds:    ['galariak-blueprint', 'galariak-handle', 'galariak-blade'],
-    },
-    {
-      id:         'weapon-sagek',
-      vendorId:   'roathe',
-      categoryId: 'weapons',
-      name:       'Sagek Prime',
-      type:       'weapon',
-      partIds:    ['sagek-blueprint', 'sagek-receiver', 'sagek-barrel'],
-    },
+    parent('warframe-main', 'warframe', 'warframe', 'Uriel'),
+    parent('weapon-vinquibus', 'weapons', 'weapon', 'Vinquibus'),
+    parent('weapon-galariak', 'weapons', 'weapon', 'Galariak Prime'),
+    parent('weapon-sagek', 'weapons', 'weapon', 'Sagek Prime'),
   ],
 
   items: [
-    // ── Warframe parts ─────────────────────────────────────────────────────
-    { kind: 'part', id: 'wf-blueprint',  vendorId: 'roathe', parentId: 'warframe-main', parentType: 'warframe', slot: 'blueprint',  costs: { maphica: 75 } },
-    { kind: 'part', id: 'wf-neuroptics', vendorId: 'roathe', parentId: 'warframe-main', parentType: 'warframe', slot: 'neuroptics', costs: { maphica: 25 } },
-    { kind: 'part', id: 'wf-chassis',    vendorId: 'roathe', parentId: 'warframe-main', parentType: 'warframe', slot: 'chassis',    costs: { maphica: 25 } },
-    { kind: 'part', id: 'wf-systems',    vendorId: 'roathe', parentId: 'warframe-main', parentType: 'warframe', slot: 'systems',    costs: { maphica: 25 } },
-
-    // ── Vinquibus weapon parts ─────────────────────────────────────────────────
-    { kind: 'part', id: 'vinquibus-blueprint',      vendorId: 'roathe', parentId: 'weapon-vinquibus', parentType: 'weapon', slot: 'blueprint', costs: { maphica: 35 } },
-    { kind: 'part', id: 'vinquibus-barrel',         vendorId: 'roathe', parentId: 'weapon-vinquibus', parentType: 'weapon', slot: 'barrel',    costs: { maphica: 25 } },
-    { kind: 'part', id: 'vinquibus-blade',          vendorId: 'roathe', parentId: 'weapon-vinquibus', parentType: 'weapon', slot: 'blade',     costs: { maphica: 25 } },
-    { kind: 'part', id: 'vinquibus-receiver',       vendorId: 'roathe', parentId: 'weapon-vinquibus', parentType: 'weapon', slot: 'receiver',  costs: { maphica: 25 } },
-    { kind: 'part', id: 'vinquibus-stock',          vendorId: 'roathe', parentId: 'weapon-vinquibus', parentType: 'weapon', slot: 'stock',     costs: { maphica: 25 } },
-    
-
-    // ── Galariak Prime weapon parts ─────────────────────────────────────────────────
-    { kind: 'part', id: 'galariak-blueprint',      vendorId: 'roathe', parentId: 'weapon-galariak', parentType: 'weapon', slot: 'blueprint', costs: { maphica: 35 } },
-    { kind: 'part', id: 'galariak-handle',         vendorId: 'roathe', parentId: 'weapon-galariak', parentType: 'weapon', slot: 'handle',    costs: { maphica: 25 } },
-    { kind: 'part', id: 'galariak-blade',          vendorId: 'roathe', parentId: 'weapon-galariak', parentType: 'weapon', slot: 'blade',     costs: { maphica: 25 } },
-    
-    // ── Sagek Prime weapon parts ─────────────────────────────────────────────────
-    { kind: 'part', id: 'sagek-blueprint',      vendorId: 'roathe', parentId: 'weapon-sagek', parentType: 'weapon', slot: 'blueprint',  costs: { maphica: 35 } },
-    { kind: 'part', id: 'sagek-receiver',       vendorId: 'roathe', parentId: 'weapon-sagek', parentType: 'weapon', slot: 'receiver',   costs: { maphica: 25 } },
-    { kind: 'part', id: 'sagek-barrel',         vendorId: 'roathe', parentId: 'weapon-sagek', parentType: 'weapon', slot: 'barrel',     costs: { maphica: 25 } },
-
-    // ── Others ──────────────────────────────────────────────────────────
-    { kind: 'unique', id: 'scene-makvos',       vendorId: 'roathe', categoryId: 'others', costs: { maphica: 100  } },
-    { kind: 'unique', id: 'scene-boro',         vendorId: 'roathe', categoryId: 'others', costs: { maphica: 100  } },
-    { kind: 'unique', id: 'scene-seeder',       vendorId: 'roathe', categoryId: 'others', costs: { maphica: 100  } },
-    { kind: 'unique', id: 'scene-tennadis',     vendorId: 'roathe', categoryId: 'others', costs: { maphica: 100  } },
-    { kind: 'unique', id: 'scene-perita',       vendorId: 'roathe', categoryId: 'others', costs: { maphica: 100  } },
-    { kind: 'unique', id: 'scene-lyon',         vendorId: 'roathe', categoryId: 'others', costs: { maphica: 100  } },
-    { kind: 'unique', id: 'scene-marie',        vendorId: 'roathe', categoryId: 'others', costs: { maphica: 100  } },
-    { kind: 'unique', id: 'simulacrum-roathe',  vendorId: 'roathe', categoryId: 'others', costs: { maphica: 150  } },
-    
-
-    // ── Arcanes ────────────────────────────────────────────────────────────
-    // 21 copies to fully rank. Flat cost per copy.
-    // Real arcane names (matching arcane.* locale keys):
-    {
-      kind: 'arcane', id: 'arcane-primary-bulwark', vendorId: 'roathe', categoryId: 'arcanes',
-      name: 'Primary Bulwark',
-      maxCopies: 21,
-      costAtOwnedCount: (_n) => ({ maphica: 5 }),
-    },
-    {
-      kind: 'arcane', id: 'arcane-primary-overcharge', vendorId: 'roathe', categoryId: 'arcanes',
-      name: 'Primary Overcharge',
-      maxCopies: 21,
-      costAtOwnedCount: (_n) => ({ maphica: 5 }),
-    },
-    {
-      kind: 'arcane', id: 'arcane-expertise', vendorId: 'roathe', categoryId: 'arcanes',
-      name: 'Arcane Expertise',
-      maxCopies: 21,
-      costAtOwnedCount: (_n) => ({ maphica: 5 }),
-    },
-    {
-      kind: 'arcane', id: 'arcane-persistence', vendorId: 'roathe', categoryId: 'arcanes',
-      name: 'Arcane Persistence',
-      maxCopies: 21,
-      costAtOwnedCount: (_n) => ({ maphica: 5 }),
-    },
-    {
-      kind: 'arcane', id: 'arcane-melee-careen', vendorId: 'roathe', categoryId: 'arcanes',
-      name: 'Melee Careen',
-      maxCopies: 21,
-      costAtOwnedCount: (_n) => ({ maphica: 5 }),
-    },
-    {
-      kind: 'arcane', id: 'arcane-circumvent', vendorId: 'roathe', categoryId: 'arcanes',
-      name: 'Arcane Circumvent',
-      maxCopies: 21,
-      costAtOwnedCount: (_n) => ({ maphica: 5 }),
-    },
-    {
-      kind: 'arcane', id: 'arcane-secondary-irradiate', vendorId: 'roathe', categoryId: 'arcanes',
-      name: 'Secondary Irradiate',
-      maxCopies: 21,
-      costAtOwnedCount: (_n) => ({ maphica: 5 }),
-    },
-    {
-      kind: 'arcane', id: 'arcane-concentration', vendorId: 'roathe', categoryId: 'arcanes',
-      name: 'Arcane Concentration',
-      maxCopies: 21,
-      costAtOwnedCount: (_n) => ({ maphica: 5 }),
-    },
-    {
-      kind: 'arcane', id: 'arcane-primary-debilitate', vendorId: 'roathe', categoryId: 'arcanes',
-      name: 'Primary Debilitate',
-      maxCopies: 21,
-      costAtOwnedCount: (_n) => ({ maphica: 5 }),
-    },
+    // ── warframe ──
+    part('wf-blueprint', 'warframe-main', 'blueprint', { maphica: 75 }, { actions: ALL }),
+    part('wf-neuroptics', 'warframe-main', 'neuroptics', { maphica: 25 }, { actions: ALL }),
+    part('wf-chassis', 'warframe-main', 'chassis', { maphica: 25 }, { actions: ALL }),
+    part('wf-systems', 'warframe-main', 'systems', { maphica: 25 }, { actions: ALL }),
+    // ── weapons ──
+    part('vinquibus-blueprint', 'weapon-vinquibus', 'blueprint', { maphica: 35 }, { actions: ALL }),
+    part('vinquibus-barrel', 'weapon-vinquibus', 'barrel', { maphica: 25 }, { actions: ALL }),
+    part('vinquibus-blade', 'weapon-vinquibus', 'blade', { maphica: 25 }, { actions: ALL }),
+    part('vinquibus-receiver', 'weapon-vinquibus', 'receiver', { maphica: 25 }, { actions: ALL }),
+    part('vinquibus-stock', 'weapon-vinquibus', 'stock', { maphica: 25 }, { actions: ALL }),
+    part('galariak-blueprint', 'weapon-galariak', 'blueprint', { maphica: 35 }, { actions: ALL }),
+    part('galariak-handle', 'weapon-galariak', 'handle', { maphica: 25 }, { actions: ALL }),
+    part('galariak-blade', 'weapon-galariak', 'blade', { maphica: 25 }, { actions: ALL }),
+    part('sagek-blueprint', 'weapon-sagek', 'blueprint', { maphica: 35 }, { actions: ALL }),
+    part('sagek-receiver', 'weapon-sagek', 'receiver', { maphica: 25 }, { actions: ALL }),
+    part('sagek-barrel', 'weapon-sagek', 'barrel', { maphica: 25 }, { actions: ALL }),
+    // ── others ──
+    unique('scene-makvos', 'others', { maphica: 100 }, 'Makvos Cannon Scene', { actions: BO }),
+    unique('scene-boro', 'others', { maphica: 100 }, 'Boro Overlook Scene', { actions: BO }),
+    unique('scene-seeder', 'others', { maphica: 100 }, 'World-Seeder Scene', { actions: BO }),
+    unique('scene-tennadis', 'others', { maphica: 100 }, 'Fort Tennadis Scene', { actions: BO }),
+    unique('scene-perita', 'others', { maphica: 100 }, 'Perita Manifestation Scene', { actions: BO }),
+    unique('scene-lyon', 'others', { maphica: 100 }, 'Lyon\'s Room Scene', { actions: BO }),
+    unique('scene-marie', 'others', { maphica: 100 }, 'Marie\'s Room Scene', { actions: BO }),
+    unique('simulacrum-roathe', 'others', { maphica: 150 }, 'Roathe\'s Oblivion Arena', { actions: BO }),
+    // ── arcanes ──
+    arcane('arcane-primary-bulwark', 'Primary Bulwark', { maphica: 5 }, { actions: BD }),
+    arcane('arcane-primary-overcharge', 'Primary Overcharge', { maphica: 5 }, { actions: BD }),
+    arcane('arcane-expertise', 'Arcane Expertise', { maphica: 5 }, { actions: BD }),
+    arcane('arcane-persistence', 'Arcane Persistence', { maphica: 5 }, { actions: BD }),
+    arcane('arcane-melee-careen', 'Melee Careen', { maphica: 5 }, { actions: BD }),
+    arcane('arcane-circumvent', 'Arcane Circumvent', { maphica: 5 }, { actions: BD }),
+    arcane('arcane-secondary-irradiate', 'Secondary Irradiate', { maphica: 5 }, { actions: BD }),
+    arcane('arcane-concentration', 'Arcane Concentration', { maphica: 5 }, { actions: BD }),
+    arcane('arcane-primary-debilitate', 'Primary Debilitate', { maphica: 5 }, { actions: BD }),
   ],
-};
+});

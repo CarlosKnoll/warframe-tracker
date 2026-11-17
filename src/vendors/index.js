@@ -1,22 +1,27 @@
 // src/vendors/index.js
-// Entry point – mirrors tasks/index.js
+// Public entry point. Same API as before so main.js needs no changes, plus
+// bindOwnership() to share Arcane counts with the Arcanes tab.
 
-import { renderVendors, init as initRenderer } from './renderer.js';
-import { loadVendorState } from './loader.js';
+import { mount, unmount } from './ui/shell.js';
+import { reload } from './store.js';
+import { bindOwnership } from './ownership.js';
 
 export async function initVendors(container) {
-  initRenderer(container);
-  await loadVendorState();
-  renderVendors();
+  mount(container);
+  await reload();
 }
 
 export async function refreshVendors() {
-  await loadVendorState();
-  renderVendors();
+  await reload();
+}
+
+/** Re-draw from storage (language change, Drive pull). reload() notifies the view. */
+export async function renderVendors() {
+  await reload();
 }
 
 export function stopVendors() {
-  // nothing to stop
+  unmount();
 }
 
-export { renderVendors };
+export { bindOwnership };

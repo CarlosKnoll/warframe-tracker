@@ -1,8 +1,9 @@
 name: Release
 on:
   push:
-    tags:
-      - 'v*'
+    branches: [main]
+    paths: [package.json]
+  workflow_dispatch:
 
 jobs:
   release:
@@ -15,27 +16,39 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      - name: Check if tag exists
+        id: check
+        shell: bash
+        run: |
+          VERSION=$(node -p "require('./package.json').version")
+          if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null 2>&1; then
+            echo "exists=true" >> "$GITHUB_OUTPUT"
+            echo "Tag v$VERSION already exists, skipping build."
+          else
+            echo "exists=false" >> "$GITHUB_OUTPUT"
+          fi
+
       - name: Setup Node
+        if: steps.check.outputs.exists == 'false'
         uses: actions/setup-node@v4
         with:
           node-version: 20
 
       - name: Install deps
+        if: steps.check.outputs.exists == 'false'
         run: npm install
 
-      - name: Install Tauri CLI
-        run: npm install --save-dev @tauri-apps/cli@latest
-
       - name: Build & Release
+        if: steps.check.outputs.exists == 'false'
         uses: tauri-apps/tauri-action@v0
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           TAURI_SIGNING_PRIVATE_KEY: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY }}
           TAURI_SIGNING_PRIVATE_KEY_PASSWORD: ${{ secrets.TAURI_SIGNING_PRIVATE_KEY_PASSWORD }}
         with:
-          tagName: ${{ github.ref_name }}
+          tagName: v__VERSION__
           releaseName: "Warframe Tracker v__VERSION__"
           releaseBody: "See assets below to download this version."
-          releaseDraft: true
-          prerelease: false
+          releaseDraft: false
+          prerelease: true
           tauriScript: npx tauri

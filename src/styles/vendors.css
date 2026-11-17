@@ -1,18 +1,327 @@
-/* ─── vendors.css — Vendor tracking section styles ───────────────────────── */
-
-/* ─── Section root ───────────────────────────────────────────────────────────── */
+/* ─── vendors.css — Vendors section ───────────────────────────────────────── */
+/* New components are namespaced vx-*. The planner drawer keeps its original   */
+/* class names (.planner-toggle, .planner-backdrop, .vendor-planner, .open,    */
+/* .visible, .planner-close) because mobile.css targets them.                  */
 
 #vendorsSection .vendors-content {
   display: flex;
   flex-direction: column;
-  gap: 16px;
   padding: 20px 24px 32px;
   overflow-y: auto;
   flex: 1;
 }
 
-/* ─── Planner toggle (desktop: hidden — planner is always visible there) ───── */
-/* mobile.css re-enables display + restores fixed positioning at ≤768px.       */
+/* ─── Layout ─────────────────────────────────────────────────────────────── */
+
+.vx-layout {
+  display: grid;
+  grid-template-columns: 250px minmax(0, 1fr);
+  gap: 20px;
+  align-items: start;
+  padding-right: 320px;           /* room for the fixed planner (mobile: below) */
+}
+
+.vx-main { min-width: 0; }
+
+.vx-empty {
+  color: rgba(255, 255, 255, 0.25);
+  padding: 20px;
+  text-align: center;
+  font-size: 0.8rem;
+}
+
+/* ─── Selector ───────────────────────────────────────────────────────────── */
+
+.vx-selector {
+  position: sticky;
+  top: 0;
+  max-height: calc(100dvh - 40px);
+  display: flex;
+  flex-direction: column;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 6px;
+  overflow: hidden;
+}
+
+.vx-sel-toggle { display: none; }
+
+.vx-sel-body {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  padding: 8px;
+  gap: 8px;
+}
+
+#vxSelList { overflow-y: auto; min-height: 0; }
+
+.vx-search {
+  width: 100%;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid #2b3248;
+  border-radius: 4px;
+  padding: 6px 8px;
+  color: #e5e9f0;
+  font-size: 0.78rem;
+}
+.vx-search:focus { outline: none; border-color: #c9a84c; }
+
+.vx-sel-group {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  background: none;
+  border: none;
+  padding: 8px 4px 4px;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  cursor: pointer;
+  text-align: left;
+}
+.vx-sel-group:hover { color: rgba(255, 255, 255, 0.6); }
+
+.vx-chevron {
+  display: inline-block;
+  transition: transform 0.15s;
+  font-size: 0.7rem;
+}
+.vx-chevron.open { transform: rotate(90deg); }
+
+.vx-count-pill {
+  margin-left: auto;
+  font-size: 0.66rem;
+  font-weight: 600;
+  letter-spacing: 0;
+  color: rgba(255, 255, 255, 0.4);
+  background: rgba(255, 255, 255, 0.06);
+  border-radius: 8px;
+  padding: 0 6px;
+}
+
+.vx-sel-item {
+  position: relative;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-areas: "badge title meta" "bar bar bar";
+  align-items: center;
+  column-gap: 8px;
+  row-gap: 5px;
+  width: 100%;
+  box-sizing: border-box;
+  margin: 2px 0;
+  padding: 7px 8px 6px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: rgba(255, 255, 255, 0.6);
+  font-size: 0.78rem;
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+.vx-sel-item:hover { background: rgba(255, 255, 255, 0.05); color: #e5e9f0; }
+.vx-sel-item.active { background: rgba(201, 168, 76, 0.1); border-color: #c9a84c; color: #e5e9f0; }
+
+.vx-sel-badge {
+  grid-area: badge;
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: #c9a84c;
+  white-space: nowrap;
+}
+.vx-sel-title {
+  grid-area: title;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.vx-sel-meta { grid-area: meta; font-size: 0.66rem; color: rgba(255, 255, 255, 0.35); }
+.vx-sel-item.is-done .vx-sel-meta { color: #6fbf73; }
+
+.vx-sel-bar {
+  grid-area: bar;
+  height: 2px;
+  background: rgba(255, 255, 255, 0.07);
+  border-radius: 2px;
+  overflow: hidden;
+}
+.vx-sel-bar i { display: block; height: 100%; background: #c9a84c; }
+.vx-sel-item.is-done .vx-sel-bar i { background: #6fbf73; }
+
+/* ─── Toolbar ────────────────────────────────────────────────────────────── */
+
+.vx-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px 16px;
+  padding-bottom: 12px;
+  margin-bottom: 14px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.vx-title { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.vx-title h2 { margin: 0; font-size: 1rem; font-weight: 600; color: #e5e9f0; }
+
+.vx-filters { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.vx-search-items { width: 170px; }
+
+.vx-chip {
+  padding: 4px 10px;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.03);
+  color: rgba(255, 255, 255, 0.55);
+  font-size: 0.72rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+.vx-chip:hover { background: rgba(255, 255, 255, 0.08); }
+.vx-chip.active { background: rgba(201, 168, 76, 0.15); border-color: #c9a84c; color: #c9a84c; }
+
+/* ─── Categories ─────────────────────────────────────────────────────────── */
+
+.vx-cat { margin-bottom: 18px; }
+
+.vx-cat-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  margin-bottom: 6px;
+  padding-bottom: 2px;
+}
+
+.vx-cat-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: none;
+  border: none;
+  padding: 4px 0;
+  color: rgba(255, 255, 255, 0.35);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.8px;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+.vx-cat-title:hover { color: rgba(255, 255, 255, 0.65); }
+.vx-cat-title .vx-count-pill { margin-left: 4px; }
+
+.vx-list { display: flex; flex-direction: column; gap: 2px; }
+
+/* ─── Rows ───────────────────────────────────────────────────────────────── */
+
+.vx-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 6px 14px;
+  padding: 6px 10px;
+  border: 1px solid transparent;
+  border-left: 2px solid transparent;
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.02);
+  transition: background 0.15s, border-color 0.15s, opacity 0.15s;
+}
+.vx-row:hover { background: rgba(255, 255, 255, 0.05); border-color: #2b3248; }
+.vx-row.is-complete { border-left-color: #6fbf73; }
+
+.vx-row-head { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 12px; min-width: 0; }
+.vx-name { font-weight: 500; color: #e5e9f0; }
+
+.vx-costs { font-size: 0.72rem; color: rgba(201, 168, 76, 0.85); white-space: nowrap; }
+.vx-cost-sep { color: rgba(255, 255, 255, 0.3); }
+
+.vx-row-ctl { display: flex; flex-direction: column; gap: 4px; align-items: flex-end; }
+.vx-slot { display: flex; align-items: center; gap: 8px; }
+.vx-slot-label { font-size: 0.68rem; color: rgba(255, 255, 255, 0.35); }
+
+/* Segmented status control */
+.vx-seg { display: inline-flex; gap: 2px; background: rgba(0, 0, 0, 0.3); border-radius: 4px; padding: 2px; flex-wrap: wrap; }
+
+.vx-seg-btn {
+  padding: 2px 9px;
+  border: none;
+  border-radius: 3px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 0.7rem;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background 0.15s, color 0.15s;
+}
+.vx-seg-btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.07); color: #e5e9f0; }
+.vx-seg-btn.active { background: rgba(201, 168, 76, 0.22); color: #c9a84c; }
+.vx-seg-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+
+/* Count control (arcanes / stock) */
+.vx-count { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; justify-content: flex-end; }
+
+.vx-step {
+  width: 22px; height: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 4px;
+  background: rgba(255, 255, 255, 0.04);
+  color: #e5e9f0;
+  line-height: 1;
+  cursor: pointer;
+}
+.vx-step:hover:not(:disabled) { background: rgba(255, 255, 255, 0.1); }
+.vx-step:disabled { opacity: 0.3; cursor: not-allowed; }
+
+.vx-num, .vx-num-static {
+  width: 44px;
+  box-sizing: border-box;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid #2b3248;
+  border-radius: 3px;
+  padding: 2px 4px;
+  color: #e5e9f0;
+  font-size: 0.75rem;
+  text-align: center;
+}
+.vx-num-static { border-color: transparent; background: transparent; }
+.vx-of { font-size: 0.72rem; color: rgba(255, 255, 255, 0.4); }
+
+/* Purchase limits */
+.vx-limit {
+  font-size: 0.68rem;
+  color: rgba(255, 255, 255, 0.5);
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 8px;
+  padding: 1px 8px;
+  white-space: nowrap;
+}
+.vx-limit.capped { color: #d98c5f; background: rgba(217, 140, 95, 0.12); }
+.vx-limit-reset { color: rgba(255, 255, 255, 0.35); }
+.vx-capped-tag { font-size: 0.68rem; font-weight: 700; color: #d98c5f; text-transform: uppercase; letter-spacing: 0.5px; }
+
+.vx-row.is-capped { opacity: 0.55; filter: grayscale(0.6); }
+.vx-row.is-capped .vx-step { opacity: 1; filter: none; }   /* undo stays usable */
+
+/* Warframe Keep/Subsume toggle */
+.warframe-mode-toggle { display: inline-flex; gap: 2px; background: rgba(0, 0, 0, 0.3); border-radius: 4px; padding: 2px; }
+.mode-btn {
+  padding: 2px 8px; border: none; border-radius: 3px; background: transparent;
+  color: rgba(255, 255, 255, 0.4); font-size: 0.7rem; font-weight: 600; cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+.mode-btn:hover { background: rgba(255, 255, 255, 0.05); color: #e5e9f0; }
+.mode-btn.active { background: rgba(201, 168, 76, 0.2); color: #c9a84c; }
+
+/* ─── Planner (fixed column on desktop; drawer on mobile via mobile.css) ─── */
 
 .planner-toggle {
   display: none;
@@ -32,76 +341,10 @@
   line-height: 1;
   transition: background 0.15s, border-color 0.15s, color 0.15s;
 }
+.planner-toggle:hover { background: #222839; }
+.planner-toggle.active { background: rgba(201, 168, 76, 0.15); border-color: #c9a84c; color: #c9a84c; }
 
-.planner-toggle:hover {
-  background: #222839;
-}
-
-.planner-toggle.active {
-  background: rgba(201, 168, 76, 0.15);
-  border-color: #c9a84c;
-  color: #c9a84c;
-}
-
-.planner-backdrop {
-  display: none;
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.55);
-  z-index: 399;
-}
-
-/* ─── Vendor tabs ────────────────────────────────────────────────────────────── */
-
-.vendors-tabs {
-  display: flex;
-  gap: 6px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
-  padding-bottom: 10px;
-  flex-wrap: wrap;
-}
-
-.vendor-tab {
-  padding: 6px 14px;
-  border: 1px solid transparent;
-  border-radius: 4px;
-  background: rgba(255, 255, 255, 0.03);
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 0.8rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
-}
-
-.vendor-tab:hover {
-  background: rgba(255, 255, 255, 0.06);
-  color: #e5e9f0;
-}
-
-.vendor-tab.active {
-  background: rgba(201, 168, 76, 0.1);
-  border-color: #c9a84c;
-  color: #c9a84c;
-}
-
-/* ─── Vendor panel (desktop: items column reserves space on the right for ──── */
-/* the fixed planner; mobile.css removes this reservation since the planner   */
-/* becomes an overlay drawer there instead).                                  */
-
-.vendor-panel {
-  display: flex;
-  flex: 1;
-  min-height: 400px;
-  padding-right: 320px;
-}
-
-.vendor-items {
-  flex: 1;
-  min-width: 0;
-}
-
-/* ─── Planner column (desktop: always-visible fixed sidebar, sticky in ──────── */
-/* place regardless of scroll; mobile.css turns this into a slide-in drawer). */
+.planner-backdrop { display: none; position: fixed; inset: 0; background: rgba(0, 0, 0, 0.55); z-index: 399; }
 
 .vendor-planner {
   position: fixed;
@@ -120,204 +363,25 @@
   overflow-x: hidden;
 }
 
-.planner-panel-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 16px;
-}
-
+.planner-panel-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
 .planner-panel-header h3 {
   margin: 0;
-}
-
-.planner-close {
-  display: none;
-  background: transparent;
-  border: none;
-  color: rgba(255, 255, 255, 0.5);
-  font-size: 1rem;
-  cursor: pointer;
-  padding: 2px 6px;
-  border-radius: 4px;
-  transition: background 0.15s, color 0.15s;
-}
-
-.planner-close:hover {
-  background: rgba(255, 255, 255, 0.08);
-  color: #e5e9f0;
-}
-
-/* ─── Categories ─────────────────────────────────────────────────────────────── */
-
-.vendor-category {
-  margin-bottom: 20px;
-}
-
-.vendor-category-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding-bottom: 4px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
-  margin-bottom: 8px;
-}
-
-.vendor-category-title {
-  font-size: 0.75rem;
-  font-weight: 700;
-  letter-spacing: 0.8px;
-  text-transform: uppercase;
-  color: rgba(255, 255, 255, 0.3);
-}
-
-.vendor-items-list {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-}
-
-/* ─── Vendor item row ────────────────────────────────────────────────────────── */
-
-.vendor-item {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 6px 10px;
-  border-radius: 4px;
-  border: 1px solid transparent;
-  background: rgba(255, 255, 255, 0.02);
-  transition: background 0.15s, border-color 0.15s;
-  flex-wrap: wrap;
-}
-
-.vendor-item:hover {
-  background: rgba(255, 255, 255, 0.05);
-  border-color: #2b3248;
-}
-
-.vendor-item-name {
-  font-weight: 500;
-  color: #e5e9f0;
-  min-width: 120px;
-}
-
-.vendor-item-costs {
-  display: flex;
-  gap: 8px;
-  font-size: 0.75rem;
-  color: rgba(201, 168, 76, 0.8);
-  white-space: nowrap;
-}
-
-.vendor-cost .currency-icon {
-  display: inline-block;
-  margin-right: 2px;
-}
-
-.vendor-item-controls {
-  display: flex;
-  gap: 12px;
-  align-items: center;
-  flex-wrap: wrap;
-  margin-left: auto;
-}
-
-.vendor-item-controls label {
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.6);
-  cursor: pointer;
-}
-
-.vendor-item-controls input[type="checkbox"] {
-  width: 16px;
-  height: 16px;
-  accent-color: #c9a84c;
-  cursor: pointer;
-}
-
-.vendor-item-controls input[type="number"] {
-  width: 50px;
-  background: rgba(0, 0, 0, 0.2);
-  border: 1px solid #2b3248;
-  border-radius: 3px;
-  padding: 1px 4px;
-  color: #e5e9f0;
-  font-size: 0.75rem;
-}
-
-/* ─── Warframe mode toggle ──────────────────────────────────────────────────── */
-
-.warframe-mode-toggle {
-  display: inline-flex;
-  gap: 2px;
-  background: rgba(0, 0, 0, 0.3);
-  border-radius: 4px;
-  padding: 2px;
-}
-
-.mode-btn {
-  padding: 2px 8px;
-  border: none;
-  border-radius: 3px;
-  background: transparent;
-  color: rgba(255, 255, 255, 0.4);
-  font-size: 0.7rem;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.15s, color 0.15s;
-}
-
-.mode-btn:hover {
-  background: rgba(255, 255, 255, 0.05);
-  color: #e5e9f0;
-}
-
-.mode-btn.active {
-  background: rgba(201, 168, 76, 0.2);
-  color: #c9a84c;
-}
-
-/* ─── Planner panel ──────────────────────────────────────────────────────────── */
-
-.planner-panel h3 {
   font-size: 0.85rem;
   font-weight: 700;
   letter-spacing: 0.5px;
   text-transform: uppercase;
   color: #c9a84c;
-  margin: 0 0 16px 0;
 }
-
-.planner-inventory,
-.planner-yield {
-  display: flex;
-  flex-direction: column;
-  gap: 6px;
-  margin-bottom: 16px;
+.planner-close {
+  display: none; background: transparent; border: none; color: rgba(255, 255, 255, 0.5);
+  font-size: 1rem; cursor: pointer; padding: 2px 6px; border-radius: 4px;
 }
+.planner-close:hover { background: rgba(255, 255, 255, 0.08); color: #e5e9f0; }
 
-.planner-row {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  gap: 10px;
-}
-
-.planner-row label {
-  font-size: 0.75rem;
-  color: rgba(255, 255, 255, 0.6);
-  min-width: 0;
-  flex: 1 1 auto;
-  word-break: break-word;
-}
-
-.planner-row input {
-  width: 80px;
+.planner-row { display: flex; justify-content: space-between; align-items: center; gap: 10px; margin-bottom: 6px; }
+.planner-row label { font-size: 0.75rem; color: rgba(255, 255, 255, 0.6); flex: 1 1 auto; min-width: 0; word-break: break-word; }
+.planner-row input, .planner-row select {
+  width: 90px;
   flex-shrink: 0;
   background: rgba(0, 0, 0, 0.2);
   border: 1px solid #2b3248;
@@ -326,118 +390,49 @@
   color: #e5e9f0;
   font-size: 0.75rem;
   text-align: right;
+  box-sizing: border-box;
 }
+.planner-row select { text-align: left; width: 120px; }
+.planner-row input.neg { color: #e57373; }
 
-.planner-totals {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  margin-top: 12px;
-  border-top: 1px solid rgba(255, 255, 255, 0.06);
+.vx-plan-cur, .vx-plan-overall, .vx-plan-flex {
+  margin-top: 14px;
   padding-top: 12px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
 }
+.vx-plan-title { font-size: 0.78rem; font-weight: 700; color: #e5e9f0; margin-bottom: 8px; }
 
-.planner-currency-summary {
-  font-size: 0.8rem;
-  line-height: 1.6;
-  color: rgba(255, 255, 255, 0.7);
-}
+.planner-currency-summary, .vx-plan-overall { font-size: 0.78rem; line-height: 1.7; color: rgba(255, 255, 255, 0.65); }
+.planner-currency-summary strong, .vx-plan-overall strong { color: #e5e9f0; font-weight: 600; }
+.vx-sub { font-size: 0.68rem; color: rgba(255, 255, 255, 0.35); }
+.vx-na { color: rgba(255, 255, 255, 0.35); cursor: help; }
 
-.planner-currency-summary strong {
-  color: #e5e9f0;
-  font-weight: 600;
-}
-
-.planner-error,
-.vendors-empty {
-  color: rgba(255, 255, 255, 0.2);
-  padding: 20px;
-  text-align: center;
-}
-
-/* ─── Responsive ──────────────────────────────────────────────────────────────── */
+/* ─── Responsive ─────────────────────────────────────────────────────────── */
 
 @media (max-width: 768px) {
-  .vendor-item {
-    flex-wrap: wrap;
+  #vendorsSection .vendors-content { padding: 14px 12px 24px; }
+  .vx-layout { grid-template-columns: minmax(0, 1fr); padding-right: 0; gap: 12px; }
+
+  .vx-selector { position: static; max-height: none; }
+  .vx-sel-toggle {
+    display: flex; align-items: center; justify-content: space-between; gap: 10px;
+    width: 100%; padding: 10px 12px; background: none; border: none; color: #e5e9f0; cursor: pointer; font-size: 0.85rem;
   }
-  .vendor-item-controls {
-    margin-left: 0;
-    width: 100%;
-    justify-content: flex-start;
-  }
+  .vx-sel-current { display: flex; align-items: center; gap: 8px; min-width: 0; }
+  .vx-sel-body { display: none; border-top: 1px solid rgba(255, 255, 255, 0.07); max-height: 60dvh; }
+  .vx-selector.open .vx-sel-body { display: flex; }
+
+  .vx-search-items { width: 100%; }
+  .vx-row { flex-direction: column; align-items: stretch; }
+  .vx-row-ctl, .vx-count { align-items: flex-start; justify-content: flex-start; }
 }
 
-/* ─── Acquisition row ───────────────────────────────────────────────────────── */
-
-.acq-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  background: rgba(255, 255, 255, 0.025);
-  border-left: 2px solid rgba(201, 168, 76, 0.25);
-  border-radius: 0 3px 3px 0;
-  animation: acq-row-in 0.15s ease;
-}
-
-.acq-row--hiding {
-  animation: acq-row-out 0.3s ease forwards;
-}
-
-@keyframes acq-row-in {
-  from { opacity: 0; transform: translateY(-4px); }
-  to   { opacity: 1; transform: translateY(0); }
-}
-
-@keyframes acq-row-out {
-  from { opacity: 1; transform: translateY(0); }
-  to   { opacity: 0; transform: translateY(-4px); }
-}
-
-.acq-row-label {
-  font-size: 0.68rem;
-  color: rgba(255, 255, 255, 0.35);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.acq-row-btns {
-  display: flex;
-  gap: 4px;
-  flex-wrap: wrap;
-}
-
-.acq-btn {
-  padding: 2px 8px;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 3px;
-  background: rgba(255, 255, 255, 0.03);
-  color: rgba(255, 255, 255, 0.55);
-  font-size: 0.68rem;
-  cursor: pointer;
-  transition: all 0.15s;
-  white-space: nowrap;
-}
-
-.acq-btn:hover {
-  background: rgba(255, 255, 255, 0.08);
-  border-color: rgba(255, 255, 255, 0.2);
-}
-
-.acq-btn.active {
-  background: rgba(201, 168, 76, 0.15);
-  border-color: #c9a84c;
-  color: #c9a84c;
-}
-
-/* ─── Hide number input spinners ───────────────────────────────────────────── */
+/* ─── Hide number input spinners ─────────────────────────────────────────── */
 
 input[type="number"]::-webkit-outer-spin-button,
-input[type="number"]::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-input[type="number"] {
-  -moz-appearance: textfield;
-}
+input[type="number"]::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+input[type="number"] { -moz-appearance: textfield; }
+
+/* ─── Items that forgot to declare `actions` (always visible, never silent) ── */
+.vx-missing-actions { font-size: 0.72rem; font-weight: 700; color: #e57373; }
+.vx-row.is-misconfigured { border-left-color: #e57373; background: rgba(229, 115, 115, 0.06); }

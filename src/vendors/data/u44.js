@@ -1,99 +1,76 @@
 // src/vendors/data/u44.js
-// melica vendor — Update 44.0
+// melica - Iceblades of Narin (U44)
 
-/** @type {import('../schema.js').Vendor} */
-export const narin = {
-  id:          'melica',
-  updateLabel: 'U44.0',
+import { vendor, currency, parent, part, unique, stock, arcane, either } from '../define.js';
+
+// Controls each item renders (every item must declare its own actions).
+const ALL = ['bought', 'drop', 'owned'];   // collectible: buyable, droppable or already owned
+const BD  = ['bought', 'drop'];            // arcanes: counted, bought or dropped
+const BO  = ['bought', 'owned'];
+
+export default vendor({
+  id:            'melica',
+  since:         '44.0',
+  badge:         'U44',
+  family:        'update',
+  title:         'Iceblades of Narin',          // English fallback; translations come from the locale files
+  localeGroup:   'u44',
+  missionMinutes: 13,                  // default minutes per mission (editable per vendor in the planner)
+  // runModel: 'parallel',             // 'sequential' if each currency needs its own missions
 
   currencies: [
-    { id: 'enKuva', iconKey: 'enKuva' },
+    currency('enKuva', 'Entropic Kuva'),
   ],
 
-  categories: [
-    { id: 'warframe',     sortOrder: 0 },
-    { id: 'weapons',      sortOrder: 1 },
-    { id: 'cosmetics',    sortOrder: 2 },
-    { id: 'decorations',  sortOrder: 3 },
-    { id: 'others',       sortOrder: 4 },
-  ],
+  categories: ['warframe', 'weapons', 'cosmetics', 'decorations', 'others'],
 
   parents: [
-    {
-      id:         'warframe-main',
-      vendorId:   'melica',
-      categoryId: 'warframe',
-      name:       'Narin',
-      type:       'warframe',
-      partIds:    ['wf-blueprint', 'wf-neuroptics', 'wf-chassis', 'wf-systems'],
-    },
-    {
-      id:         'weapon-nunchasa',
-      vendorId:   'melica',
-      categoryId: 'weapons',
-      name:       'Nunchasa',
-      type:       'weapon',
-      partIds:    ['nunchasa-blueprint', 'nunchasa-upper-limb', 'nunchasa-string', 'nunchasa-grip', 'nunchasa-lower-limb'],
-    },
-    {
-      id:         'weapon-aksondol',
-      vendorId:   'melica',
-      categoryId: 'weapons',
-      name:       'Aksondol',
-      type:       'weapon',
-      partIds:    ['aksondol-blueprint', 'aksondol-link', 'aksondol-barrel1', 'aksondol-barrel2', 'aksondol-receiver1', 'aksondol-receiver2'],
-    },
+    parent('warframe-main', 'warframe', 'warframe', 'Narin'),
+    parent('weapon-nunchasa', 'weapons', 'weapon', 'Nunchasa'),
+    parent('weapon-aksondol', 'weapons', 'weapon', 'Aksondol'),
   ],
 
   items: [
-    // ── Warframe parts ─────────────────────────────────────────────────────
-    { kind: 'part', id: 'wf-blueprint',  vendorId: 'melica', parentId: 'warframe-main', parentType: 'warframe', slot: 'blueprint',  costs: { enKuva: 400 }, costMode: 'choice' },
-    { kind: 'part', id: 'wf-neuroptics', vendorId: 'melica', parentId: 'warframe-main', parentType: 'warframe', slot: 'neuroptics', costs: { enKuva: 130  }, costMode: 'choice' },
-    { kind: 'part', id: 'wf-chassis',    vendorId: 'melica', parentId: 'warframe-main', parentType: 'warframe', slot: 'chassis',    costs: { enKuva: 130  }, costMode: 'choice' },
-    { kind: 'part', id: 'wf-systems',    vendorId: 'melica', parentId: 'warframe-main', parentType: 'warframe', slot: 'systems',    costs: { enKuva: 130  }, costMode: 'choice' },
-
-    // ── Nunchasa weapon parts ─────────────────────────────────────────────────
-    // Nunchasa recipe: Nunchasa Blueprint + Nunchasa Upper Limb + Nunchasa String + Nunchasa Grip + Nunchasa Lower Limb
-    { kind: 'part', id: 'nunchasa-blueprint',      vendorId: 'melica', parentId: 'weapon-nunchasa', parentType: 'weapon', slot: 'blueprint',  costs: { enKuva: 200 } },
-    { kind: 'part', id: 'nunchasa-string',         vendorId: 'melica', parentId: 'weapon-nunchasa', parentType: 'weapon', slot: 'string',     costs: { enKuva: 50 } },
-    { kind: 'part', id: 'nunchasa-upper-limb',     vendorId: 'melica', parentId: 'weapon-nunchasa', parentType: 'weapon', slot: 'upper-limb', costs: { enKuva: 50 } },
-    { kind: 'part', id: 'nunchasa-grip',           vendorId: 'melica', parentId: 'weapon-nunchasa', parentType: 'weapon', slot: 'grip',       costs: { enKuva: 50 } },
-    { kind: 'part', id: 'nunchasa-lower-limb',     vendorId: 'melica', parentId: 'weapon-nunchasa', parentType: 'weapon', slot: 'lower-limb', costs: { enKuva: 50 } },
-
-    // ── Aksondol weapon parts ─────────────────────────────────────────────────
-    // Aksondol recipe: Aksondol Blueprint + 2x Aksondol Barrel + 2x Aksondol Receiver + Aksondol Link
-    { kind: 'part', id: 'aksondol-blueprint',   vendorId: 'melica', parentId: 'weapon-aksondol', parentType: 'weapon', slot: 'blueprint',  costs: { enKuva: 200 } },
-    { kind: 'part', id: 'aksondol-link',        vendorId: 'melica', parentId: 'weapon-aksondol', parentType: 'weapon', slot: 'link',       costs: { enKuva: 60 } },
-    { kind: 'part', id: 'aksondol-barrel1',     vendorId: 'melica', parentId: 'weapon-aksondol', parentType: 'weapon', slot: 'barrel',     costs: { enKuva: 30 } },
-    { kind: 'part', id: 'aksondol-barrel2',     vendorId: 'melica', parentId: 'weapon-aksondol', parentType: 'weapon', slot: 'barrel',     costs: { enKuva: 30 } },
-    { kind: 'part', id: 'aksondol-receiver1',   vendorId: 'melica', parentId: 'weapon-aksondol', parentType: 'weapon', slot: 'receiver',   costs: { enKuva: 30 } },
-    { kind: 'part', id: 'aksondol-receiver2',   vendorId: 'melica', parentId: 'weapon-aksondol', parentType: 'weapon', slot: 'receiver',   costs: { enKuva: 30 } },
-
-    // ── Cosmetics ──────────────────────────────────────────────────────────
-    { kind: 'unique', id: 'narin-sigil',             vendorId: 'melica', categoryId: 'cosmetics', costs: { enKuva: 250 } },
-    { kind: 'unique', id: 'narin-ephemera',          vendorId: 'melica', categoryId: 'cosmetics', costs: { enKuva: 500 } },
-    { kind: 'unique', id: 'narin-shoulder',          vendorId: 'melica', categoryId: 'cosmetics', costs: { enKuva: 80 } },
-    { kind: 'unique', id: 'narin-chest',             vendorId: 'melica', categoryId: 'cosmetics', costs: { enKuva: 80 } },
-    { kind: 'unique', id: 'narin-leg',               vendorId: 'melica', categoryId: 'cosmetics', costs: { enKuva: 80 } },
-    { kind: 'unique', id: 'narin-skin-nepheri',      vendorId: 'melica', categoryId: 'cosmetics', costs: { enKuva: 150  } },
-    { kind: 'unique', id: 'narin-skin-dark-split',   vendorId: 'melica', categoryId: 'cosmetics', costs: { enKuva: 150  } },
-    { kind: 'unique', id: 'narin-skin-dark-dagg',    vendorId: 'melica', categoryId: 'cosmetics', costs: { enKuva: 150  } },
-    { kind: 'unique', id: 'narin-skin-dark-sword',   vendorId: 'melica', categoryId: 'cosmetics', costs: { enKuva: 150  } },
-    { kind: 'unique', id: 'narin-skin-paracesis',    vendorId: 'melica', categoryId: 'cosmetics', costs: { enKuva: 150  } },
-    { kind: 'unique', id: 'narin-skin-orvius',       vendorId: 'melica', categoryId: 'cosmetics', costs: { enKuva: 150  } },
-    { kind: 'unique', id: 'narin-skin-glaxion',      vendorId: 'melica', categoryId: 'cosmetics', costs: { enKuva: 150  } },
-    { kind: 'unique', id: 'narin-skin-quellor',      vendorId: 'melica', categoryId: 'cosmetics', costs: { enKuva: 150  } },
-    { kind: 'unique', id: 'narin-skin-liset',        vendorId: 'melica', categoryId: 'cosmetics', costs: { enKuva: 150  } },
-    
-    // ── Decorations ──────────────────────────────────────────────────────────
-    { kind: 'unique', id: 'narin-prex',     vendorId: 'melica', categoryId: 'decorations', costs: { enKuva: 500  } },
-    { kind: 'unique', id: 'narin-sumdali',  vendorId: 'melica', categoryId: 'decorations', costs: { enKuva: 500  } },
-    
-    // ── Others ──────────────────────────────────────────────────────────
-    { kind: 'unique', id: 'narin-honoria',     vendorId: 'melica', categoryId: 'others', costs: { enKuva: 500  } },
-    { kind: 'unique', id: 'narin-scene1',      vendorId: 'melica', categoryId: 'others', costs: { enKuva: 500  } },
-    { kind: 'unique', id: 'narin-scene2',      vendorId: 'melica', categoryId: 'others', costs: { enKuva: 500  } },
-    { kind: 'unique', id: 'narin-song1',       vendorId: 'melica', categoryId: 'others', costs: { enKuva: 50  } },
-    { kind: 'unique', id: 'narin-song2',       vendorId: 'melica', categoryId: 'others', costs: { enKuva: 50  } },
+    // ── warframe ──
+    part('wf-blueprint', 'warframe-main', 'blueprint', either({ enKuva: 400 }), { actions: ALL }),
+    part('wf-neuroptics', 'warframe-main', 'neuroptics', either({ enKuva: 130 }), { actions: ALL }),
+    part('wf-chassis', 'warframe-main', 'chassis', either({ enKuva: 130 }), { actions: ALL }),
+    part('wf-systems', 'warframe-main', 'systems', either({ enKuva: 130 }), { actions: ALL }),
+    // ── weapons ──
+    part('nunchasa-blueprint', 'weapon-nunchasa', 'blueprint', { enKuva: 200 }, { actions: BO }),
+    part('nunchasa-string', 'weapon-nunchasa', 'string', { enKuva: 50 }, { actions: BO }),
+    part('nunchasa-upper-limb', 'weapon-nunchasa', 'upper-limb', { enKuva: 50 }, { actions: BO }),
+    part('nunchasa-grip', 'weapon-nunchasa', 'grip', { enKuva: 50 }, { actions: BO }),
+    part('nunchasa-lower-limb', 'weapon-nunchasa', 'lower-limb', { enKuva: 50 }, { actions: BO }),
+    part('aksondol-blueprint', 'weapon-aksondol', 'blueprint', { enKuva: 200 }, { actions: BO }),
+    part('aksondol-link', 'weapon-aksondol', 'link', { enKuva: 60 }, { actions: BO }),
+    part('aksondol-barrel1', 'weapon-aksondol', 'barrel', { enKuva: 30 }, { actions: BO }),
+    part('aksondol-barrel2', 'weapon-aksondol', 'barrel', { enKuva: 30 }, { actions: BO }),
+    part('aksondol-receiver1', 'weapon-aksondol', 'receiver', { enKuva: 30 }, { actions: BO }),
+    part('aksondol-receiver2', 'weapon-aksondol', 'receiver', { enKuva: 30 }, { actions: BO }),
+    // ── cosmetics ──
+    unique('narin-sigil', 'cosmetics', { enKuva: 250 }, 'Glacium Sigil', { actions: BO }),
+    unique('narin-ephemera', 'cosmetics', { enKuva: 500 }, 'Seonang Ephemera', { actions: BO }),
+    unique('narin-shoulder', 'cosmetics', { enKuva: 80 }, 'Tidon Shoulder Medallion', { actions: BO }),
+    unique('narin-chest', 'cosmetics', { enKuva: 80 }, 'Tidon Chest Medallion', { actions: BO }),
+    unique('narin-leg', 'cosmetics', { enKuva: 80 }, 'Tidon Leg Medallion', { actions: BO }),
+    unique('narin-skin-nepheri', 'cosmetics', { enKuva: 150 }, 'Niveus Nepheri Skin', { actions: BO }),
+    unique('narin-skin-dark-split', 'cosmetics', { enKuva: 150 }, 'Niveus Dark Split-Sword Skin', { actions: BO }),
+    unique('narin-skin-dark-dagg', 'cosmetics', { enKuva: 150 }, 'Niveus Dark Dagger Skin', { actions: BO }),
+    unique('narin-skin-dark-sword', 'cosmetics', { enKuva: 150 }, 'Niveus Dark Sword Skin', { actions: BO }),
+    unique('narin-skin-paracesis', 'cosmetics', { enKuva: 150 }, 'Niveus Paracesis Skin', { actions: BO }),
+    unique('narin-skin-orvius', 'cosmetics', { enKuva: 150 }, 'Niveus Orvius Skin', { actions: BO }),
+    unique('narin-skin-glaxion', 'cosmetics', { enKuva: 150 }, 'Niveus Glaxion Skin', { actions: BO }),
+    unique('narin-skin-quellor', 'cosmetics', { enKuva: 150 }, 'Niveus Quellor Skin', { actions: BO }),
+    unique('narin-skin-liset', 'cosmetics', { enKuva: 150 }, 'Niveus Liset Skin', { actions: BO }),
+    // ── decorations ──
+    unique('narin-prex', 'decorations', { enKuva: 500 }, 'Narin Prex', { actions: BO }),
+    unique('narin-sumdali', 'decorations', { enKuva: 500 }, 'Niveus Sumdali', { actions: BO }),
+    // ── others ──
+    unique('narin-honoria', 'others', { enKuva: 500 }, 'On Wings Of Ice Honoria', { actions: BO }),
+    unique('narin-scene1', 'others', { enKuva: 500 }, 'Yuvan Peak Scene', { actions: BO }),
+    unique('narin-scene2', 'others', { enKuva: 500 }, 'Melica\'s Laboratory Scene', { actions: BO }),
+    unique('narin-song1', 'others', { enKuva: 50 }, 'Neote\'s Dance', { actions: BO }),
+    unique('narin-song2', 'others', { enKuva: 50 }, 'Ice Speaker', { actions: BO }),
   ],
-};
+});

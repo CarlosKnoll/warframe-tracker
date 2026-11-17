@@ -1,116 +1,65 @@
 // src/vendors/data/u40.js
-// Nightcap vendor — Update 40.0
-//
-// Currency: Fergolyte
-// Warframe: Nokko.
-// Weapons: Arbucep (4 parts)
-// Cosmetics: unique items.
-// Arcanes: 4 arcanes, 21 copies each, flat cost per copy.
+// nightcap - Nightcap (U40)
 
-/** @type {import('../schema.js').Vendor} */
-export const nokko = {
-  id:          'nightcap',
-  updateLabel: 'U40.0',
+import { vendor, currency, parent, part, unique, stock, arcane, either } from '../define.js';
+
+// Controls each item renders (every item must declare its own actions).
+const ALL = ['bought', 'drop', 'owned'];   // collectible: buyable, droppable or already owned
+const BD  = ['bought', 'drop'];            // arcanes: counted, bought or dropped
+const BO  = ['bought', 'owned'];
+
+export default vendor({
+  id:            'nightcap',
+  since:         '40.0',
+  badge:         'U40',
+  family:        'update',
+  title:         'Nightcap',          // English fallback; translations come from the locale files
+  localeGroup:   'u40',
+  missionMinutes: 13,                  // default minutes per mission (editable per vendor in the planner)
+  // runModel: 'parallel',             // 'sequential' if each currency needs its own missions
 
   currencies: [
-    { id: 'fergolyte', iconKey: 'fergolyte' },
+    currency('fergolyte', 'Fergolyte'),
   ],
 
-  categories: [
-    { id: 'warframe',     sortOrder: 0 },
-    { id: 'weapons',      sortOrder: 1 },
-    { id: 'arcanes',      sortOrder: 2 },
-    { id: 'cosmetics',    sortOrder: 3 },
-    { id: 'decorations',  sortOrder: 4 },
-    { id: 'others',       sortOrder: 5 },
-  ],
+  categories: ['warframe', 'weapons', 'arcanes', 'cosmetics', 'decorations', 'others'],
 
   parents: [
-    {
-      id:         'warframe-main',
-      vendorId:   'nightcap',
-      categoryId: 'warframe',
-      name:       'Nokko',
-      type:       'warframe',
-      partIds:    ['wf-blueprint', 'wf-neuroptics', 'wf-chassis', 'wf-systems'],
-    },
-    {
-      id:         'weapon-arbucep',
-      vendorId:   'nightcap',
-      categoryId: 'weapons',
-      name:       'Arbucep',
-      type:       'weapon',
-      partIds:    ['arbucep-blueprint', 'arbucep-barrel', 'arbucep-stock', 'arbucep-receiver'],
-    },
+    parent('warframe-main', 'warframe', 'warframe', 'Nokko'),
+    parent('weapon-arbucep', 'weapons', 'weapon', 'Arbucep'),
   ],
 
   items: [
-    // ── Warframe parts ─────────────────────────────────────────────────────
-    { kind: 'part', id: 'wf-blueprint',  vendorId: 'nightcap', parentId: 'warframe-main', parentType: 'warframe', slot: 'blueprint',  costs: { fergolyte: 240 } },
-    { kind: 'part', id: 'wf-neuroptics', vendorId: 'nightcap', parentId: 'warframe-main', parentType: 'warframe', slot: 'neuroptics', costs: { fergolyte: 160 } },
-    { kind: 'part', id: 'wf-chassis',    vendorId: 'nightcap', parentId: 'warframe-main', parentType: 'warframe', slot: 'chassis',    costs: { fergolyte: 160 } },
-    { kind: 'part', id: 'wf-systems',    vendorId: 'nightcap', parentId: 'warframe-main', parentType: 'warframe', slot: 'systems',    costs: { fergolyte: 160 } },
-
-    // ── Arbucep weapon parts ─────────────────────────────────────────────────
-    { kind: 'part', id: 'arbucep-blueprint',      vendorId: 'nightcap', parentId: 'weapon-arbucep', parentType: 'weapon', slot: 'blueprint', costs: { fergolyte: 220 } },
-    { kind: 'part', id: 'arbucep-barrel',         vendorId: 'nightcap', parentId: 'weapon-arbucep', parentType: 'weapon', slot: 'barrel',    costs: { fergolyte: 150 } },
-    { kind: 'part', id: 'arbucep-receiver',       vendorId: 'nightcap', parentId: 'weapon-arbucep', parentType: 'weapon', slot: 'receiver',  costs: { fergolyte: 150 } },
-    { kind: 'part', id: 'arbucep-stock',          vendorId: 'nightcap', parentId: 'weapon-arbucep', parentType: 'weapon', slot: 'stock',     costs: { fergolyte: 150 } },
-
-
-    // ── Cosmetics ──────────────────────────────────────────────────────────
-    { kind: 'unique', id: 'ephemera-rizoma',          vendorId: 'nightcap', categoryId: 'cosmetics', costs: { fergolyte: 150 } },
-    { kind: 'unique', id: 'skin-onemind',             vendorId: 'nightcap', categoryId: 'cosmetics', costs: { fergolyte: 25  } },
-    { kind: 'unique', id: 'skin-roots',               vendorId: 'nightcap', categoryId: 'cosmetics', costs: { fergolyte: 25  } },
-    { kind: 'unique', id: 'skin-shooms',              vendorId: 'nightcap', categoryId: 'cosmetics', costs: { fergolyte: 25  } },
-    
-    // ── Decorations ──────────────────────────────────────────────────────────
-    { kind: 'unique', id: 'poster-onemind',           vendorId: 'nightcap', categoryId: 'decorations', costs: { fergolyte: 25  } },
-    { kind: 'unique', id: 'poster-roots',             vendorId: 'nightcap', categoryId: 'decorations', costs: { fergolyte: 25  } },
-    { kind: 'unique', id: 'poster-shooms',            vendorId: 'nightcap', categoryId: 'decorations', costs: { fergolyte: 25  } },
-    
-    // ── Others ──────────────────────────────────────────────────────────
-    { kind: 'unique', id: 'scene-caves',               vendorId: 'nightcap', categoryId: 'others', costs: { fergolyte: 60  } },
-    { kind: 'unique', id: 'scene-forward',             vendorId: 'nightcap', categoryId: 'others', costs: { fergolyte: 60  } },
-    { kind: 'unique', id: 'scene-lab',                 vendorId: 'nightcap', categoryId: 'others', costs: { fergolyte: 60  } },
-    { kind: 'unique', id: 'scene-nutrient',            vendorId: 'nightcap', categoryId: 'others', costs: { fergolyte: 60  } },
-    { kind: 'unique', id: 'scene-deepmines',           vendorId: 'nightcap', categoryId: 'others', costs: { fergolyte: 60  } },
-    
-    
-
-    // ── Arcanes ────────────────────────────────────────────────────────────
-    // 21 copies to fully rank. Flat cost per copy.
-    // Real arcane names (matching arcane.* locale keys):
-    //   Primary Compression, Arcane Sculptor, Secondary Cryogenic, Melee Assimilation
-    {
-      kind: 'arcane', id: 'arcane-conjunction-voltage', vendorId: 'nightcap', categoryId: 'arcanes',
-      name: 'Conjunction Voltage',
-      maxCopies: 21,
-      costAtOwnedCount: (_n) => ({ fergolyte: 10 }),
-    },
-    {
-      kind: 'arcane', id: 'arcane-primary-blight', vendorId: 'nightcap', categoryId: 'arcanes',
-      name: 'Primary Blight',
-      maxCopies: 21,
-      costAtOwnedCount: (_n) => ({ fergolyte: 10 }),
-    },
-    {
-      kind: 'arcane', id: 'arcane-primary-frostbite', vendorId: 'nightcap', categoryId: 'arcanes',
-      name: 'Primary Frostbite',
-      maxCopies: 21,
-      costAtOwnedCount: (_n) => ({ fergolyte: 10 }),
-    },
-    {
-      kind: 'arcane', id: 'arcane-secondary-encumber', vendorId: 'nightcap', categoryId: 'arcanes',
-      name: 'Secondary Encumber',
-      maxCopies: 21,
-      costAtOwnedCount: (_n) => ({ fergolyte: 10 }),
-    },
-    {
-      kind: 'arcane', id: 'arcane-secondary-fortifier', vendorId: 'nightcap', categoryId: 'arcanes',
-      name: 'Secondary Fortifier',
-      maxCopies: 21,
-      costAtOwnedCount: (_n) => ({ fergolyte: 10 }),
-    },
+    // ── warframe ──
+    part('wf-blueprint', 'warframe-main', 'blueprint', { fergolyte: 240 }, { actions: ALL }),
+    part('wf-neuroptics', 'warframe-main', 'neuroptics', { fergolyte: 160 }, { actions: ALL }),
+    part('wf-chassis', 'warframe-main', 'chassis', { fergolyte: 160 }, { actions: ALL }),
+    part('wf-systems', 'warframe-main', 'systems', { fergolyte: 160 }, { actions: ALL }),
+    // ── weapons ──
+    part('arbucep-blueprint', 'weapon-arbucep', 'blueprint', { fergolyte: 220 }, { actions: ALL }),
+    part('arbucep-barrel', 'weapon-arbucep', 'barrel', { fergolyte: 150 }, { actions: ALL }),
+    part('arbucep-receiver', 'weapon-arbucep', 'receiver', { fergolyte: 150 }, { actions: ALL }),
+    part('arbucep-stock', 'weapon-arbucep', 'stock', { fergolyte: 150 }, { actions: ALL }),
+    // ── cosmetics ──
+    unique('ephemera-rizoma', 'cosmetics', { fergolyte: 150 }, 'Rizoma Ephemera', { actions: BO }),
+    unique('skin-onemind', 'cosmetics', { fergolyte: 25 }, 'Onemind', { actions: BO }),
+    unique('skin-roots', 'cosmetics', { fergolyte: 25 }, 'Roots N\' Fruits', { actions: BO }),
+    unique('skin-shooms', 'cosmetics', { fergolyte: 25 }, 'Shooms', { actions: BO }),
+    // ── decorations ──
+    unique('poster-onemind', 'decorations', { fergolyte: 25 }, 'Onemind Poster', { actions: BO }),
+    unique('poster-roots', 'decorations', { fergolyte: 25 }, 'Roots N\' Fruits Poster', { actions: BO }),
+    unique('poster-shooms', 'decorations', { fergolyte: 25 }, 'Shooms Poster', { actions: BO }),
+    // ── others ──
+    unique('scene-caves', 'others', { fergolyte: 60 }, 'Deepmines Caves Scene', { actions: BO }),
+    unique('scene-forward', 'others', { fergolyte: 60 }, 'Deepmines Forward Base Scene', { actions: BO }),
+    unique('scene-lab', 'others', { fergolyte: 60 }, 'Deemines Lab Scene', { actions: BO }),
+    unique('scene-nutrient', 'others', { fergolyte: 60 }, 'Deepmines Nutrient Plant Scene', { actions: BO }),
+    unique('scene-deepmines', 'others', { fergolyte: 60 }, 'Deepmines Scene', { actions: BO }),
+    // ── arcanes ──
+    arcane('arcane-conjunction-voltage', 'Conjunction Voltage', { fergolyte: 10 }, { actions: BD }),
+    arcane('arcane-primary-blight', 'Primary Blight', { fergolyte: 10 }, { actions: BD }),
+    arcane('arcane-primary-frostbite', 'Primary Frostbite', { fergolyte: 10 }, { actions: BD }),
+    arcane('arcane-secondary-encumber', 'Secondary Encumber', { fergolyte: 10 }, { actions: BD }),
+    arcane('arcane-secondary-fortifier', 'Secondary Fortifier', { fergolyte: 10 }, { actions: BD }),
   ],
-};
+});

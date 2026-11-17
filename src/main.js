@@ -172,6 +172,7 @@ document.querySelectorAll("#sidebar button[data-section]").forEach(btn => {
       document.getElementById('vendorsSection').classList.add('active');
       if (!vendorsInitialized) {
         vendorsModule = await import('./vendors/index.js');
+        vendorsModule.bindOwnership({ getOwned: () => owned, save });
         const container = document.querySelector('#vendorsSection .vendors-content');
         await vendorsModule.initVendors(container);
         vendorsInitialized = true;

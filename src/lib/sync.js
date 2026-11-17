@@ -10,6 +10,7 @@ import {
 import { isConnected } from './auth.js';
 import { driveUpload, driveDownload } from './drive.js';
 import { t } from '../i18n.js';
+import { mergeVendorState } from '../vendors/model/merge.js';
 
 const SYNC_FILES = {
   owned:       'owned.json',
@@ -157,66 +158,6 @@ function mergeTasksCache(local, remote) {
     lastWeeklyReset: laterReset(local.lastWeeklyReset, remote.lastWeeklyReset),
     circuitObtained: [...new Set([...(local.circuitObtained ?? []), ...(remote.circuitObtained ?? [])])],
   };
-}
-
-function mergeVendorState(local, remote, localIsNewer) {
-  if (!local && !remote) return {};
-  if (!local) return remote;
-  if (!remote) return local;
- 
-  const allVendorIds = new Set([...Object.keys(local), ...Object.keys(remote)]);
-  const merged = {};
- 
-  for (const vendorId of allVendorIds) {
-    const l = local[vendorId]  ?? {};
-    const r = remote[vendorId] ?? {};
- 
-    // ── progress fields: max-wins ─────────────────────────────────────────
-    const mergedPartProgress = mergeMaxWins(l.partProgress, r.partProgress, mergePartEntry);
-    const mergedUniqueProgress = mergeMaxWins(l.uniqueProgress, r.uniqueProgress, (lv, rv) => lv || rv);
-    const mergedArcaneProgress = mergeMaxWins(l.arcaneProgress, r.arcaneProgress, (lv, rv) => Math.max(Number(lv ?? 0), Number(rv ?? 0)));
- 
-    // ── last-write-wins fields ────────────────────────────────────────────
-    const lwwSide = localIsNewer ? l : r;
-    const mergedCurrencyInventory = lwwSide.currencyInventory ?? (localIsNewer ? r.currencyInventory : l.currencyInventory) ?? {};
-    const mergedWarframeMode      = lwwSide.warframeMode      ?? (localIsNewer ? r.warframeMode      : l.warframeMode)      ?? {};
- 
-    merged[vendorId] = {
-      currencyInventory: mergedCurrencyInventory,
-      warframeMode:      mergedWarframeMode,
-      partProgress:      mergedPartProgress,
-      uniqueProgress:    mergedUniqueProgress,
-      arcaneProgress:    mergedArcaneProgress,
-    };
-  }
- 
-  return merged;
-}
- 
-function mergePartEntry(l, r) {
-  if (!l && !r) return undefined;
-  if (!l) return r;
-  if (!r) return l;
-  const result = { copy1: (l.copy1 || r.copy1) ?? false };
-  if (l.copy2 !== undefined || r.copy2 !== undefined) {
-    result.copy2 = (l.copy2 || r.copy2) ?? false;
-  }
-  return result;
-}
- 
-function mergeMaxWins(local, remote, mergeFn) {
-  if (!local && !remote) return {};
-  if (!local) return remote ?? {};
-  if (!remote) return local ?? {};
- 
-  const allKeys = new Set([...Object.keys(local), ...Object.keys(remote)]);
-  const result = {};
-  for (const key of allKeys) {
-    if (!(key in local))  { result[key] = remote[key]; continue; }
-    if (!(key in remote)) { result[key] = local[key];  continue; }
-    result[key] = mergeFn(local[key], remote[key]);
-  }
-  return result;
 }
 
 function mergeCustomDrops(local, remote) {

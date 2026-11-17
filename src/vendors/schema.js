@@ -1,149 +1,72 @@
 // src/vendors/schema.js
-// Static schema: JSDoc type definitions and the PARENT_CONFIG behavior table.
-// Nothing here is runtime state — this is the shared contract for loader.js,
-// state.js, and renderer.js to import from.
-
-// ─────────────────────────────────────────────────────────────────────────────
-// Types (JSDoc — no TS compiler needed, but IDEs will enforce these)
-// ─────────────────────────────────────────────────────────────────────────────
+// Shared contract: JSDoc types, parent-type behaviour table and small helpers.
+// Nothing here is runtime state.
 
 /**
- * @typedef {Object} Currency
- * @property {string} id       - Stable key, e.g. "emeraldTalent"
- * @property {string} name     - Display name, e.g. "Emerald Talent"
- * @property {string} iconKey  - Icon identifier for renderer
+ * @typedef {Object} Cost
+ * @property {'all'|'any'} mode   'all' = pay every listed currency, 'any' = pay ONE of them
+ * @property {Object<string, number>} amounts   currencyId -> amount
  */
 
 /**
- * @typedef {Object} Category
+ * @typedef {Object} Limit
+ * @property {number} max
+ * @property {Object} [reset]   see model/limits.js; absent = permanent
+ */
+
+/**
+ * @typedef {Object} VendorItem   (normalised by catalog.js)
  * @property {string} id
- * @property {string} label
- * @property {number} sortOrder
+ * @property {'part'|'unique'|'arcane'|'stock'} kind
+ * @property {string} categoryId
+ * @property {string} [label]       English fallback name
+ * @property {string|string[]} [nameKey]  any locale key(s), resolved before vendor-scoped keys
+ * @property {string[]} actions   REQUIRED. Subset of ['bought','drop','owned'] this item renders
+ * @property {Cost}   cost          cost of the (first) copy (may be {} when 'bought' is not offered)
+ * @property {(n:number)=>Cost} [costAt]   arcane: cost of the copy bought when n are owned
+ * @property {number} [maxCopies]   arcane
+ * @property {string} [uid]         arcane: WFCD uniqueName (shared ownership key)
+ * @property {string} [parentId]    part
+ * @property {string} [slot]        part
+ * @property {string} [crossParent] part: display the name of another parent
+ * @property {Limit}  [limit]       arcane/stock
+ * @property {number} [target]      stock: copies to budget for
  */
 
 /**
- * @typedef {"warframe"|"weapon"} PartParentType
- * Extend with new literals as new parent types are introduced (e.g. "companion").
- * Adding a new literal here + a PARENT_CONFIG entry is all that's needed —
- * no renderer or state logic needs a new branch.
+ * @typedef {Object} Vendor   (normalised by catalog.js)
+ * @property {string} id
+ * @property {string} since           first game version, e.g. "44.1.2" (sorting)
+ * @property {string} badge           short label, e.g. "U44.0"
+ * @property {string} family          selector group id (see registry FAMILIES)
+ * @property {string} title           English fallback title
+ * @property {string} localeGroup     legacy locale namespace tabs.vendor.ui.<group>.*
+ * @property {number|null} missionMinutes   default minutes per mission (user can override)
+ * @property {'parallel'|'sequential'} runModel
  */
 
-/**
- * @typedef {Object} PartParent
- * @property {string}         id
- * @property {string}         vendorId
- * @property {string}         categoryId
- * @property {string}         name
- * @property {PartParentType} type
- * @property {string[]}       partIds  - Ordered list of child item IDs
- */
-
-/**
- * @typedef {Object} CostMap
- * Map of currencyId → amount.  An item costing both Emerald and Crimson
- * simply has two keys.  An item costing only one has one key.
- * @type {Object.<string, number>}
- */
-
-/**
- * @typedef {Object} PartItem
- * @property {"part"}         kind
- * @property {string}         id
- * @property {string}         vendorId
- * @property {string}         parentId      - ID of the owning PartParent
- * @property {PartParentType} parentType
- * @property {string}         [slot]        - e.g. "mainBp", "neuroptics", "Handle", "Blade 1"
- *                                            Required+meaningful for warframes; freeform label for weapons.
- * @property {CostMap}        costs
- * @property {"sum"|"choice"} [costMode]   // "sum" = pay all (default), "choice" = pick one
- */
-
-/**
- * @typedef {Object} UniqueItem
- * @property {"unique"}  kind
- * @property {string}    id
- * @property {string}    vendorId
- * @property {string}    categoryId
- * @property {string}    name
- * @property {CostMap}   costs
- */
-
-/**
- * @typedef {Object} ArcaneItem
- * @property {"arcane"}               kind
- * @property {string}                 id
- * @property {string}                 vendorId
- * @property {string}                 categoryId
- * @property {string}                 name
- * @property {number}                 maxCopies         - Total copies needed to fully rank (e.g. 21)
- * @property {function(number):CostMap} costAtOwnedCount  - Given current owned count, returns cost of next copy
- */
-
-/**
- * @typedef {PartItem|UniqueItem|ArcaneItem} VendorItem
- */
-
-/**
- * @typedef {Object} Vendor
- * @property {string}     id
- * @property {string}     name
- * @property {string}     updateLabel  - e.g. "U43.0"
- * @property {Currency[]} currencies
- * @property {Category[]} categories
- * @property {PartParent[]} parents    - All warframe/weapon parent groups
- * @property {VendorItem[]} items      - All items (parts, uniques, arcanes)
- */
-
-// ─────────────────────────────────────────────────────────────────────────────
-// PARENT_CONFIG
-// The single source of truth for behavior differences between parent types.
-// Renderer and state code read from this table rather than branching on type.
-// To add a new parent type: add a new entry here.  Nothing else changes.
-// ─────────────────────────────────────────────────────────────────────────────
-
-/**
- * @type {Record<PartParentType, {
- *   hasModeToggle: boolean,
- *   defaultMode?:  "keep"|"subsume",
- *   fixedSlots?:   string[],
- * }>}
- */
+// Behaviour differences between part-parent types live here, not in branches.
 export const PARENT_CONFIG = {
-  warframe: {
-    hasModeToggle: true,
-    defaultMode:   'subsume',
-    fixedSlots:    ['mainBp', 'neuroptics', 'chassis', 'systems'],
-  },
-  weapon: {
-    hasModeToggle: false,
-    // fixedSlots intentionally absent — weapon part count varies per weapon
-  },
+  warframe: { hasModeToggle: true, defaultMode: 'subsume' },
+  weapon:   { hasModeToggle: false },
 };
 
-/**
- * Returns the effective mode for a given warframe parent.
- * Reads from the user's vendorState; falls back to PARENT_CONFIG default.
- *
- * @param {string}  warframeId
- * @param {Object}  warframeMode   - The vendorState[vendorId].warframeMode map
- * @returns {"keep"|"subsume"}
- */
-export function getWarframeMode(warframeId, warframeMode) {
-  return warframeMode?.[warframeId] ?? PARENT_CONFIG.warframe.defaultMode;
+/** Effective keep/subsume mode for a warframe parent. */
+export function getWarframeMode(parentId, modeMap) {
+  return modeMap?.[parentId] ?? PARENT_CONFIG.warframe.defaultMode;
 }
 
-/**
- * Returns whether copy2 should be rendered/tracked for a part.
- * For weapon parts (no mode toggle) this is always false.
- * For warframe parts it depends on the current mode.
- *
- * @param {PartItem}        item
- * @param {PartParent}      parent
- * @param {Object}          warframeMode   - vendorState[vendorId].warframeMode
- * @returns {boolean}
- */
-export function needsCopy2(item, parent, warframeMode) {
-  const config = PARENT_CONFIG[parent.type];
-  if (!config.hasModeToggle) return false;
-  return getWarframeMode(parent.id, warframeMode) === 'subsume';
+/** How many copies of each part of `parent` are needed. */
+export function copiesNeeded(parent, modeMap) {
+  if (!parent || !PARENT_CONFIG[parent.type]?.hasModeToggle) return 1;
+  return getWarframeMode(parent.id, modeMap) === 'subsume' ? 2 : 1;
 }
+
+/** Slot ids a part item tracks, in order. */
+export const partSlots = (copies) => (copies > 1 ? ['c1', 'c2'] : ['c1']);
+
+/** Controls an item can offer. Every item must list the ones it offers (catalog enforces it). */
+export const ACTIONS = ['bought', 'drop', 'owned'];
+
+export const MISSION_RUN_MODELS = ['parallel', 'sequential'];
+export const FAMILY_DEFAULT = 'update';

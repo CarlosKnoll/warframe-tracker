@@ -1,73 +1,54 @@
 // src/vendors/data/u42.js
-// Aspirant Zorba vendor — Update 42.0
-//
-// One currency: Atramentum.
-// Warframe: Follie — 4 parts, mode-toggle supported.
-// Weapon: Enkaus - 4 parts.
-// Cosmetics: unique items.
+// zorba - Aspirant Zorba (U42)
 
-/** @type {import('../schema.js').Vendor} */
-export const follie = {
-  id:          'zorba',
-  updateLabel: 'U42.0',
+import { vendor, currency, parent, part, unique, stock, arcane, either } from '../define.js';
+
+// Controls each item renders (every item must declare its own actions).
+const ALL = ['bought', 'drop', 'owned'];   // collectible: buyable, droppable or already owned
+const BD  = ['bought', 'drop'];            // arcanes: counted, bought or dropped
+const BO  = ['bought', 'owned'];
+
+export default vendor({
+  id:            'zorba',
+  since:         '42.0',
+  badge:         'U42',
+  family:        'update',
+  title:         'Aspirant Zorba',          // English fallback; translations come from the locale files
+  localeGroup:   'u42',
+  missionMinutes: 13,                  // default minutes per mission (editable per vendor in the planner)
+  // runModel: 'parallel',             // 'sequential' if each currency needs its own missions
 
   currencies: [
-    { id: 'atramentum', iconKey: 'atramentum' },
+    currency('atramentum', 'Atramentum'),
   ],
 
-  categories: [
-    { id: 'warframe',     sortOrder: 0 },
-    { id: 'weapons',      sortOrder: 1 },
-    { id: 'mods',         sortOrder: 2 },
-    { id: 'decorations',  sortOrder: 3 },
-    { id: 'others',       sortOrder: 4 },
-  ],
+  categories: ['warframe', 'weapons', 'mods', 'decorations', 'others'],
 
   parents: [
-    {
-      id:         'warframe-main',
-      vendorId:   'zorba',
-      categoryId: 'warframe',
-      name:       'Follie',
-      type:       'warframe',
-      partIds:    ['wf-blueprint', 'wf-neuroptics', 'wf-chassis', 'wf-systems'],
-    },
-    {
-      id:         'weapon-enkaus',
-      vendorId:   'zorba',
-      categoryId: 'weapons',
-      name:       'Enkaus',
-      type:       'weapon',
-      partIds:    ['enkaus-blueprint', 'enkaus-barrel', 'enkaus-receiver', 'enkaus-stock'],
-    },
+    parent('warframe-main', 'warframe', 'warframe', 'Follie'),
+    parent('weapon-enkaus', 'weapons', 'weapon', 'Enkaus'),
   ],
 
   items: [
-    // ── Warframe parts ─────────────────────────────────────────────────────
-    { kind: 'part', id: 'wf-blueprint',  vendorId: 'zorba', parentId: 'warframe-main', parentType: 'warframe', slot: 'blueprint',  costs: { atramentum: 1200 } },
-    { kind: 'part', id: 'wf-neuroptics', vendorId: 'zorba', parentId: 'warframe-main', parentType: 'warframe', slot: 'neuroptics', costs: { atramentum: 400 } },
-    { kind: 'part', id: 'wf-chassis',    vendorId: 'zorba', parentId: 'warframe-main', parentType: 'warframe', slot: 'chassis',    costs: { atramentum: 400 } },
-    { kind: 'part', id: 'wf-systems',    vendorId: 'zorba', parentId: 'warframe-main', parentType: 'warframe', slot: 'systems',    costs: { atramentum: 400 } },
-
-    // ── Enkaus weapon parts ─────────────────────────────────────────────────
-    // Pride recipe: Pride Blueprint + Pride Handle + Pride Blade + Wrath Blade
-    { kind: 'part', id: 'enkaus-blueprint',      vendorId: 'zorba', parentId: 'weapon-enkaus', parentType: 'weapon', slot: 'blueprint', costs: { atramentum: 1200 } },
-    { kind: 'part', id: 'enkaus-barrel',         vendorId: 'zorba', parentId: 'weapon-enkaus', parentType: 'weapon', slot: 'barrel',    costs: { atramentum: 400 } },
-    { kind: 'part', id: 'enkaus-receiver',       vendorId: 'zorba', parentId: 'weapon-enkaus', parentType: 'weapon', slot: 'receiver',  costs: { atramentum: 400 } },
-    { kind: 'part', id: 'enkaus-stock',          vendorId: 'zorba', parentId: 'weapon-enkaus', parentType: 'weapon', slot: 'stock',     costs: { atramentum: 400 } },
-    
-    // ── Mods ──────────────────────────────────────────────────────────
-    { kind: 'unique', id: 'truths-flame',          vendorId: 'zorba', categoryId: 'mods', costs: { atramentum: 360 } },
-    
-    // ── Decorations ──────────────────────────────────────────────────────────
-    { kind: 'unique', id: 'follie-prex',         vendorId: 'zorba', categoryId: 'decorations', costs: { atramentum: 600  } },
-    
-    // ── Others ──────────────────────────────────────────────────────────
-    { kind: 'unique', id: 'chromatic-atramentum',           vendorId: 'zorba', categoryId: 'others', costs: { atramentum: 360  } },
-    { kind: 'unique', id: 'drip',                           vendorId: 'zorba', categoryId: 'others', costs: { atramentum: 200  } },
-    { kind: 'unique', id: 'stained-vespers',                vendorId: 'zorba', categoryId: 'others', costs: { atramentum: 200  } },
-    { kind: 'unique', id: 'dreadnaught',                    vendorId: 'zorba', categoryId: 'others', costs: { atramentum: 200  } },
-    { kind: 'unique', id: 'relay-scene',                    vendorId: 'zorba', categoryId: 'others', costs: { atramentum: 600  } },
-    
+    // ── warframe ──
+    part('wf-blueprint', 'warframe-main', 'blueprint', { atramentum: 1200 }, { actions: ALL }),
+    part('wf-neuroptics', 'warframe-main', 'neuroptics', { atramentum: 400 }, { actions: ALL }),
+    part('wf-chassis', 'warframe-main', 'chassis', { atramentum: 400 }, { actions: ALL }),
+    part('wf-systems', 'warframe-main', 'systems', { atramentum: 400 }, { actions: ALL }),
+    // ── weapons ──
+    part('enkaus-blueprint', 'weapon-enkaus', 'blueprint', { atramentum: 1200 }, { actions: ALL }),
+    part('enkaus-barrel', 'weapon-enkaus', 'barrel', { atramentum: 400 }, { actions: ALL }),
+    part('enkaus-receiver', 'weapon-enkaus', 'receiver', { atramentum: 400 }, { actions: ALL }),
+    part('enkaus-stock', 'weapon-enkaus', 'stock', { atramentum: 400 }, { actions: ALL }),
+    // ── mods ──
+    unique('truths-flame', 'mods', { atramentum: 360 }, 'Truth\'s Flame', { actions: BO }),
+    // ── decorations ──
+    unique('follie-prex', 'decorations', { atramentum: 600 }, 'Follie Prex', { actions: BO }),
+    // ── others ──
+    unique('chromatic-atramentum', 'others', { atramentum: 360 }, 'Chromatic Atramentum', { actions: BO }),
+    unique('drip', 'others', { atramentum: 200 }, 'Drip', { actions: BO }),
+    unique('stained-vespers', 'others', { atramentum: 200 }, 'Satined Vespers', { actions: BO }),
+    unique('dreadnaught', 'others', { atramentum: 200 }, 'Dreadnaught', { actions: BO }),
+    unique('relay-scene', 'others', { atramentum: 600 }, 'Haunted Vesper Relay Scene', { actions: BO }),
   ],
-};
+});

@@ -1,140 +1,84 @@
 // src/vendors/data/u43.js
-// Hunhow vendor — Update 43.0
-//
-// Two currencies: Emerald Talent (emerald) and Crimson Talent (crimson).
-// Warframe: Sirius & Orion — 4 parts, mode-toggle supported.
-// Weapons: Pride (4 parts), Wrath (4 parts) — cross-recipe blades.
-// Cosmetics: unique items.
-// Arcanes: 4 arcanes, 21 copies each, flat cost per copy.
+// hunhow - Hunhow (U43)
 
-/** @type {import('../schema.js').Vendor} */
-export const siriusAndOrion = {
-  id:          'hunhow',
-  updateLabel: 'U43.0',
+import { vendor, currency, parent, part, unique, stock, arcane, either } from '../define.js';
+
+// Controls each item renders (every item must declare its own actions).
+const ALL = ['bought', 'drop', 'owned'];   // collectible: buyable, droppable or already owned
+const BD  = ['bought', 'drop'];            // arcanes: counted, bought or dropped
+const BO  = ['bought', 'owned'];
+
+export default vendor({
+  id:            'hunhow',
+  since:         '43.0',
+  badge:         'U43',
+  family:        'update',
+  title:         'Hunhow',          // English fallback; translations come from the locale files
+  localeGroup:   'u43',
+  missionMinutes: 13,                  // default minutes per mission (editable per vendor in the planner)
+  // runModel: 'parallel',             // 'sequential' if each currency needs its own missions
 
   currencies: [
-    { id: 'emerald', iconKey: 'emeraldTalent' },
-    { id: 'crimson', iconKey: 'crimsonTalent' },
+    currency('emerald', 'Emerald Talent'),
+    currency('crimson', 'Crimson Talent'),
   ],
 
-  categories: [
-    { id: 'warframe',     sortOrder: 0 },
-    { id: 'weapons',      sortOrder: 1 },
-    { id: 'arcanes',      sortOrder: 2 },
-    { id: 'cosmetics',    sortOrder: 3 },
-    { id: 'decorations',  sortOrder: 4 },
-    { id: 'others',       sortOrder: 5 },
-  ],
+  categories: ['warframe', 'weapons', 'arcanes', 'cosmetics', 'decorations', 'others'],
 
   parents: [
-    {
-      id:         'warframe-main',
-      vendorId:   'hunhow',
-      categoryId: 'warframe',
-      name:       'Sirius & Orion',
-      type:       'warframe',
-      partIds:    ['wf-blueprint', 'wf-neuroptics', 'wf-chassis', 'wf-systems'],
-    },
-    {
-      id:         'weapon-pride',
-      vendorId:   'hunhow',
-      categoryId: 'weapons',
-      name:       'Pride',
-      type:       'weapon',
-      partIds:    ['pride-blueprint', 'pride-handle', 'pride-blade', 'wrath-blade-in-pride'],
-    },
-    {
-      id:         'weapon-wrath',
-      vendorId:   'hunhow',
-      categoryId: 'weapons',
-      name:       'Wrath',
-      type:       'weapon',
-      partIds:    ['wrath-blueprint', 'wrath-handle', 'wrath-blade', 'pride-blade-in-wrath'],
-    },
+    parent('warframe-main', 'warframe', 'warframe', 'Sirius & Orion'),
+    parent('weapon-pride', 'weapons', 'weapon', 'Pride'),
+    parent('weapon-wrath', 'weapons', 'weapon', 'Wrath'),
   ],
 
   items: [
-    // ── Warframe parts ─────────────────────────────────────────────────────
-    { kind: 'part', id: 'wf-blueprint',  vendorId: 'hunhow', parentId: 'warframe-main', parentType: 'warframe', slot: 'blueprint',  costs: { emerald: 275, crimson: 275 }, costMode: 'choice' },
-    { kind: 'part', id: 'wf-neuroptics', vendorId: 'hunhow', parentId: 'warframe-main', parentType: 'warframe', slot: 'neuroptics', costs: { emerald: 90,  crimson: 90  }, costMode: 'choice' },
-    { kind: 'part', id: 'wf-chassis',    vendorId: 'hunhow', parentId: 'warframe-main', parentType: 'warframe', slot: 'chassis',    costs: { emerald: 90,  crimson: 90  }, costMode: 'choice' },
-    { kind: 'part', id: 'wf-systems',    vendorId: 'hunhow', parentId: 'warframe-main', parentType: 'warframe', slot: 'systems',    costs: { emerald: 90,  crimson: 90  }, costMode: 'choice' },
-
-    // ── Pride weapon parts ─────────────────────────────────────────────────
-    // Pride recipe: Pride Blueprint + Pride Handle + Pride Blade + Wrath Blade
-    { kind: 'part', id: 'pride-blueprint',      vendorId: 'hunhow', parentId: 'weapon-pride', parentType: 'weapon', slot: 'blueprint', costs: { emerald: 90 } },
-    { kind: 'part', id: 'pride-handle',         vendorId: 'hunhow', parentId: 'weapon-pride', parentType: 'weapon', slot: 'handle',    costs: { emerald: 45 } },
-    { kind: 'part', id: 'pride-blade',          vendorId: 'hunhow', parentId: 'weapon-pride', parentType: 'weapon', slot: 'blade',     costs: { emerald: 45 } },
-    { kind: 'part', id: 'wrath-blade-in-pride', vendorId: 'hunhow', parentId: 'weapon-pride', parentType: 'weapon', slot: 'blade',     costs: { crimson: 45 }, crossParent: 'weapon-wrath' },
-
-    // ── Wrath weapon parts ─────────────────────────────────────────────────
-    // Wrath recipe: Wrath Blueprint + Wrath Handle + Wrath Blade + Pride Blade
-    { kind: 'part', id: 'wrath-blueprint',      vendorId: 'hunhow', parentId: 'weapon-wrath', parentType: 'weapon', slot: 'blueprint', costs: { crimson: 90 } },
-    { kind: 'part', id: 'wrath-handle',         vendorId: 'hunhow', parentId: 'weapon-wrath', parentType: 'weapon', slot: 'handle',    costs: { crimson: 45 } },
-    { kind: 'part', id: 'wrath-blade',          vendorId: 'hunhow', parentId: 'weapon-wrath', parentType: 'weapon', slot: 'blade',     costs: { crimson: 45 } },
-    { kind: 'part', id: 'pride-blade-in-wrath', vendorId: 'hunhow', parentId: 'weapon-wrath', parentType: 'weapon', slot: 'blade',     costs: { emerald: 45 }, crossParent: 'weapon-pride' },
-    
-    { kind: 'unique', id: 'hunhow-weapon',            vendorId: 'hunhow', categoryId: 'weapons', costs: { emerald: 12, crimson: 12 } },
-
-    // ── Cosmetics ──────────────────────────────────────────────────────────
-    { kind: 'unique', id: 'syandana',                 vendorId: 'hunhow', categoryId: 'cosmetics', costs: { emerald: 50, crimson: 50 } },
-    { kind: 'unique', id: 'liset-skin-blades',        vendorId: 'hunhow', categoryId: 'cosmetics', costs: { emerald: 100 } },
-    { kind: 'unique', id: 'liset-skin-blood',         vendorId: 'hunhow', categoryId: 'cosmetics', costs: { crimson: 100 } },
-    { kind: 'unique', id: 'ephemera-blades',          vendorId: 'hunhow', categoryId: 'cosmetics', costs: { emerald: 100 } },
-    { kind: 'unique', id: 'ephemera-blood',           vendorId: 'hunhow', categoryId: 'cosmetics', costs: { crimson: 100 } },
-    { kind: 'unique', id: 'weapon-skin-vectis',       vendorId: 'hunhow', categoryId: 'cosmetics', costs: { emerald: 60  } },
-    { kind: 'unique', id: 'weapon-skin-kunai',        vendorId: 'hunhow', categoryId: 'cosmetics', costs: { emerald: 60  } },
-    { kind: 'unique', id: 'weapon-skin-karyst',       vendorId: 'hunhow', categoryId: 'cosmetics', costs: { emerald: 60  } },
-    { kind: 'unique', id: 'weapon-skin-braton',       vendorId: 'hunhow', categoryId: 'cosmetics', costs: { emerald: 60  } },
-    { kind: 'unique', id: 'weapon-skin-nagantaka',    vendorId: 'hunhow', categoryId: 'cosmetics', costs: { crimson: 60  } },
-    { kind: 'unique', id: 'weapon-skin-ballistica',   vendorId: 'hunhow', categoryId: 'cosmetics', costs: { crimson: 60  } },
-    { kind: 'unique', id: 'weapon-skin-venka',        vendorId: 'hunhow', categoryId: 'cosmetics', costs: { crimson: 60  } },
-    
-    // ── Decorations ──────────────────────────────────────────────────────────
-    { kind: 'unique', id: 'domestik-drone-blood',     vendorId: 'hunhow', categoryId: 'decorations', costs: { crimson: 50  } },
-    { kind: 'unique', id: 'domestik-drone-blades',    vendorId: 'hunhow', categoryId: 'decorations', costs: { emerald: 50  } },
-    { kind: 'unique', id: 'poster-blades',            vendorId: 'hunhow', categoryId: 'decorations', costs: { emerald: 20  } },
-    { kind: 'unique', id: 'poster-blood',             vendorId: 'hunhow', categoryId: 'decorations', costs: { crimson: 20  } },
-    
-    // ── Others ──────────────────────────────────────────────────────────
-    { kind: 'unique', id: 'crewmate-ryoku',           vendorId: 'hunhow', categoryId: 'others', costs: { emerald: 50  } },
-    { kind: 'unique', id: 'crewmate-vena',            vendorId: 'hunhow', categoryId: 'others', costs: { crimson: 50  } },
-    { kind: 'unique', id: 'crewmate-latrox-une',      vendorId: 'hunhow', categoryId: 'others', costs: { emerald: 25, crimson: 25  } },
-    { kind: 'unique', id: 'crewmate-jarka-lar',       vendorId: 'hunhow', categoryId: 'others', costs: { emerald: 25, crimson: 25  } },
-    { kind: 'unique', id: 'theme-song-blades',        vendorId: 'hunhow', categoryId: 'others', costs: { emerald: 60  } },
-    { kind: 'unique', id: 'theme-song-blood',         vendorId: 'hunhow', categoryId: 'others', costs: { crimson: 60  } },
-    { kind: 'unique', id: 'scene-blades',             vendorId: 'hunhow', categoryId: 'others', costs: { emerald: 50  } },
-    { kind: 'unique', id: 'scene-blood',              vendorId: 'hunhow', categoryId: 'others', costs: { crimson: 50  } },
-    { kind: 'unique', id: 'scene-combined',           vendorId: 'hunhow', categoryId: 'others', costs: { emerald: 25, crimson: 25 } },
-    
-
-    // ── Arcanes ────────────────────────────────────────────────────────────
-    // 21 copies to fully rank. Flat cost per copy.
-    // Real arcane names (matching arcane.* locale keys):
-    //   Primary Compression, Arcane Sculptor, Secondary Cryogenic, Melee Assimilation
-    {
-      kind: 'arcane', id: 'arcane-primary-compression', vendorId: 'hunhow', categoryId: 'arcanes',
-      name: 'Primary Compression',
-      maxCopies: 21,
-      costAtOwnedCount: (_n) => ({ emerald: 15, crimson: 15 }),
-    },
-    {
-      kind: 'arcane', id: 'arcane-sculptor', vendorId: 'hunhow', categoryId: 'arcanes',
-      name: 'Arcane Sculptor',
-      maxCopies: 21,
-      costAtOwnedCount: (_n) => ({ emerald: 10, crimson: 10 }),
-    },
-    {
-      kind: 'arcane', id: 'arcane-secondary-cryogenic', vendorId: 'hunhow', categoryId: 'arcanes',
-      name: 'Secondary Cryogenic',
-      maxCopies: 21,
-      costAtOwnedCount: (_n) => ({ emerald: 10, crimson: 10 }),
-    },
-    {
-      kind: 'arcane', id: 'arcane-melee-assimilation', vendorId: 'hunhow', categoryId: 'arcanes',
-      name: 'Melee Assimilation',
-      maxCopies: 21,
-      costAtOwnedCount: (_n) => ({ emerald: 10, crimson: 10 }),
-    },
+    // ── warframe ──
+    part('wf-blueprint', 'warframe-main', 'blueprint', either({ emerald: 275, crimson: 275 }), { actions: ALL }),
+    part('wf-neuroptics', 'warframe-main', 'neuroptics', either({ emerald: 90, crimson: 90 }), { actions: ALL }),
+    part('wf-chassis', 'warframe-main', 'chassis', either({ emerald: 90, crimson: 90 }), { actions: ALL }),
+    part('wf-systems', 'warframe-main', 'systems', either({ emerald: 90, crimson: 90 }), { actions: ALL }),
+    // ── weapons ──
+    part('pride-blueprint', 'weapon-pride', 'blueprint', { emerald: 90 }, { actions: ALL }),
+    part('pride-handle', 'weapon-pride', 'handle', { emerald: 45 }, { actions: ALL }),
+    part('pride-blade', 'weapon-pride', 'blade', { emerald: 45 }, { actions: ALL }),
+    part('wrath-blade-in-pride', 'weapon-pride', 'blade', { crimson: 45 }, { crossParent: 'weapon-wrath', actions: ALL }),
+    part('wrath-blueprint', 'weapon-wrath', 'blueprint', { crimson: 90 }, { actions: ALL }),
+    part('wrath-handle', 'weapon-wrath', 'handle', { crimson: 45 }, { actions: ALL }),
+    part('wrath-blade', 'weapon-wrath', 'blade', { crimson: 45 }, { actions: ALL }),
+    part('pride-blade-in-wrath', 'weapon-wrath', 'blade', { emerald: 45 }, { crossParent: 'weapon-pride', actions: ALL }),
+    unique('hunhow-weapon', 'weapons', { emerald: 12, crimson: 12 }, 'Hunhow\'s Trinket Blueprint', { actions: ALL }),
+    // ── cosmetics ──
+    unique('syandana', 'cosmetics', { emerald: 50, crimson: 50 }, 'Jade\'s Victory Syandana', { actions: BO }),
+    unique('liset-skin-blades', 'cosmetics', { emerald: 100 }, 'Bladeswarm Liset Skin', { actions: BO }),
+    unique('liset-skin-blood', 'cosmetics', { crimson: 100 }, 'Bloodfrenzy Liset Skin', { actions: BO }),
+    unique('ephemera-blades', 'cosmetics', { emerald: 100 }, 'Syndir Ephemera', { actions: BO }),
+    unique('ephemera-blood', 'cosmetics', { crimson: 100 }, 'Viserakta Ephemera', { actions: BO }),
+    unique('weapon-skin-vectis', 'cosmetics', { emerald: 60 }, 'Bladeswarm Vectis Skin', { actions: BO }),
+    unique('weapon-skin-kunai', 'cosmetics', { emerald: 60 }, 'Bladeswarm Kunai Skin', { actions: BO }),
+    unique('weapon-skin-karyst', 'cosmetics', { emerald: 60 }, 'Bladeswarm Karyst Skin', { actions: BO }),
+    unique('weapon-skin-braton', 'cosmetics', { emerald: 60 }, 'Bladeswarm Braton Skin', { actions: BO }),
+    unique('weapon-skin-nagantaka', 'cosmetics', { crimson: 60 }, 'Bloodfrenzy Nagantaka Skin', { actions: BO }),
+    unique('weapon-skin-ballistica', 'cosmetics', { crimson: 60 }, 'Bloodfrenzy Ballistica Skin', { actions: BO }),
+    unique('weapon-skin-venka', 'cosmetics', { crimson: 60 }, 'Bloodfrenzy Venka Skin', { actions: BO }),
+    // ── decorations ──
+    unique('domestik-drone-blood', 'decorations', { crimson: 50 }, 'Bloodfrenzy Domestik Drone', { actions: BO }),
+    unique('domestik-drone-blades', 'decorations', { emerald: 50 }, 'Bladeswarm Domestik Drone', { actions: BO }),
+    unique('poster-blades', 'decorations', { emerald: 20 }, 'Cloning 101 Poster', { actions: BO }),
+    unique('poster-blood', 'decorations', { crimson: 20 }, 'Relationship Goals Poster', { actions: BO }),
+    // ── others ──
+    unique('crewmate-ryoku', 'others', { emerald: 50 }, 'Ryoku', { actions: BO }),
+    unique('crewmate-vena', 'others', { crimson: 50 }, 'Vena', { actions: BO }),
+    unique('crewmate-latrox-une', 'others', { emerald: 25, crimson: 25 }, 'Latrox Une', { actions: BO }),
+    unique('crewmate-jarka-lar', 'others', { emerald: 25, crimson: 25 }, 'Jarka Lar', { actions: BO }),
+    unique('theme-song-blades', 'others', { emerald: 60 }, 'Sacred Lights', { actions: BO }),
+    unique('theme-song-blood', 'others', { crimson: 60 }, 'Celestial Clash', { actions: BO }),
+    unique('scene-blades', 'others', { emerald: 50 }, 'Scoria\'s Angel Scene', { actions: BO }),
+    unique('scene-blood', 'others', { crimson: 50 }, 'Kuva Wytch Scene', { actions: BO }),
+    unique('scene-combined', 'others', { emerald: 25, crimson: 25 }, 'Pontis Tower Scene', { actions: BO }),
+    // ── arcanes ──
+    arcane('arcane-primary-compression', 'Primary Compression', { emerald: 15, crimson: 15 }, { actions: BD }),
+    arcane('arcane-sculptor', 'Arcane Sculptor', { emerald: 10, crimson: 10 }, { actions: BD }),
+    arcane('arcane-secondary-cryogenic', 'Secondary Cryogenic', { emerald: 10, crimson: 10 }, { actions: BD }),
+    arcane('arcane-melee-assimilation', 'Melee Assimilation', { emerald: 10, crimson: 10 }, { actions: BD }),
   ],
-};
+});
