@@ -144,7 +144,9 @@ function eventCard(e, now) {
   card.append(head);
   paintLiveRow(card, isAlertDone(e.id));
 
-  if (e.tooltip) card.append(el('p', 'dash-item-desc', e.tooltip));
+  const description = eventDescriptionLabel(e.title, e.tooltip);
+  if (description) card.append(el('p', 'dash-item-desc', description));
+  
   const meta = metaLine([nodeLabel(e.node), factionLabel(e.faction)]);
   if (meta) card.append(meta);
 

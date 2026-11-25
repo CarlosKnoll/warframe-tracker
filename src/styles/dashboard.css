@@ -42,7 +42,11 @@
   border-radius: 6px;
   min-width: 0;
 }
-.dash-event { border-left-color: #88c0d0; padding: 12px 14px; }
+.dash-event { 
+  border: 1px solid rgba(201, 168, 76, 0.72); 
+  border-left: 3px solid #c9a84c; 
+  padding: 12px 14px;
+}
 
 /* Alerts carry the same checkbox as the task tiles; --tone drives its colour. */
 .dash-alert, .dash-event { --tone: #88c0d0; }
@@ -52,8 +56,8 @@
 .dash-alert.is-done,
 .dash-event.is-done {
   border-style: dashed;
-  border: 1px dashed rgba(136, 192, 208, 0.72);
-  border-left: 3px dashed #88c0d0;
+  border-color: rgba(201, 168, 76, 0.72);
+  border-left-color: #c9a84c;
   border-right-width: 3px;
   background: rgba(136, 192, 208, 0.045);
 }

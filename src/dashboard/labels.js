@@ -10,7 +10,7 @@
 //                            Game data from the API (always fetched in English). They reuse what the
 //                            app already translates and fall back to the English text.
 
-import { t, tOrRaw, tGameMode, tLocation } from '../i18n.js';
+import { t, tOrRaw, tGameMode, tLocation, getLanguage } from '../i18n.js';
 
 const cache = new Map();   // everything below is cleared on language change
 if (typeof window !== 'undefined') window.addEventListener('langchange', () => cache.clear());
@@ -46,3 +46,14 @@ export const factionLabel = (raw) => lookup('faction', 'faction', raw);
 
 /** Alert / event names ("Tenno United Alert", "Epoch Operation: Taubound") -> general.game.events.* */
 export const titleLabel = (raw) => lookup('title', 'events', raw);
+
+export const eventDescriptionLabel = (title, raw) => {
+  if (!raw) return null;
+
+  // English intentionally uses the API response.
+  if (getLanguage() === 'en') return raw;
+
+  return memo('event-description', title, () =>
+    tOrRaw(`general.game.events.description.${title}`, raw)
+  );
+};
