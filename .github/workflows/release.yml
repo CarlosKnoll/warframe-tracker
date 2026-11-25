@@ -1,4 +1,5 @@
 name: Release
+
 on:
   push:
     branches: [main]
@@ -15,18 +16,166 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Check if tag exists
         id: check
         shell: bash
         run: |
           VERSION=$(node -p "require('./package.json').version")
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+
           if git ls-remote --exit-code --tags origin "refs/tags/v$VERSION" >/dev/null 2>&1; then
             echo "exists=true" >> "$GITHUB_OUTPUT"
             echo "Tag v$VERSION already exists, skipping build."
           else
             echo "exists=false" >> "$GITHUB_OUTPUT"
           fi
+
+      - name: Generate release notes
+        id: notes
+        if: steps.check.outputs.exists == 'false'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const { execFileSync } = require('node:child_process');
+
+            const runGit = (args) => execFileSync('git', args, {
+              encoding: 'utf8',
+              maxBuffer: 20 * 1024 * 1024
+            }).trimEnd();
+
+            const owner = context.repo.owner;
+            const repo = context.repo.repo;
+            const sha = context.sha;
+            const version = '${{ steps.check.outputs.version }}';
+            const currentTag = `v${version}`;
+            const repositoryUrl = `https://github.com/${owner}/${repo}`;
+
+            // Use the most recent published GitHub release as the baseline.
+            // Include older prereleases too, since previous versions of this workflow
+            // published every release as a prerelease.
+            const releases = await github.rest.repos.listReleases({
+              owner,
+              repo,
+              per_page: 100
+            });
+            const previousRelease = releases.data.find(release =>
+              !release.draft && release.tag_name !== currentTag
+            );
+            const previousTag = previousRelease?.tag_name ?? null;
+
+            if (!previousTag) {
+              core.info('No previous published release found; generating notes from repository history.');
+            }
+
+            if (previousTag === currentTag) {
+              throw new Error(`The current tag ${currentTag} is already the latest stable release.`);
+            }
+
+            const emptyTree = '4b825dc642cb6eb9a060e54bf8d69288fbee4904';
+            const base = previousTag
+              ? runGit(['rev-parse', `${previousTag}^{commit}`])
+              : emptyTree;
+
+            // Collect commits in chronological order, preserving full commit messages.
+            const commitRange = previousTag ? `${base}..${sha}` : sha;
+            const commitIds = runGit([
+              'rev-list',
+              '--reverse',
+              commitRange
+            ]).split('\n').filter(Boolean);
+
+            const commitDetails = commitIds.length
+              ? commitIds.map((commitId, index) => {
+                  const message = runGit(['show', '-s', '--format=%B', commitId]);
+                  const lines = message.split(/\r?\n/);
+                  const subject = lines.shift()?.trim() || 'Untitled commit';
+                  const description = lines.join('\n').trim();
+
+                  return [
+                    `### ${index + 1}. ${subject}`,
+                    `[\`${commitId.substring(0, 7)}\`](${repositoryUrl}/commit/${commitId})`,
+                    description || '_No additional description._'
+                  ].join('\n\n');
+                }).join('\n\n---\n\n')
+              : '_No commits found in this release range._';
+
+            // Compare the previous stable release (or the empty tree) to this build.
+            const diff = execFileSync('git', [
+              'diff',
+              '--name-status',
+              '-z',
+              '--no-renames',
+              base,
+              sha
+            ], {
+              encoding: 'utf8',
+              maxBuffer: 20 * 1024 * 1024
+            });
+
+            const added = new Set();
+            const modified = new Set();
+            const removed = new Set();
+            const entries = diff.split('\0').filter(Boolean);
+
+            for (let i = 0; i < entries.length; i += 2) {
+              const status = entries[i];
+              const file = entries[i + 1];
+
+              if (!file) continue;
+              if (status === 'A') added.add(file);
+              else if (status === 'M') modified.add(file);
+              else if (status === 'D') removed.add(file);
+            }
+
+            const fileSection = (heading, files) => [
+              `### ${heading}`,
+              files.size
+                ? [...files].sort().map(file => `- \`${file}\``).join('\n')
+                : '_None._'
+            ].join('\n');
+
+            const date = new Date().toISOString().slice(0, 10);
+            const compareUrl = previousTag
+              ? `${repositoryUrl}/compare/${previousTag}...${sha}`
+              : null;
+
+            const body = [
+              `# Warframe Tracker ${currentTag}`,
+              '',
+              '## Release overview',
+              '',
+              previousTag
+                ? `This release includes all changes merged since **${previousTag}**.`
+                : 'This is the first published stable release. The report covers the repository history up to this release.',
+              '',
+              `**Date:** ${date}`,
+              `**Version:** \`${currentTag}\``,
+              `**Commit:** [\`${sha.substring(0, 7)}\`](${repositoryUrl}/commit/${sha})`,
+              '',
+              '## Commits',
+              '',
+              commitDetails,
+              '',
+              '## Changed files',
+              '',
+              fileSection('New files', added),
+              '',
+              fileSection('Modified files', modified),
+              '',
+              fileSection('Removed files', removed),
+              '',
+              '---',
+              '',
+              compareUrl
+                ? `**Compare:** [View all changes since ${previousTag}](${compareUrl})`
+                : '**Compare:** No previous stable release is available for comparison.'
+            ].join('\n');
+
+            core.setOutput('body', body);
+            core.info(`Generated release notes for ${currentTag}: ${commitIds.length} commits, ${added.size} new files, ${modified.size} modified files, ${removed.size} removed files.`);
 
       - name: Setup Node
         if: steps.check.outputs.exists == 'false'
@@ -48,7 +197,7 @@ jobs:
         with:
           tagName: v__VERSION__
           releaseName: "Warframe Tracker v__VERSION__"
-          releaseBody: "See assets below to download this version."
+          releaseBody: ${{ steps.notes.outputs.body }}
           releaseDraft: false
-          prerelease: true
+          prerelease: false
           tauriScript: npx tauri
