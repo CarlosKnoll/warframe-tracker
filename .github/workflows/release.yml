@@ -94,7 +94,7 @@ jobs:
                   const subject = lines.shift()?.trim() || 'Untitled commit';
                   const description = lines.join('\n').trim();
 
-                  return `- [\`${commitId.substring(0, 7)}\`](${repositoryUrl}/commit/${commitId}) ${subject}: ${description || 'No additional description.'}`;
+                  return `- [\`${commitId.substring(0, 7)}\`](${repositoryUrl}/commit/${commitId}) **${subject}**: ${description || 'No additional description.'}`;
                 }).join('\n')
               : '_No commits found in this release range._';
 
@@ -139,15 +139,13 @@ jobs:
               : null;
 
             const body = [
-              `# Warframe Tracker ${currentTag}`,
-              '',
               previousTag
                 ? `This release includes all changes merged since **${previousTag}**.`
                 : 'This is the first published stable release. The report covers the repository history up to this release.',
               '',
               `**Date:** ${date}`,
               `**Version:** \`${currentTag}\``,
-              `**Commit:** [\`${sha.substring(0, 7)}\`](${repositoryUrl}/commit/${sha})`,
+              `**LatestCommit:** [\`${sha.substring(0, 7)}\`](${repositoryUrl}/commit/${sha})`,
               '',
               '## Commits',
               '',
