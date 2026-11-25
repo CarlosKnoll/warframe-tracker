@@ -16,7 +16,7 @@ import { vendorLinkFor } from './live/associations.js';
 import { prioritize } from './live/rewards.js';
 import { getVendor } from '../vendors/registry.js';
 import { vendorName } from '../vendors/labels.js';
-import { dt, missionTypeLabel, nodeLabel, factionLabel, titleLabel } from './labels.js';
+import { dt, missionTypeLabel, nodeLabel, factionLabel, titleLabel, eventDescriptionLabel } from './labels.js';
 
 // ─── Per-device UI state (localStorage on purpose: never synced) ───────────────
 const UI_KEY = 'dashboardUi';
