@@ -539,9 +539,13 @@ export async function renderTasks() {
   const grid = buildGrid();
   grid.querySelectorAll('.tasks-tile-wrap').forEach(w => carryIcon(previous.get(w.dataset.taskId), w));
 
+  // #dashboardLive is rendered by dashboard/index.js — keep the node (and its listeners) across the wipe
+  const liveHost = document.getElementById('dashboardLive');
+
   container.innerHTML = '';
 
   container.append(
+    ...(liveHost ? [liveHost] : []),
     buildLegend(),
     grid,
     buildAddCard(),

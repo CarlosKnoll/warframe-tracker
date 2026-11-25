@@ -15,6 +15,7 @@
   <link rel="stylesheet" href="styles/primes.css" />
   <link rel="stylesheet" href="styles/sidebar.css" />
   <link rel="stylesheet" href="styles/tasks.css" />
+  <link rel="stylesheet" href="styles/dashboard.css" />
   <link rel="stylesheet" href="styles/market.css" />
   <link rel="stylesheet" href="styles/settings.css" />
   <link rel="stylesheet" href="styles/sync-conflict.css" />
@@ -35,7 +36,7 @@
       <div id="sidebarNav">
         
         <!-- Tasks — direct nav button -->
-        <button class="nav-btn active" data-section="tasks"  data-has-grid="false" data-i18n="mode.tasks">Tasks</button>
+        <button class="nav-btn active" data-section="tasks"  data-has-grid="false" data-i18n="menus-nav.mode.dashboard">Dashboard</button>
 
         <!-- Mastery — direct nav button and sub-menus -->
         <div class="nav-group" id="masteryNav">
@@ -112,6 +113,8 @@
       <div id="tasksSection" class="tracker-section active">
         <div class="tasks-content">
           <!-- Populated entirely by renderer.js — no static HTML needed here -->
+          <!-- #dashboardLive is owned by dashboard/index.js; renderTasks() re-attaches it and never touches its contents -->
+          <div id="dashboardLive" class="dash-live-host"></div>
         </div>
       </div>
 

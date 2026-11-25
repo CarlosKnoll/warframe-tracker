@@ -3,7 +3,7 @@
 // only the selector list, item list and planner are re-rendered, so search
 // boxes keep focus and scroll position survives every action.
 
-import { VENDORS, getVendor } from '../registry.js';
+import { VENDORS, getVendor, defaultVendor } from '../registry.js';
 import { store, subscribe, stateOf, ctxFor, saveUi, selectVendor,
   setStatus, addCopy, undoCopy, setArcaneCount, setBalance, setYield, setMinutes,
   setWarframeMode, setPayWith } from '../store.js';
@@ -71,11 +71,11 @@ function progressFn(v) {
 
 export function render() {
   if (!root || !$('#vxSelList')) return;
-  const vendor = getVendor(store.selectedVendorId) ?? VENDORS[0];
+  const vendor = getVendor(store.selectedVendorId) ?? defaultVendor();
 
   $('#vxVendorSearch').placeholder = T('search_vendors', 'Search vendors…');
   $('#vxSelList').innerHTML = VENDORS.length
-    ? selectorListHTML({ vendors: VENDORS, selectedId: vendor?.id, query: vendorQuery, collapsed: store.ui.collapsedFamilies, progress: progressFn })
+    ? selectorListHTML({ vendors: VENDORS, selectedId: vendor?.id, query: vendorQuery, collapsed: store.ui.collapsedFamilies, progress: progressFn, showExpired: store.ui.showExpired })
     : `<div class="vx-empty">${esc(T('no_vendors', 'No vendors'))}</div>`;
   $('#vxSelCurrent').innerHTML = currentLabel(vendor);
   $('#vxSelector').classList.toggle('open', selectorOpen);
@@ -106,6 +106,42 @@ export function render() {
   panel.innerHTML = plannerHTML(vendor, vs, plan);
   $('#plannerBackdrop').classList.toggle('visible', plannerOpen);
   $('#plannerToggle').classList.toggle('active', plannerOpen);
+
+  applyPendingFocus();
+}
+
+// ── Open a vendor (or one item) from outside this tab ──────────────────────
+
+let pendingFocus = null;   // item id to scroll to + flash after the next render
+
+/**
+ * Selects a vendor and, optionally, brings one item into view. Everything that could hide the
+ * item is reset first: the item search, the Missing/Complete filter and a collapsed category.
+ */
+export function focusItem(vendorId, itemId = null) {
+  const vendor = getVendor(vendorId);
+  if (!vendor) return;
+  const item = itemId ? vendor.byId.get(itemId) : null;
+
+  selectorOpen = false;
+  itemQuery = '';
+  store.ui.filter = 'all';
+  store.ui.collapsedFamilies[vendor.family] = false;
+  if (item) store.ui.collapsedCats[`${vendor.id}:${item.categoryId}`] = false;
+
+  pendingFocus = item ? item.id : null;
+  selectVendor(vendorId);   // persists the UI state and re-renders
+}
+
+function applyPendingFocus() {
+  if (!pendingFocus) return;
+  const id = pendingFocus;
+  pendingFocus = null;
+  const row = root?.querySelector(`[data-item-row="${CSS.escape(id)}"]`);
+  if (!row) return;
+  row.scrollIntoView({ block: 'center', behavior: 'smooth' });
+  row.classList.add('vx-flash');
+  setTimeout(() => row.classList.remove('vx-flash'), 2500);
 }
 
 // ── Events ─────────────────────────────────────────────────────────────────
@@ -133,6 +169,10 @@ function onClick(e) {
       return render();
     case 'toggle-cat':
       store.ui.collapsedCats[d.key] = !store.ui.collapsedCats[d.key];
+      saveUi();
+      return render();
+    case 'toggle-expired':
+      store.ui.showExpired = !store.ui.showExpired;
       saveUi();
       return render();
     case 'filter':
@@ -175,12 +215,12 @@ function onInput(e) {
 }
 
 function renderSelectorOnly() {
-  const vendor = getVendor(store.selectedVendorId) ?? VENDORS[0];
-  $('#vxSelList').innerHTML = selectorListHTML({ vendors: VENDORS, selectedId: vendor?.id, query: vendorQuery, collapsed: store.ui.collapsedFamilies, progress: progressFn });
+  const vendor = getVendor(store.selectedVendorId) ?? defaultVendor();
+  $('#vxSelList').innerHTML = selectorListHTML({ vendors: VENDORS, selectedId: vendor?.id, query: vendorQuery, collapsed: store.ui.collapsedFamilies, progress: progressFn, showExpired: store.ui.showExpired });
 }
 
 function renderItemsOnly() {
-  const vendor = getVendor(store.selectedVendorId) ?? VENDORS[0];
+  const vendor = getVendor(store.selectedVendorId) ?? defaultVendor();
   if (!vendor) return;
   const vs = stateOf(vendor.id);
   $('#vxItems').innerHTML = itemsHTML({ vendor, vs, ctx: ctxFor(vs), filter: store.ui.filter, query: itemQuery, collapsedCats: store.ui.collapsedCats });

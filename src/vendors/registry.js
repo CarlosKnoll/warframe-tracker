@@ -6,6 +6,7 @@
 // planner all derive from the definition itself.
 
 import { normalizeVendor, compareSince } from './catalog.js';
+import { pickDefault } from './availability.js';
 
 import praghasa from './events/u44-1-2.js';
 import narin from './data/u44.js';
@@ -37,6 +38,9 @@ for (const v of VENDORS) for (const p of v.problems) console.warn(`[vendors] ${v
 
 const BY_ID = new Map(VENDORS.map((v) => [v.id, v]));
 export const getVendor = (id) => BY_ID.get(id);
+
+/** Vendor shown when nothing (valid) is selected: the newest one that is still available. */
+export const defaultVendor = () => pickDefault(VENDORS);
 
 /** Category id -> existing shared locale key (reused instead of per-vendor duplicates). */
 export const CATEGORY_KEY_MAP = {

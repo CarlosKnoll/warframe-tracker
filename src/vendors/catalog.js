@@ -10,6 +10,7 @@ import { asCost } from './define.js';
 import { validateReset } from './model/limits.js';
 import { ARCANE_UID } from './arcane-ids.js';
 import { ACTIONS, FAMILY_DEFAULT, MISSION_RUN_MODELS } from './schema.js';
+import { normalizeAvailability } from './availability.js';
 
 const KINDS = ['part', 'unique', 'arcane', 'stock'];
 
@@ -86,6 +87,7 @@ export function normalizeVendor(def) {
     localeGroup: def.localeGroup ?? id,
     missionMinutes: Number.isFinite(def.missionMinutes) && def.missionMinutes > 0 ? def.missionMinutes : null,
     runModel: MISSION_RUN_MODELS.includes(def.runModel) ? def.runModel : 'parallel',
+    availability: normalizeAvailability(def.availability, problems, id),   // null = always available
     currencies: (def.currencies ?? []).map((c) => ({
       id: c.id, label: c.label ?? c.name ?? c.id, nameKey: c.nameKey,
     })),

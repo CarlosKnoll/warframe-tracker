@@ -1,0 +1,132 @@
+/* ─── dashboard.css — live strip (events + alerts) on the Tasks tab ──────────── */
+/* Reuses .tasks-card / .tasks-card-header / .tasks-card-body from tasks.css.      */
+
+.dash-live-host:empty { display: none; }
+
+.dash-live > .tasks-card-header .tasks-tier-title { flex: 0 0 auto; }
+
+.dash-summary {
+  margin-left: auto;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.55);
+  text-align: right;
+}
+
+.dash-live .tasks-card-body { display: flex; flex-direction: column; gap: 14px; }
+
+.dash-sec { display: flex; flex-direction: column; gap: 8px; }
+.dash-sec-title {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+  margin: 0;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.dash-list { display: grid; gap: 8px; }
+.dash-list--alerts { grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); }
+.dash-list--events { grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); }
+
+.dash-item {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px 12px;
+  background: rgba(255, 255, 255, 0.025);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-left: 3px solid #88c0d0;
+  border-radius: 6px;
+  min-width: 0;
+}
+.dash-event { border-left-color: #c9a84c; padding: 12px 14px; }
+
+.dash-item-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.dash-item-title { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
+.dash-time {
+  flex-shrink: 0;
+  font-size: 0.78rem;
+  color: rgba(255, 255, 255, 0.6);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+.dash-countdown { color: #ebcb8b; }
+
+.dash-item-desc {
+  margin: 0;
+  font-size: 0.82rem;
+  color: rgba(255, 255, 255, 0.65);
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+.dash-meta { font-size: 0.78rem; color: rgba(255, 255, 255, 0.5); }
+
+.dash-rewards { display: flex; flex-wrap: wrap; gap: 6px 10px; }
+.dash-reward { display: inline-flex; align-items: center; gap: 6px; font-size: 0.82rem; min-width: 0; }
+.dash-reward-icon { width: 22px; height: 22px; }
+.dash-reward-text { overflow-wrap: anywhere; }
+.dash-reward.is-extra { display: none; }
+.dash-rewards.is-expanded .dash-reward.is-extra { display: inline-flex; }
+.dash-more {
+  align-self: center;
+  padding: 1px 7px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  border-radius: 10px;
+  color: rgba(255, 255, 255, 0.6);
+  font: inherit;
+  font-size: 0.74rem;
+  cursor: pointer;
+}
+.dash-more:hover { color: #e5e9f0; border-color: rgba(255, 255, 255, 0.4); }
+
+.dash-progress-wrap { display: flex; align-items: center; gap: 10px; }
+.dash-progress { position: relative; flex: 1; height: 6px; border-radius: 3px; background: rgba(255, 255, 255, 0.08); overflow: hidden; }
+.dash-tick { position: absolute; top: 0; bottom: 0; width: 2px; margin-left: -1px; background: rgba(0, 0, 0, 0.55); }
+.dash-progress > i { display: block; height: 100%; background: #a3be8c; }
+.dash-progress-text { font-size: 0.74rem; color: rgba(255, 255, 255, 0.55); font-variant-numeric: tabular-nums; }
+
+/* Milestones */
+.dash-milestones { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 8px; }
+.dash-milestones-label { font-size: 0.72rem; font-weight: 700; letter-spacing: 0.4px; text-transform: uppercase; color: rgba(255, 255, 255, 0.45); }
+.dash-ms {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 2px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 10px;
+  font-size: 0.76rem;
+  color: rgba(255, 255, 255, 0.65);
+}
+.dash-ms.is-reached { border-color: rgba(163, 190, 140, 0.55); color: #a3be8c; }
+.dash-ms-goal { font-variant-numeric: tabular-nums; font-weight: 600; }
+.dash-ms .dash-reward { font-size: 0.76rem; }
+.dash-ms .dash-reward-icon { width: 18px; height: 18px; }
+
+.dash-link {
+  align-self: flex-start;
+  padding: 4px 10px;
+  background: rgba(201, 168, 76, 0.1);
+  border: 1px solid rgba(201, 168, 76, 0.45);
+  border-radius: 4px;
+  color: #c9a84c;
+  font: inherit;
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+.dash-link:hover { background: rgba(201, 168, 76, 0.2); color: #ebcb8b; }
+
+.dash-empty, .dash-stale, .dash-error { font-size: 0.8rem; color: rgba(255, 255, 255, 0.5); }
+.dash-error { color: #d08770; }
+
+@media (max-width: 480px) {
+  .dash-item-head { flex-direction: column; align-items: flex-start; gap: 2px; }
+  .dash-summary { font-size: 0.72rem; }
+}

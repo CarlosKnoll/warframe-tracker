@@ -2,7 +2,7 @@
 // Public entry point. Same API as before so main.js needs no changes, plus
 // bindOwnership() to share Arcane counts with the Arcanes tab.
 
-import { mount, unmount } from './ui/shell.js';
+import { mount, unmount, focusItem } from './ui/shell.js';
 import { reload } from './store.js';
 import { bindOwnership } from './ownership.js';
 
@@ -22,6 +22,11 @@ export async function renderVendors() {
 
 export function stopVendors() {
   unmount();
+}
+
+/** Select a vendor (and optionally bring one item into view). Call after initVendors(). */
+export function openVendor(vendorId, itemId = null) {
+  focusItem(vendorId, itemId);
 }
 
 export { bindOwnership };

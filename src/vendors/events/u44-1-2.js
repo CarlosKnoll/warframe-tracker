@@ -15,6 +15,9 @@ export default vendor({
   family:        'event',
   title:         'Epoch Operation: Taubound',          // English fallback; translations come from the locale files
   localeGroup:   'u44.1.2',
+  // Official dates: begins Oct 15, concludes Nov 17 (no times announced, so whole UTC days,
+  // end inclusive). Once ended the vendor leaves the default list; saved progress is kept.
+  availability:  { start: '2026-10-15', end: '2026-11-17' },
   missionMinutes: 13,                  // default minutes per mission (editable per vendor in the planner)
   // runModel: 'parallel',             // 'sequential' if each currency needs its own missions
 

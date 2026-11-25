@@ -11,7 +11,8 @@
 //     values, then the vendor ledger is updated.
 
 import { getVendorState, setVendorState } from '../lib/storage.js';
-import { VENDORS, getVendor } from './registry.js';
+import { VENDORS, getVendor, defaultVendor } from './registry.js';
+import { statusOfVendor } from './availability.js';
 import * as L from './model/ledger.js';
 import { migrateVendor, writeMirrors } from './model/migrate.js';
 import { copiesNeeded, partSlots } from './schema.js';
@@ -50,9 +51,9 @@ const UI_KEY = 'wf-vendors-ui';
 function loadUi() {
   try {
     const u = JSON.parse(localStorage.getItem(UI_KEY) || '{}');
-    return { selected: u.selected ?? null, collapsedFamilies: u.collapsedFamilies ?? {}, collapsedCats: u.collapsedCats ?? {}, filter: u.filter ?? 'all' };
+    return { selected: u.selected ?? null, collapsedFamilies: u.collapsedFamilies ?? {}, collapsedCats: u.collapsedCats ?? {}, filter: u.filter ?? 'all', showExpired: u.showExpired === true };
   } catch {
-    return { selected: null, collapsedFamilies: {}, collapsedCats: {}, filter: 'all' };
+    return { selected: null, collapsedFamilies: {}, collapsedCats: {}, filter: 'all', showExpired: false };
   }
 }
 
@@ -139,7 +140,11 @@ export function reload() {
     for (const vendor of VENDORS) if (out[vendor.id]) finalize(out[vendor.id], vendor);
 
     if (!store.selectedVendorId || !getVendor(store.selectedVendorId)) {
-      store.selectedVendorId = getVendor(store.ui.selected) ? store.ui.selected : VENDORS[0]?.id ?? null;
+      // A saved selection that has since ended falls back to the newest active vendor
+      // (unless the user chose to show ended vendors).
+      const saved = getVendor(store.ui.selected);
+      const usable = saved && (store.ui.showExpired || statusOfVendor(saved) !== 'ended');
+      store.selectedVendorId = usable ? saved.id : defaultVendor()?.id ?? null;
     }
     if (dirty) await setVendorState(out, { fromSync: true });   // migration is not a user edit
     emit();

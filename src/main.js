@@ -23,6 +23,7 @@ let masteryInitialized = false;
 
 let tasksModule = null;
 let tasksInitialized = false;
+let liveModule = null;          // dashboard/index.js — live events + alerts on the Tasks tab
 
 let marketModule = null;
 let marketInitialized = false;
@@ -92,95 +93,112 @@ window.addEventListener('langchange', async () => {
 
 // ─── Sidebar navigation ────────────────────────────────────────────────────────
 
+// Switches the visible tab. Used by the sidebar buttons and by in-app links (wf:navigate).
+async function navigateTo(section) {
+  activeMode = section;
+
+  // Stop any pending worldstate retry when leaving the tasks tab
+  if (section !== 'tasks' && tasksModule) {
+    tasksModule.stopWorldstateRetry();
+    tasksModule.stopExpiryRefresh();
+  }
+  if (section !== 'tasks') liveModule?.stopLive();
+
+  setActiveNavButton(section);
+  document.querySelectorAll(".tracker-section").forEach(s => s.classList.remove("active"));
+
+  if (section === "arcanes") {
+    document.getElementById("arcanesSection").classList.add("active");
+    if (!arcanesInitialized) {
+      arcanesModule = await import('./arcanes.js');
+      await arcanesModule.initArcanes(owned, save);
+      arcanesInitialized = true;
+    } else {
+      arcanesModule.renderArcanes();
+    }
+
+  } else if (section === "primes") {
+    document.getElementById("primesSection").classList.add("active");
+    if (!primesInitialized) {
+      primesModule = await import('./primes/index.js');
+      await primesModule.initPrimes(owned, ignoredPrimes, save);
+      primesInitialized = true;
+    } else {
+      primesModule.renderPrimes();
+    }
+
+  } else if (section.startsWith("mastery-")) {
+    document.getElementById("masterySection").classList.add("active");
+    if (!masteryInitialized) {
+      masteryModule = await import('./mastery/index.js');
+      // Pass live getter functions instead of object references
+    await masteryModule.initMastery(owned, masteryMastered, ignoredMasteryItems, save, section);
+    masteryInitialized = true;
+    masteryModule.renderMastery();
+    } else {
+      masteryModule.setMasterySection(section);
+    }
+  } else if (section === 'mods') {
+    document.getElementById('modsSection').classList.add('active');
+    if (!modsInitialized) {
+      modsModule = await import('./mods/index.js');
+      await modsModule.initMods();
+      modsInitialized = true;
+    } else {
+      modsModule.renderMods();
+    }
+  } else if (section === "tasks") {
+    document.getElementById("tasksSection").classList.add("active");
+    if (!tasksInitialized) {
+      tasksModule = await import('./tasks/index.js');
+      await tasksModule.initTasks();
+      tasksInitialized = true;
+    } else {
+      await tasksModule.refreshTasks();
+      liveModule?.refreshLive();
+    }
+  } else if (section === "market") {
+    document.getElementById("marketSection").classList.add("active");
+    if (!marketInitialized) {
+      marketModule = await import('./market/index.js');
+      await marketModule.initMarket();
+      marketInitialized = true;
+    } else {
+      marketModule.renderMarket();
+    }
+  } else if (section === "settings") {
+    document.getElementById("settingsSection").classList.add("active");
+    const settingsMod = await import('./settings.js');
+    await settingsMod.initSettings();
+  } else if (section === 'vendors') {
+    document.getElementById('vendorsSection').classList.add('active');
+    if (!vendorsInitialized) {
+      vendorsModule = await import('./vendors/index.js');
+      vendorsModule.bindOwnership({ getOwned: () => owned, save });
+      const container = document.querySelector('#vendorsSection .vendors-content');
+      await vendorsModule.initVendors(container);
+      vendorsInitialized = true;
+    } else {
+      await vendorsModule.refreshVendors();
+    }
+  }
+}
+
 document.querySelectorAll("#sidebar button[data-section]").forEach(btn => {
-  btn.onclick = async () => {
-    const section = btn.dataset.section;
-    activeMode = section;
+  btn.onclick = () => navigateTo(btn.dataset.section);
+});
 
-    // Stop any pending worldstate retry when leaving the tasks tab
-    if (section !== 'tasks' && tasksModule) {
-      tasksModule.stopWorldstateRetry();
-      tasksModule.stopExpiryRefresh();
-    }
-
-    setActiveNavButton(section);
-    document.querySelectorAll(".tracker-section").forEach(s => s.classList.remove("active"));
-
-    if (section === "arcanes") {
-      document.getElementById("arcanesSection").classList.add("active");
-      if (!arcanesInitialized) {
-        arcanesModule = await import('./arcanes.js');
-        await arcanesModule.initArcanes(owned, save);
-        arcanesInitialized = true;
-      } else {
-        arcanesModule.renderArcanes();
-      }
-
-    } else if (section === "primes") {
-      document.getElementById("primesSection").classList.add("active");
-      if (!primesInitialized) {
-        primesModule = await import('./primes/index.js');
-        await primesModule.initPrimes(owned, ignoredPrimes, save);
-        primesInitialized = true;
-      } else {
-        primesModule.renderPrimes();
-      }
-
-    } else if (section.startsWith("mastery-")) {
-      document.getElementById("masterySection").classList.add("active");
-      if (!masteryInitialized) {
-        masteryModule = await import('./mastery/index.js');
-        // Pass live getter functions instead of object references
-      await masteryModule.initMastery(owned, masteryMastered, ignoredMasteryItems, save, section);
-      masteryInitialized = true;
-      masteryModule.renderMastery();
-      } else {
-        masteryModule.setMasterySection(section);
-      }
-    } else if (section === 'mods') {
-      document.getElementById('modsSection').classList.add('active');
-      if (!modsInitialized) {
-        modsModule = await import('./mods/index.js');
-        await modsModule.initMods();
-        modsInitialized = true;
-      } else {
-        modsModule.renderMods();
-      }
-    } else if (section === "tasks") {
-      document.getElementById("tasksSection").classList.add("active");
-      if (!tasksInitialized) {
-        tasksModule = await import('./tasks/index.js');
-        await tasksModule.initTasks();
-        tasksInitialized = true;
-      } else {
-        await tasksModule.refreshTasks();
-      }
-    } else if (section === "market") {
-      document.getElementById("marketSection").classList.add("active");
-      if (!marketInitialized) {
-        marketModule = await import('./market/index.js');
-        await marketModule.initMarket();
-        marketInitialized = true;
-      } else {
-        marketModule.renderMarket();
-      }
-    } else if (section === "settings") {
-      document.getElementById("settingsSection").classList.add("active");
-      const settingsMod = await import('./settings.js');
-      await settingsMod.initSettings();
-    } else if (section === 'vendors') {
-      document.getElementById('vendorsSection').classList.add('active');
-      if (!vendorsInitialized) {
-        vendorsModule = await import('./vendors/index.js');
-        vendorsModule.bindOwnership({ getOwned: () => owned, save });
-        const container = document.querySelector('#vendorsSection .vendors-content');
-        await vendorsModule.initVendors(container);
-        vendorsInitialized = true;
-      } else {
-        await vendorsModule.refreshVendors();
-      }
-    }
-  };
+// In-app links (e.g. the Dashboard's "Open <vendor>" button) ask for a tab via an event,
+// so those modules never import main.js.
+window.addEventListener('wf:navigate', async (e) => {
+  const { section, vendorId, itemId } = e.detail ?? {};
+  if (!section) return;
+  try {
+    await navigateTo(section);
+    if (section === 'vendors' && vendorId) vendorsModule?.openVendor(vendorId, itemId ?? null);
+  } catch (err) {
+    console.error('[nav] wf:navigate failed:', err);
+  }
 });
 
 // ─── Save ──────────────────────────────────────────────────────────────────────
@@ -280,6 +298,11 @@ async function init() {
     tasksModule = await import('./tasks/index.js');
     await tasksModule.initTasks();
     tasksInitialized = true;
+
+    // Live events/alerts: independent of the task state; a failure here must never block startup.
+    import('./dashboard/index.js')
+      .then(m => { liveModule = m; return m.initLive(); })
+      .catch(err => console.warn('[live] init failed:', err));
   } catch (err) {
     console.error("Initialization error:", err);
   }
