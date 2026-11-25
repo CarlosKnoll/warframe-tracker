@@ -88,18 +88,14 @@ jobs:
             ]).split('\n').filter(Boolean);
 
             const commitDetails = commitIds.length
-              ? commitIds.map((commitId, index) => {
+              ? commitIds.map((commitId) => {
                   const message = runGit(['show', '-s', '--format=%B', commitId]);
                   const lines = message.split(/\r?\n/);
                   const subject = lines.shift()?.trim() || 'Untitled commit';
                   const description = lines.join('\n').trim();
 
-                  return [
-                    `### ${index + 1}. ${subject}`,
-                    `[\`${commitId.substring(0, 7)}\`](${repositoryUrl}/commit/${commitId})`,
-                    description || '_No additional description._'
-                  ].join('\n\n');
-                }).join('\n\n---\n\n')
+                  return `- [\`${commitId.substring(0, 7)}\`](${repositoryUrl}/commit/${commitId}) ${subject}: ${description || 'No additional description.'}`;
+                }).join('\n')
               : '_No commits found in this release range._';
 
             // Compare the previous stable release (or the empty tree) to this build.
@@ -144,8 +140,6 @@ jobs:
 
             const body = [
               `# Warframe Tracker ${currentTag}`,
-              '',
-              '## Release overview',
               '',
               previousTag
                 ? `This release includes all changes merged since **${previousTag}**.`
