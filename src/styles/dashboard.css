@@ -54,11 +54,17 @@
 .dash-alert-main { display: flex; align-items: center; gap: 8px; min-width: 0; }
 .dash-alert-main .tasks-check { width: 16px; height: 16px; border-radius: 4px; }
 .dash-item-head > .dash-alert-main { min-width: 0; }
-.dash-alert.is-done,
 .dash-event.is-done {
   border-style: dashed;
   border-color: rgba(201, 168, 76, 0.72);
   border-left-color: #c9a84c;
+  border-right-width: 3px;
+  background: rgba(136, 192, 208, 0.045);
+}
+.dash-alert.is-done {
+  border-style: dashed;
+  border-color: rgba(136, 192, 208, 0.72);
+  border-left-color: #88c0d0;
   border-right-width: 3px;
   background: rgba(136, 192, 208, 0.045);
 }
