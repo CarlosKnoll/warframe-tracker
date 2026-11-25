@@ -9,7 +9,8 @@
 
 import { createRewardIcon, rewardLabel } from '../tasks/rewards/resolve.js';
 import { iconKeyForReward } from '../tasks/rewards/icon-rules.js';
-import { formatCountdown } from '../tasks/helpers.js';
+import { formatCountdown, tf } from '../tasks/helpers.js';
+import { isAlertDone, toggleAlertDone } from '../tasks/loader.js';
 import { statusOf } from './live/normalize.js';
 import { vendorLinkFor } from './live/associations.js';
 import { prioritize } from './live/rewards.js';
@@ -136,8 +137,12 @@ function metaLine(parts) {
 function eventCard(e, now) {
   const card = el('div', 'dash-item dash-event');
   const head = el('div', 'dash-item-head');
-  head.append(el('span', 'dash-item-title', titleLabel(e.title)), timeBlock(e, now));
+  const main = el('div', 'dash-alert-main');
+  const title = titleLabel(e.title);
+  main.append(liveCheck(e, title), el('span', 'dash-item-title', title));
+  head.append(main, timeBlock(e, now));
   card.append(head);
+  paintLiveRow(card, isAlertDone(e.id));
 
   if (e.tooltip) card.append(el('p', 'dash-item-desc', e.tooltip));
   const meta = metaLine([nodeLabel(e.node), factionLabel(e.faction)]);
@@ -171,10 +176,40 @@ function eventCard(e, now) {
   return card;
 }
 
+const alertCheckTitle = (done) => (done
+  ? tf('tabs.tasks.ui.modal.mark_undone', 'Mark as not completed')
+  : tf('tabs.tasks.ui.modal.mark_done', 'Mark as completed'));
+
+// Applies the done look to one alert row. Used when rendering and again after a tick, so the
+// row is updated in place (a full re-render would drop keyboard focus from the checkbox).
+function paintLiveRow(row, done) {
+  row.classList.toggle('is-done', done);
+  const box = row.querySelector('.tasks-check');
+  if (!box) return;
+  box.setAttribute('aria-checked', String(done));
+  box.title = alertCheckTitle(done);
+}
+
+/** Live-entry checkbox: completion is stored until the entry's expiry. */
+function liveCheck(entry, title) {
+  const box = el('button', 'tasks-check');
+  box.type = 'button';
+  box.setAttribute('role', 'checkbox');
+  box.setAttribute('aria-checked', String(isAlertDone(entry.id)));
+  box.setAttribute('aria-label', title);
+  box.title = alertCheckTitle(isAlertDone(entry.id));
+  box.dataset.liveId = entry.id;
+  if (entry.end != null) box.dataset.expiry = String(entry.end);
+  return box;
+}
+
 function alertRow(a, now) {
   const row = el('div', 'dash-item dash-alert');
+  const title = titleLabel(a.title);
   const head = el('div', 'dash-item-head');
-  head.append(el('span', 'dash-item-title', titleLabel(a.title)), timeBlock(a, now));
+  const main = el('div', 'dash-alert-main');
+  main.append(liveCheck(a, title), el('span', 'dash-item-title', title));
+  head.append(main, timeBlock(a, now));
   row.append(head);
 
   const level = a.minLevel != null && a.maxLevel != null
@@ -187,15 +222,20 @@ function alertRow(a, now) {
   if (rewards) row.append(rewards);
   const link = vendorLink(a);
   if (link) row.append(link);
+  paintLiveRow(row, isAlertDone(a.id));
   return row;
 }
 
 function section(titleKey, titleFallback, list, build, now, modifier) {
   const sec = el('section', 'dash-sec');
   const title = el('h3', 'dash-sec-title', dt(titleKey, titleFallback));
-  title.append(el('span', 'tasks-count', ` ${list.length}`));
+  const count = el('span', 'tasks-count', ` ${list.length}`);
+  if (modifier === 'dash-list--alerts') count.dataset.alertsCount = '';
+  if (modifier === 'dash-list--events') count.dataset.eventsCount = '';
+  title.append(count);
   const grid = el('div', `dash-list ${modifier}`);   // one column on narrow screens, more on wide ones
-  list.forEach(entry => grid.append(build(entry, now)));
+  [...list].sort((a, b) => Number(isAlertDone(a.id)) - Number(isAlertDone(b.id)))
+      .forEach(entry => grid.append(build(entry, now)));
   sec.append(title, grid);
   return sec;
 }
@@ -223,6 +263,47 @@ function summaryText({ events, alerts, hasData, stale }) {
 
 // ─── Public ────────────────────────────────────────────────────────────────────
 
+/** Alerts "done/total" next to the section title, and a ✓ on the collapsed summary when all are done. */
+function refreshAlertCounts(host) {
+  const total = host.querySelectorAll('.dash-alert').length;
+  const done = host.querySelectorAll('.dash-alert.is-done').length;
+  const all = total > 0 && done === total;
+
+  const count = host.querySelector('[data-alerts-count]');
+  if (count) {
+    count.textContent = ` ${done}/${total}`;
+    count.classList.toggle('is-complete', all);
+  }
+  const eventRows = [...host.querySelectorAll('.dash-event')];
+  const eventDone = eventRows.filter(row => row.classList.contains('is-done')).length;
+  const eventCount = host.querySelector('[data-events-count]');
+  if (eventCount) {
+    eventCount.textContent = ` ${eventDone}/${eventRows.length}`;
+    eventCount.classList.toggle('is-complete', eventRows.length > 0 && eventDone === eventRows.length);
+  }
+  const summary = host.querySelector('.dash-summary');
+  if (summary) {
+    const hasLiveEntries = total + eventRows.length > 0;
+    const alertsAll = done === total;
+    const eventsAll = eventDone === eventRows.length;
+    summary.textContent = (summary.dataset.base ?? summary.textContent) + (hasLiveEntries && alertsAll && eventsAll ? ' ✓' : '');
+  }
+}
+
+async function onLiveCheck(box, host) {
+  const row = box.closest('.dash-alert, .dash-event');
+  if (!row) return;
+  const expiry = Number(box.dataset.expiry);
+  const done = await toggleAlertDone(box.dataset.liveId, Number.isFinite(expiry) ? expiry : null);
+  paintLiveRow(row, done);
+  // Keep each section ordered with unfinished entries first without rebuilding the DOM.
+  const list = row.parentElement;
+  [...list.children]
+    .sort((a, b) => Number(a.classList.contains('is-done')) - Number(b.classList.contains('is-done')))
+    .forEach(item => list.append(item));
+  refreshAlertCounts(host);
+}
+
 let wiredHost = null;
 
 function wire(host) {
@@ -237,6 +318,11 @@ function wire(host) {
     writeOpen(open);
   };
   host.addEventListener('click', e => {
+    const box = e.target.closest('.dash-alert .tasks-check, .dash-event .tasks-check');
+    if (box) {
+      onLiveCheck(box, host).catch(err => console.warn('[live] could not save alert tick', err));
+      return;
+    }
     const more = e.target.closest('.dash-more');
     if (more) {
       more.closest('.dash-rewards')?.classList.add('is-expanded');
@@ -281,7 +367,9 @@ export function renderLive(model) {
   header.setAttribute('aria-expanded', String(open));
   const chevron = el('span', 'tasks-card-chevron', '▾');
   chevron.setAttribute('aria-hidden', 'true');
-  header.append(chevron, el('h2', 'tasks-tier-title', dt('title', 'Live')), el('span', 'dash-summary', summaryText(model)));
+  const summary = el('span', 'dash-summary', summaryText(model));
+  summary.dataset.base = summary.textContent;
+  header.append(chevron, el('h2', 'tasks-tier-title', dt('title', 'Live')), summary);
 
   const body = el('div', 'tasks-card-body');
   if (model.events.length) body.append(safe(() => section('events.title', 'Events', model.events, eventCard, now, 'dash-list--events')));
@@ -291,4 +379,5 @@ export function renderLive(model) {
 
   card.append(header, body);
   host.replaceChildren(card);
+  refreshAlertCounts(host);
 }

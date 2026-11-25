@@ -37,14 +37,38 @@
   gap: 6px;
   padding: 10px 12px;
   background: rgba(255, 255, 255, 0.025);
-  border: 1px solid rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(136, 192, 208, 0.72);
   border-left: 3px solid #88c0d0;
   border-radius: 6px;
   min-width: 0;
 }
-.dash-event { border-left-color: #c9a84c; padding: 12px 14px; }
+.dash-event { border-left-color: #88c0d0; padding: 12px 14px; }
 
-.dash-item-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+/* Alerts carry the same checkbox as the task tiles; --tone drives its colour. */
+.dash-alert, .dash-event { --tone: #88c0d0; }
+.dash-alert-main { display: flex; align-items: center; gap: 8px; min-width: 0; }
+.dash-alert-main .tasks-check { width: 16px; height: 16px; border-radius: 4px; }
+.dash-item-head > .dash-alert-main { min-width: 0; }
+.dash-alert.is-done,
+.dash-event.is-done {
+  border-style: dashed;
+  border: 1px dashed rgba(136, 192, 208, 0.72);
+  border-left: 3px dashed #88c0d0;
+  border-right-width: 3px;
+  background: rgba(136, 192, 208, 0.045);
+}
+.dash-alert.is-done > :not(.dash-item-head),
+.dash-alert.is-done .dash-item-title,
+.dash-alert.is-done .dash-time,
+.dash-event.is-done > :not(.dash-item-head),
+.dash-event.is-done .dash-item-title,
+.dash-event.is-done .dash-time { opacity: 0.45; }
+.dash-alert.is-done .dash-item-head .dash-alert-main,
+.dash-event.is-done .dash-item-head .dash-alert-main { opacity: 1; }
+.dash-alert.is-done .dash-item-head .dash-alert-main .dash-item-title,
+.dash-event.is-done .dash-item-head .dash-alert-main .dash-item-title { opacity: 0.45; }
+
+.dash-item-head { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
 .dash-item-title { font-weight: 600; min-width: 0; overflow-wrap: anywhere; }
 .dash-time {
   flex-shrink: 0;

@@ -1,9 +1,9 @@
 import { t, tOrRaw, tBaroItem } from '../i18n.js';
 import { state } from './state.js';
-import { addCustomTask } from './loader.js';
+import { addCustomTask, toggleTask } from './loader.js';
 import { getOwned } from '../lib/storage.js';
 import { initIcons, preloadIcons } from '../lib/icons.js';
-import { calendarHasShard, shardBucket, toneOf, categoryOf, formatCountdown, resetTargetFor, taskLabel } from './helpers.js';
+import { calendarHasShard, shardBucket, toneOf, categoryOf, formatCountdown, resetTargetFor, taskLabel, tf } from './helpers.js';
 import { openTaskModal } from './modal.js';
 import { createTaskIcon, collectTaskIconKeys } from './rewards/resolve.js';
 
@@ -435,9 +435,28 @@ function buildTileExtra(task) {
   return null;
 }
 
+// Completion checkbox shown on the tile itself (the modal keeps its own). It is a sibling of the
+// tile button, not a child: buttons cannot nest, and this way a click here never opens the modal.
+function buildTileCheck(task) {
+  const check = document.createElement('button');
+  check.type = 'button';
+  check.className = 'tasks-check';
+  check.setAttribute('role', 'checkbox');
+  check.setAttribute('aria-checked', String(Boolean(task.checked)));
+  check.setAttribute('aria-label', taskLabel(task));
+  check.title = task.checked
+    ? tf('tabs.tasks.ui.modal.mark_undone', 'Mark as not completed')
+    : tf('tabs.tasks.ui.modal.mark_done', 'Mark as completed');
+  check.onclick = async () => {
+    await toggleTask(task.id);
+    refreshTile(task.id, '.tasks-check');   // rebuild (Forma's 24h clock changes too), keep focus on the box
+  };
+  return check;
+}
+
 function buildTile(task) {
   const wrap = document.createElement('div');
-  wrap.className = 'tasks-tile-wrap';
+  wrap.className = `tasks-tile-wrap tasks-tone--${toneOf(task)}`;   // tone on the wrap so the checkbox shares it
   wrap.dataset.taskId = task.id;
 
   const tile = document.createElement('button');
@@ -470,6 +489,7 @@ function buildTile(task) {
   tile.onclick = () => openTaskModal(task, { onClose: () => refreshTile(task.id) });
 
   wrap.appendChild(tile);
+  wrap.appendChild(buildTileCheck(task));
   return wrap;
 }
 
@@ -483,7 +503,7 @@ function carryIcon(oldWrap, newWrap) {
 }
 
 // Rebuilds one tile in place after its modal closes (check state, Circuit weapons, removal).
-function refreshTile(taskId) {
+function refreshTile(taskId, focusSelector = '.tasks-tile') {
   const wrap = document.querySelector(`#tasksSection .tasks-tile-wrap[data-task-id="${taskId}"]`);
   if (!wrap) return;   // a full re-render already replaced the grid
 
@@ -494,7 +514,7 @@ function refreshTile(taskId) {
     const fresh = buildTile(task);
     carryIcon(wrap, fresh);
     wrap.replaceWith(fresh);
-    fresh.querySelector('.tasks-tile')?.focus();
+    fresh.querySelector(focusSelector)?.focus();
   }
   refreshCounts();
 }

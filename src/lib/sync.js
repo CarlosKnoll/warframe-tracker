@@ -157,6 +157,7 @@ function mergeTasksCache(local, remote) {
     lastDailyReset: laterReset(local.lastDailyReset, remote.lastDailyReset),
     lastWeeklyReset: laterReset(local.lastWeeklyReset, remote.lastWeeklyReset),
     circuitObtained: [...new Set([...(local.circuitObtained ?? []), ...(remote.circuitObtained ?? [])])],
+    alertsDone: { ...(remote.alertsDone ?? {}), ...(local.alertsDone ?? {}) },
   };
 }
 

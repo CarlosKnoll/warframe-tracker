@@ -32,6 +32,7 @@ export async function loadTasksCache() {
     state.lastDailyReset = currentDailyReset;
     state.lastWeeklyReset = currentWeeklyReset;
     state.circuitObtained = [];
+    state.alertsDone = {};
     state.worldstateCache = {};
     await saveTasksCache();
     return;
@@ -89,6 +90,9 @@ export async function loadTasksCache() {
   // circuitObtained is permanent — never reset, just carry forward as-is.
   // Guard against missing key in older cache files.
   state.circuitObtained = Array.isArray(raw.circuitObtained) ? raw.circuitObtained : [];
+
+  // Ticked live alerts/events remain completed only until their own expiry.
+  state.alertsDone = pruneAlertsDone(raw.alertsDone);
 
   // worldstateCache — absent in older cache files; treat missing as empty object.
   // Entries are validated lazily in fetchWorldstate(), so we just carry them forward as-is.
@@ -295,6 +299,7 @@ export async function saveTasksCache({ fromSync = false } = {}) {
     lastWeeklyReset: state.lastWeeklyReset,
     tasks: state.tasks,
     circuitObtained: state.circuitObtained,
+    alertsDone: state.alertsDone,
     worldstateCache: state.worldstateCache,
   };
   await invoke('save_tasks_cache', { data: payload });
@@ -340,6 +345,39 @@ export async function toggleTask(taskId) {
   }
 
   await saveTasksCache();
+}
+
+
+// ── Live alert/event completion ───────────────────────────────────────────────
+const ALERT_DONE_FALLBACK_MS = 14 * 24 * 60 * 60 * 1000;
+
+function pruneAlertsDone(map) {
+  const out = {};
+  if (!map || typeof map !== 'object' || Array.isArray(map)) return out;
+  const now = Date.now();
+  for (const [id, expiry] of Object.entries(map)) {
+    if (Number.isFinite(expiry) && expiry > now) out[id] = expiry;
+  }
+  return out;
+}
+
+export function isAlertDone(alertId) {
+  const expiry = state.alertsDone?.[alertId];
+  return Number.isFinite(expiry) && expiry > Date.now();
+}
+
+export async function toggleAlertDone(alertId, expiryMs) {
+  state.alertsDone = pruneAlertsDone(state.alertsDone);
+  const nowDone = !(alertId in state.alertsDone);
+  if (nowDone) {
+    state.alertsDone[alertId] = Number.isFinite(expiryMs) && expiryMs > Date.now()
+      ? expiryMs
+      : Date.now() + ALERT_DONE_FALLBACK_MS;
+  } else {
+    delete state.alertsDone[alertId];
+  }
+  await saveTasksCache();
+  return nowDone;
 }
 
 export async function toggleCircuitWeapon(weaponName) {

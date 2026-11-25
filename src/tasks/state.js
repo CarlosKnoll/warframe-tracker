@@ -44,6 +44,7 @@ export const state = {
   baroData: null,
   baroNewItemsSnapshot: null,
   circuitObtained: [],
+  alertsDone: {},           // { [alertId]: expiryMs } — live alerts the user ticked (synced inside tasksCache)
   worldstateCache: {},
   masteredSet: new Set(),   // uniqueNames of mastered items, loaded from owned store
 };
