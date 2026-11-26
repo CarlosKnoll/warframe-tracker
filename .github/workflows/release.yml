@@ -145,7 +145,7 @@ jobs:
               '',
               `**Date:** ${date}`,
               `**Version:** \`${currentTag}\``,
-              `**LatestCommit:** [\`${sha.substring(0, 7)}\`](${repositoryUrl}/commit/${sha})`,
+              `**Latest Commit:** [\`${sha.substring(0, 7)}\`](${repositoryUrl}/commit/${sha})`,
               '',
               '## Commits',
               '',
