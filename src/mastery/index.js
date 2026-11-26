@@ -1,6 +1,6 @@
 // mastery/index.js - Initializes and ties all mastery modules together
 
-import { masteryState } from './state.js';
+import { masteryState, DEFAULT_MASTERY_SECTION, MASTERY_SUBSECTIONS } from './state.js';
 import { loadMasteryItems } from './loader.js';
 import { initMasteryImageCache, renderMastery, resetMasteryImageObserver } from './renderer.js';
 import { initMasteryFilters, updateMasteryProgress } from './filters.js';
@@ -10,12 +10,12 @@ document.addEventListener('mastery-progress-update', updateMasteryProgress);
 
 // ─── Init ──────────────────────────────────────────────────────────────────────
 
-export async function initMastery(ownedData, masteryMasteredData, ignoredData, saveFn, initialSection = 'mastery-warframes') {
+export async function initMastery(ownedData, masteryMasteredData, ignoredData, saveFn) {
   masteryState.owned              = ownedData;
   masteryState.masteryMastered    = masteryMasteredData;
   masteryState.ignoredMasteryItems = ignoredData;
   masteryState.saveFunction       = saveFn;
-  masteryState.activeSection = initialSection;
+  masteryState.activeSection = DEFAULT_MASTERY_SECTION;
 
   // Show loading state immediately
   const list = document.getElementById('masteryList');
@@ -30,13 +30,32 @@ export async function initMastery(ownedData, masteryMasteredData, ignoredData, s
     loadMasteryItems(),
   ]);
 
+  buildMasterySubnav();
   initMasteryFilters();
   renderMastery();
   updateMasteryProgress();
 }
 
+// ─── Category tab bar ──────────────────────────────────────────────────────────
+// Created once; labels and the active tab are synced by renderMastery().
+
+function buildMasterySubnav() {
+  const nav = document.getElementById('masterySubnav');
+  if (!nav) return;
+  nav.innerHTML = '';
+  MASTERY_SUBSECTIONS.forEach(({ id }) => {
+    const btn = document.createElement('button');
+    btn.type = 'button';
+    btn.className = 'mastery-subnav-btn';
+    btn.dataset.masterySection = id;
+    btn.setAttribute('role', 'tab');
+    btn.onclick = () => { if (masteryState.activeSection !== id) setMasterySection(id); };
+    nav.appendChild(btn);
+  });
+}
+
 // ─── Section switching ─────────────────────────────────────────────────────────
-// Called by main.js when the user clicks a mastery sub-section in the sidebar.
+// Called by the tab bar above when the user picks a category.
 
 export function setMasterySection(section) {
   masteryState.activeSection = section;

@@ -3,6 +3,42 @@
 /* ─── Section layout ──────────────────────────────────────────────────────────── */
 /* Padding is handled by .section-toolbar and .section-list in layout.css        */
 
+/* ─── Category tab bar (same look as .primes-subnav) ─────────────────────────── */
+
+.mastery-subnav {
+  display: flex;
+  gap: 6px;
+  padding: 14px 24px 0;
+  background: #0c0f16;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+  flex-shrink: 0;
+  overflow-x: auto;          /* 12 tabs — scroll instead of wrapping */
+  scrollbar-width: none;
+}
+
+.mastery-subnav::-webkit-scrollbar { display: none; }
+
+.mastery-subnav-btn {
+  flex-shrink: 0;
+  padding: 9px 14px;
+  color: #aeb6c8;
+  background: transparent;
+  border: 0;
+  border-bottom: 2px solid transparent;
+  border-radius: 5px 5px 0 0;
+  cursor: pointer;
+  font-size: 0.82rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.mastery-subnav-btn:hover { color: #e5e9f0; background: rgba(255, 255, 255, 0.035); }
+.mastery-subnav-btn.active { color: #e5e9f0; border-bottom-color: #c9a84c; }
+
+@media (max-width: 768px) {
+  .mastery-subnav { padding-left: 14px; padding-right: 14px; }
+}
+
 /* ─── Toolbar: search + status filter + progress ──────────────────────────────── */
 
 #masteryToolbar {

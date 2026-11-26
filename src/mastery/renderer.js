@@ -5,17 +5,13 @@ const invoke = window.__TAURI_INTERNALS__.invoke;
 import { masteryState, IMAGE_BASE,
          STARCHART_TRACKS, RAILJACK_INTRINSICS, DRIFTER_INTRINSICS,
          INTRINSIC_XP_PER_RANK, INTRINSIC_MAX_RANK,
-         MASTERY_FOUNDER_ITEMS } from './state.js';
+         MASTERY_FOUNDER_ITEMS,
+         MASTERY_SUBSECTIONS, MASTERY_MISC_SECTION, itemInSection } from './state.js';
 import { t, tMasteryItemName, tComponent, getLanguage } from '../i18n.js';
 import { openMasteryItemModal, openPrimeCardModal } from '../modal.js';
 import { state as primesState } from '../primes/state.js';
 import { buildDropTableForPrime, hasRelicDrops } from '../primes/renderer.js';
 import { loadPrimes } from '../primes/loader.js';
-
-// Hardcoded overrides if any item is miscategorized in WFCD / DE endpoints
-const SECTION_OVERRIDES = {
-  '/Lotus/Weapons/Tenno/Archwing/Melee/PrimeCorufell/PrimeCorufellScytheWeapon': 'Melee', // Corufell Prime is miscategorized as Arch-Melee instead of Melee
-};
 
 // ─── Image cache ───────────────────────────────────────────────────────────────
 
@@ -110,7 +106,7 @@ function buildBadge(item) {
 
 // ─── Card ──────────────────────────────────────────────────────────────────────
 
-function buildCard(item, observer) {
+function buildCard(item, observer, displayName = tMasteryItemName(item.name)) {
   const mastered = !!masteryState.masteryMastered[item.uniqueName];
   const owned    = (masteryState.owned[`${item.uniqueName}_owned`] ?? 0) > 0;
 
@@ -125,7 +121,7 @@ function buildCard(item, observer) {
   imgWrap.className = 'mastery-card-image';
 
   const img = document.createElement('img');
-  img.alt = tMasteryItemName(item.name);
+  img.alt = displayName;
   img.style.opacity = '0';
   img.style.transition = 'opacity 0.2s';
   img.onload  = () => { img.style.opacity = '1'; };
@@ -174,7 +170,7 @@ function buildCard(item, observer) {
   const body = document.createElement('div');
   body.className = 'mastery-card-body';
   body.innerHTML = `
-    <div class="mastery-card-name">${tMasteryItemName(item.name)}</div>
+    <div class="mastery-card-name">${displayName}</div>
     <div class="mastery-card-xp">${(item.masteryPoints ?? 0).toLocaleString()} ${t('mastery.ui.label.xp')}</div>
     ${buildBadge(item)}
   `;
@@ -460,20 +456,57 @@ function renderMiscSection(list) {
   list.appendChild(container);
 }
 
+// ─── Category tab bar ──────────────────────────────────────────────────────────
+// Buttons are created once in index.js; labels/active state are synced on every render
+// so language changes and section switches are both covered.
+
+export function syncMasterySubnav() {
+  const lang = getLanguage();
+  document.querySelectorAll('#masterySubnav [data-mastery-section]').forEach(btn => {
+    const sub = MASTERY_SUBSECTIONS.find(s => s.id === btn.dataset.masterySection);
+    if (!sub) return;
+    const translated = t(sub.labelKey);
+    btn.textContent = translated !== sub.labelKey ? translated : (sub.fallback?.[lang] ?? sub.fallback?.en ?? translated);
+    const active = sub.id === masteryState.activeSection;
+    btn.classList.toggle('active', active);
+    btn.setAttribute('aria-selected', String(active));
+  });
+}
+
 // ─── Main render ───────────────────────────────────────────────────────────────
+
+const SEARCH_KEYWORDS = { 'kitgun': 'Kitgun', 'zaw': 'Zaw' };
+
+// Cards are appended in time-boxed chunks: the first screenful is built synchronously,
+// the rest are spread across animation frames so the "All" tab (~1k cards) never blocks
+// the main thread. A new render bumps the token, which makes any in-flight chunk loop stop.
+const FIRST_CHUNK_MIN = 60;   // cards built before the first yield, regardless of time
+const CHUNK_BUDGET_MS = 10;   // per-frame budget for the remaining cards
+let renderToken = 0;
+
+// Intl.Collator is far cheaper than String#localeCompare(a, locale) in a sort comparator
+const collators = new Map();
+function getCollator() {
+  const locale = getLanguage() === 'pt' ? 'pt-BR' : 'en';
+  let col = collators.get(locale);
+  if (!col) { col = new Intl.Collator(locale); collators.set(locale, col); }
+  return col;
+}
 
 export function renderMastery() {
   const list = document.getElementById('masteryList');
   if (!list) return;
 
+  const token = ++renderToken;
   list.innerHTML = '';
   list.style.display = ''; // restore grid (may have been overridden by misc section)
   resetMasteryImageObserver();
+  syncMasterySubnav();
 
-  const { items, masteryMastered, activeSection, searchText, statusFilter } = masteryState;
+  const { items, masteryMastered, owned, ignoredMasteryItems, activeSection, searchText, statusFilter } = masteryState;
 
   // Misc section gets its own layout — no toolbar, no card grid
-  if (activeSection === 'mastery-misc') {
+  if (activeSection === MASTERY_MISC_SECTION) {
     document.getElementById('masteryToolbar').style.display = 'none';
     renderMiscSection(list);
     return;
@@ -481,73 +514,64 @@ export function renderMastery() {
 
   document.getElementById('masteryToolbar').style.display = '';
 
-  // Maps sidebar data-section values to the section field used by the loader
-  const SECTION_MAP = {
-    'mastery-warframes':   'Warframe',
-    'mastery-primaries':   ['Primary', 'Kitgun'],
-    'mastery-secondaries': ['Secondary', 'Kitgun'],
-    'mastery-melees':      ['Melee', 'Zaw'],
-    'mastery-robotic':     ['Robotic', 'SentinelWeapon'],
-    'mastery-companions':  'Companion',
-    'mastery-vehicles':    ['Vehicle', 'Archwing'],
-    'mastery-archgun':     'Arch-Gun',
-    'mastery-archmelee':   'Arch-Melee',
-    'mastery-amps':        'Amp',
-  };
+  // Everything that doesn't depend on the item is computed once, not per item
+  const q = searchText.toLowerCase();
+  const matchedSections = q
+    ? new Set(Object.entries(SEARCH_KEYWORDS).filter(([keyword]) => keyword.startsWith(q)).map(([, section]) => section))
+    : null;
 
-  const activeSectionValue = SECTION_MAP[activeSection] ?? activeSection;
-  
-  const sectionItems = items.filter(item => {
-    const effectiveSection = SECTION_OVERRIDES[item.uniqueName] ?? item.section;
+  // Single pass: section + search + status filters, with the display name and sort rank
+  // computed once per item (rank: missing first, owned, mastered, ignored last).
+  const rows = [];
+  for (const item of items) {
+    if (!itemInSection(item, activeSection)) continue;
 
-    const sectionMatch = Array.isArray(activeSectionValue)
-      ? activeSectionValue.includes(effectiveSection)
-      : item.section === activeSectionValue;
+    const displayName = tMasteryItemName(item.name);
 
-    const q = searchText.toLowerCase();
-    const SEARCH_KEYWORDS = { 'kitgun': 'Kitgun', 'zaw': 'Zaw' };
-    const matchedSections = Object.entries(SEARCH_KEYWORDS)
-      .filter(([keyword]) => keyword.startsWith(q))
-      .map(([, section]) => section);
+    if (q && !(
+      item.name.toLowerCase().includes(q) ||
+      displayName.toLowerCase().includes(q) ||
+      matchedSections.has(item.section)
+    )) continue;
 
-    const searchMatch = !searchText
-      || item.name.toLowerCase().includes(q)
-      || tMasteryItemName(item.name).toLowerCase().includes(q)
-      || matchedSections.includes(item.section);
-
-    const isOwned    = (masteryState.owned[`${item.uniqueName}_owned`] ?? 0) > 0;
+    const isOwned    = (owned[`${item.uniqueName}_owned`] ?? 0) > 0;
     const isMastered = !!masteryMastered[item.uniqueName];
     const statusMatch =
       statusFilter === 'all'                                    ||
-      (statusFilter === 'owned'    && isOwned )   ||
+      (statusFilter === 'owned'    && isOwned )                 ||
       (statusFilter === 'mastered' && isMastered)               ||
       (statusFilter === 'missing'  && !isOwned);
+    if (!statusMatch) continue;
 
-      return sectionMatch && searchMatch && statusMatch;
-  });
+    const isIgnored = MASTERY_FOUNDER_ITEMS.has(item.name) && ignoredMasteryItems.has(item.uniqueName);
+    rows.push({ item, displayName, rank: isIgnored ? 3 : isMastered ? 2 : isOwned ? 1 : 0 });
+  }
 
-  // Sort alphabetically within status groups (mastered last, owned middle, missing first)
-  sectionItems.sort((a, b) => {
-    const aM = !!masteryMastered[a.uniqueName];
-    const bM = !!masteryMastered[b.uniqueName];
-    const aO = (masteryState.owned[`${a.uniqueName}_owned`] ?? 0) > 0;
-    const bO = (masteryState.owned[`${b.uniqueName}_owned`] ?? 0) > 0;
-    const aI = MASTERY_FOUNDER_ITEMS.has(a.name) && masteryState.ignoredMasteryItems.has(a.uniqueName);
-    const bI = MASTERY_FOUNDER_ITEMS.has(b.name) && masteryState.ignoredMasteryItems.has(b.uniqueName);
+  const collator = getCollator();
+  rows.sort((a, b) => (a.rank - b.rank) || collator.compare(a.displayName, b.displayName));
 
-    const rank = (m, o, ignored) => ignored ? 3 : m ? 2 : o ? 1 : 0;
-    const diff = rank(aM, aO, aI) - rank(bM, bO, bI);
-    if (diff !== 0) return diff;
-    return tMasteryItemName(a.name).localeCompare(tMasteryItemName(b.name), getLanguage() === "pt" ? "pt-BR" : "en");
-  });
-
-  if (sectionItems.length === 0) {
+  if (rows.length === 0) {
     list.innerHTML = `<p class="mastery-empty">${t('feedback.noItems')}</p>`;
     return;
   }
 
   const observer = getImageObserver();
-  const fragment = document.createDocumentFragment();
-  sectionItems.forEach(item => fragment.appendChild(buildCard(item, observer)));
-  list.appendChild(fragment);
+  let i = 0;
+
+  const appendChunk = () => {
+    if (token !== renderToken) return; // superseded by a newer render
+    const fragment = document.createDocumentFragment();
+    const deadline = performance.now() + CHUNK_BUDGET_MS;
+    const minEnd   = i === 0 ? FIRST_CHUNK_MIN : 0;
+
+    do {
+      const { item, displayName } = rows[i++];
+      fragment.appendChild(buildCard(item, observer, displayName));
+    } while (i < rows.length && (i < minEnd || performance.now() < deadline));
+
+    list.appendChild(fragment);
+    if (i < rows.length) requestAnimationFrame(appendChunk);
+  };
+
+  appendChunk();
 }

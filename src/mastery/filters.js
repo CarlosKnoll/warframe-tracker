@@ -1,6 +1,6 @@
 // mastery/filters.js - Filter state management and UI wiring for mastery
 
-import { masteryState, MASTERY_FOUNDER_ITEMS } from './state.js';
+import { masteryState, MASTERY_FOUNDER_ITEMS, MASTERY_MISC_SECTION, itemInSection } from './state.js';
 import { renderMastery } from './renderer.js';
 import { t } from '../i18n.js';
 
@@ -12,13 +12,17 @@ export function initMasteryFilters() {
 
   clearBtn.style.display = 'none';
 
+  // Debounced: each render re-sorts and rebuilds the grid, which is heavy in the "All" tab
+  let searchTimer = null;
   searchInput.oninput = e => {
     masteryState.searchText = e.target.value;
     clearBtn.style.display = masteryState.searchText ? 'block' : 'none';
-    renderMastery();
+    clearTimeout(searchTimer);
+    searchTimer = setTimeout(renderMastery, 150);
   };
 
   clearBtn.onclick = () => {
+    clearTimeout(searchTimer);
     searchInput.value = '';
     masteryState.searchText = '';
     clearBtn.style.display = 'none';
@@ -44,31 +48,13 @@ export function updateMasteryProgress() {
   const el = document.getElementById('masteryProgress');
   if (!el) return;
 
-  if (masteryState.activeSection === 'mastery-misc') {
+  if (masteryState.activeSection === MASTERY_MISC_SECTION) {
     el.textContent = '';
     return;
   }
 
-  const SECTION_MAP = {
-    'mastery-warframes':   'Warframe',
-    'mastery-primaries':   ['Primary', 'Kitgun'],
-    'mastery-secondaries': ['Secondary', 'Kitgun'],
-    'mastery-melees':      ['Melee', 'Zaw'],
-    'mastery-robotic':     ['Robotic', 'SentinelWeapon'],
-    'mastery-companions':  'Companion',
-    'mastery-vehicles':    ['Vehicle', 'Archwing'],
-    'mastery-archgun':     'Arch-Gun',
-    'mastery-archmelee':   'Arch-Melee',
-    'mastery-amps':        'Amp',
-  };
-
-  const sectionValue = SECTION_MAP[masteryState.activeSection] ?? masteryState.activeSection;
-
   const sectionItems = masteryState.items.filter(item => {
-    const sectionMatch = Array.isArray(sectionValue)
-      ? sectionValue.includes(item.section)
-      : item.section === sectionValue;
-    if (!sectionMatch) return false;
+    if (!itemInSection(item, masteryState.activeSection)) return false;
     if (MASTERY_FOUNDER_ITEMS.has(item.name) && masteryState.ignoredMasteryItems.has(item.uniqueName)) return false;
     return true;
   });

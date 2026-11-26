@@ -31,36 +31,14 @@ let marketInitialized = false;
 let vendorsModule = null;
 let vendorsInitialized = false;
 
-// ─── Mastery nav group toggle ──────────────────────────────────────────────────
-
-const masteryToggle = document.getElementById('masteryToggle');
-const masteryNavItems = document.getElementById('masteryItems');
-
-if (masteryToggle && masteryNavItems) {
-  masteryToggle.onclick = () => {
-    const expanded = masteryToggle.getAttribute('aria-expanded') === 'true';
-    masteryToggle.setAttribute('aria-expanded', String(!expanded));
-    masteryNavItems.classList.toggle('open', !expanded);
-  };
-}
-
 // ─── Active state helpers ──────────────────────────────────────────────────────
 
 function setActiveNavButton(section) {
-  document.querySelectorAll('.nav-btn, .nav-sub-btn').forEach(b => b.classList.remove('active'));
-  masteryToggle?.classList.remove('has-active');
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
 
-  if (section.startsWith('mastery-')) {
-    const subBtn = document.querySelector(`.nav-sub-btn[data-section="${section}"]`);
-    subBtn?.classList.add('active');
-    masteryToggle?.classList.add('has-active');
-    updateGridSliderVisibility(subBtn);
-  } else {
-    const btn = document.querySelector(`.nav-btn[data-section="${section}"]`);
-    btn?.classList.add('active');
-    updateGridSliderVisibility(btn);
-  }
-  
+  const btn = document.querySelector(`.nav-btn[data-section="${section}"]`);
+  btn?.classList.add('active');
+  updateGridSliderVisibility(btn);
 }
 
 // ─── Language switcher ─────────────────────────────────────────────────────────
@@ -77,7 +55,7 @@ window.addEventListener('langchange', async () => {
     arcanesModule.renderArcanes();
   } else if (activeMode === 'primes' && primesInitialized) {
     primesModule.renderPrimes();
-  } else if (activeMode.startsWith('mastery-') && masteryInitialized) {
+  } else if (activeMode === 'mastery' && masteryInitialized) {
     masteryModule.renderMastery();
     masteryModule.updateMasteryProgress();
   } else if (activeMode === 'mods' && modsInitialized) {
@@ -127,16 +105,17 @@ async function navigateTo(section) {
       primesModule.renderPrimes();
     }
 
-  } else if (section.startsWith("mastery-")) {
+  } else if (section === "mastery") {
     document.getElementById("masterySection").classList.add("active");
     if (!masteryInitialized) {
       masteryModule = await import('./mastery/index.js');
-      // Pass live getter functions instead of object references
-    await masteryModule.initMastery(owned, masteryMastered, ignoredMasteryItems, save, section);
-    masteryInitialized = true;
-    masteryModule.renderMastery();
+      // initMastery already renders; a second renderMastery() here would build every card twice
+      await masteryModule.initMastery(owned, masteryMastered, ignoredMasteryItems, save);
+      masteryInitialized = true;
     } else {
-      masteryModule.setMasterySection(section);
+      // Keep the chosen category/search; re-render because the Primes tab can change mastery flags
+      masteryModule.renderMastery();
+      masteryModule.updateMasteryProgress();
     }
   } else if (section === 'mods') {
     document.getElementById('modsSection').classList.add('active');
@@ -261,12 +240,12 @@ async function init() {
       Object.keys(masteryMastered).forEach(k => delete masteryMastered[k]);
       Object.assign(masteryMastered, stored.masteryMastered || {});
 
-      const active = document.querySelector('#sidebar .nav-btn.active, #sidebar .nav-sub-btn.active');
+      const active = document.querySelector('#sidebar .nav-btn.active');
       if (active) {
         const section = active.dataset.section;
         if (section === 'arcanes' && arcanesInitialized) arcanesModule.renderArcanes();
         else if (section === 'primes' && primesInitialized) primesModule.renderPrimes();
-        else if (section.startsWith('mastery-') && masteryInitialized) {
+        else if (section === 'mastery' && masteryInitialized) {
           masteryModule.renderMastery();
           masteryModule.updateMasteryProgress();
         }
@@ -308,7 +287,7 @@ async function init() {
   }
 
   const initialActive = document.querySelector(
-    ".nav-btn.active, .nav-sub-btn.active"
+    ".nav-btn.active"
   );
 
   if (initialActive) {

@@ -39,26 +39,8 @@
         <!-- Tasks — direct nav button -->
         <button class="nav-btn active" data-section="tasks"  data-has-grid="false" data-i18n="menus-nav.mode.dashboard">Dashboard</button>
 
-        <!-- Mastery — direct nav button and sub-menus -->
-        <div class="nav-group" id="masteryNav">
-          <button class="nav-group-toggle" id="masteryToggle" aria-expanded="false">
-            <span data-i18n="mode.mastery">Mastery</span>
-            <span class="nav-group-arrow">›</span>
-          </button>
-          <div class="nav-group-items" id="masteryItems">
-            <button class="nav-sub-btn" data-section="mastery-warframes"  data-has-grid="true" data-i18n="menus-nav.mode.mastery-div.warframes">Warframes</button>
-            <button class="nav-sub-btn" data-section="mastery-primaries" data-has-grid="true" data-i18n="menus-nav.mode.mastery-div.primaries">Primaries</button>
-            <button class="nav-sub-btn" data-section="mastery-secondaries" data-has-grid="true" data-i18n="menus-nav.mode.mastery-div.secondaries">Secondaries</button>
-            <button class="nav-sub-btn" data-section="mastery-melees" data-has-grid="true" data-i18n="menus-nav.mode.mastery-div.melees">Melees</button>
-            <button class="nav-sub-btn" data-section="mastery-robotic" data-has-grid="true" data-i18n="menus-nav.mode.mastery-div.robotic">Robotic</button>
-            <button class="nav-sub-btn" data-section="mastery-companions" data-has-grid="true" data-i18n="menus-nav.mode.mastery-div.companions">Companions</button>
-            <button class="nav-sub-btn" data-section="mastery-vehicles" data-has-grid="true" data-i18n="menus-nav.mode.mastery-div.vehicles">Vehicles</button>
-            <button class="nav-sub-btn" data-section="mastery-archgun" data-has-grid="true" data-i18n="menus-nav.mode.mastery-div.archgun">Arch-Gun</button>
-            <button class="nav-sub-btn" data-section="mastery-archmelee" data-has-grid="true" data-i18n="menus-nav.mode.mastery-div.archmelee">Arch-Melee</button>
-            <button class="nav-sub-btn" data-section="mastery-amps" data-has-grid="true" data-i18n="menus-nav.mode.mastery-div.amps">Amps</button>
-            <button class="nav-sub-btn" data-section="mastery-misc" data-has-grid="true" data-i18n="menus-nav.mode.mastery-div.misc">Misc</button>
-          </div>
-        </div>
+        <!-- Mastery — direct nav button (sub-sections live in the tab bar inside the section) -->
+        <button class="nav-btn" data-section="mastery" data-has-grid="true" data-i18n="mode.mastery">Mastery</button>
 
         <!-- Primes — direct nav button -->
         <button class="nav-btn" data-section="primes" data-has-grid="true" data-i18n="mode.primes">Primes</button>
@@ -315,6 +297,7 @@
       </div>
 
       <div id="masterySection" class="tracker-section">
+        <div class="mastery-subnav" id="masterySubnav" role="tablist" aria-label="Mastery categories"></div>
         <div class="section-toolbar">
           <div id="masteryToolbar">
             <div id="masteryToolbarTop">
