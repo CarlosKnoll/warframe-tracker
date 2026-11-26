@@ -12,14 +12,11 @@
   background: #0c0f16;
   border-bottom: 1px solid rgba(255, 255, 255, 0.07);
   flex-shrink: 0;
-  overflow-x: auto;          /* 12 tabs — scroll instead of wrapping */
-  scrollbar-width: none;
+  flex-wrap: wrap;           /* 12 tabs — wrap onto extra rows on narrow windows */
+  row-gap: 0;
 }
 
-.mastery-subnav::-webkit-scrollbar { display: none; }
-
 .mastery-subnav-btn {
-  flex-shrink: 0;
   padding: 9px 14px;
   color: #aeb6c8;
   background: transparent;
