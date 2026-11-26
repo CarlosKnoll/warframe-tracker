@@ -141,12 +141,13 @@ export function openElementModal({ title, type, build, onClose = null }) {
 
 // ─── Relic Modal ───────────────────────────────────────────────────────────────
 
-export function openRelicModal(relicName, rewards, pushCurrent = false, isResurgence = false) {
+export function openRelicModal(relicName, rewards, pushCurrent = false, isResurgence = false, highlightedRewards = []) {
   // Left side — prime parts table
   let leftContent;
   if (!rewards || rewards.length === 0) {
     leftContent = `<p class="no-drops">${t('general.drops.modal.noRewards')}</p>`;
   } else {
+    const highlighted = new Set(highlightedRewards.map(name => String(name ?? '').trim().toLowerCase()));
     const sorted = [...rewards].sort((a, b) => b.chance - a.chance);
     leftContent = `
       <table class="modal-table">
@@ -158,13 +159,16 @@ export function openRelicModal(relicName, rewards, pushCurrent = false, isResurg
           </tr>
         </thead>
         <tbody>
-          ${sorted.map(r => `
-            <tr>
+          ${sorted.map(r => {
+            const isMissing = highlighted.has(String(r.itemName ?? '').trim().toLowerCase());
+            return `
+            <tr class="${isMissing ? 'relic-reward-missing' : ''}">
               <td>${tItemName(r.itemName)}</td>
               <td class="rarity rarity-${r.rarity.toLowerCase()}">${tRarity(r.rarity)}</td>
               <td class="relic-location-chance">${r.chance.toFixed(2)}%</td>
             </tr>
-          `).join('')}
+          `;
+          }).join('')}
         </tbody>
       </table>
     `;

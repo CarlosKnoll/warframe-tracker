@@ -13,6 +13,7 @@
   <link rel="stylesheet" href="styles/modal.css" />
   <link rel="stylesheet" href="styles/mods.css" />
   <link rel="stylesheet" href="styles/primes.css" />
+  <link rel="stylesheet" href="styles/relics.css" />
   <link rel="stylesheet" href="styles/sidebar.css" />
   <link rel="stylesheet" href="styles/tasks.css" />
   <link rel="stylesheet" href="styles/dashboard.css" />
@@ -205,7 +206,11 @@
       </div>
 
       <div id="primesSection" class="tracker-section">
-        <div class="section-toolbar">
+        <div class="primes-subnav" role="tablist" aria-label="Prime tracker views">
+          <button type="button" class="primes-subnav-btn active" data-primes-view="primes" role="tab" aria-selected="true">Prime items</button>
+          <button type="button" class="primes-subnav-btn" data-primes-view="relics" role="tab" aria-selected="false">Relic Finder</button>
+        </div>
+        <div class="section-toolbar" id="primeMainToolbar">
           <div id="primesSearchRow">
             <div class="search-container">
               <input
@@ -251,9 +256,10 @@
             </div>
           </div>
         </div>
-        <div class="section-list">
+        <div class="section-list" id="primeMainList">
           <div id="primeList"></div>
         </div>
+        <div id="relicFinder" class="section-list relic-finder-view" role="tabpanel" hidden></div>
       </div>
 
       <div id="modsSection" class="tracker-section">

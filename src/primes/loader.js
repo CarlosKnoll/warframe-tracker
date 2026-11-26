@@ -42,8 +42,10 @@ export async function loadPrimes() {
 
     // ── Process mission rewards → farmableRelics + relicLocationMap ──────────
     state.farmableRelics = new Set();
+    state.missionRewardsLoaded = false;
     if (missionsResult.status === 'fulfilled') {
       const missions = missionsResult.value.missionRewards || {};
+      state.missionRewardsLoaded = Object.keys(missions).length > 0;
       Object.entries(missions).forEach(([planetName, planet]) => {
         Object.entries(planet).forEach(([missionName, mission]) => {
           if (mission.rewards) {

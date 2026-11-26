@@ -377,3 +377,13 @@
   border-color: var(--accent, #c9a84c);
   color: var(--accent, #c9a84c);
 }
+
+/* Rewards targeted by the Relic Finder's current missing-part lookup. */
+.modal-box[data-type="relic"] .modal-table tr.relic-reward-missing {
+  background: rgba(201,168,76,.12);
+  box-shadow: inset 3px 0 0 #c9a84c;
+}
+.modal-box[data-type="relic"] .modal-table tr.relic-reward-missing td:first-child {
+  color: #f0d99a;
+  font-weight: 700;
+}

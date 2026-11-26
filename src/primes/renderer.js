@@ -341,6 +341,7 @@ export function renderPrimes() {
           try {
             await state.saveFunction();
             updatePrimeCardTag(p, card);
+            window.dispatchEvent(new CustomEvent('primeownershipchange'));
           } catch (err) {
             console.error("Save failed:", err);
           }
@@ -351,6 +352,7 @@ export function renderPrimes() {
           else delete masteryState.masteryMastered[key];
           try {
             await masteryState.saveFunction();
+            window.dispatchEvent(new CustomEvent('primeownershipchange'));
           } catch (err) {
             console.error("Mastery save failed:", err);
           }

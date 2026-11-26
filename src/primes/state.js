@@ -3,6 +3,7 @@
 export const state = {
   allPrimes: [],
   farmableRelics: new Set(),
+  missionRewardsLoaded: false,
   relicRewardsMap: new Map(),
   owned: {},
   ignoredPrimes: new Set(),
