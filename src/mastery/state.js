@@ -79,8 +79,8 @@ const SECTION_SETS = new Map(
 );
 
 // Hardcoded overrides if any item is miscategorized in WFCD / DE endpoints
+// Entries have the form: { uniqueName: sectionId } where sectionId is one of the item.section values
 const SECTION_OVERRIDES = {
-  '/Lotus/Weapons/Tenno/Archwing/Melee/PrimeCorufell/PrimeCorufellScytheWeapon': 'Melee', // Corufell Prime is miscategorized as Arch-Melee instead of Melee
 };
 
 export function getEffectiveSection(item) {
